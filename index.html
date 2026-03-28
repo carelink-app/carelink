@@ -269,6 +269,13 @@
     <p style="font-size:17px;color:#666;text-align:center;line-height:1.6;margin-bottom:48px">요양보호사 구인구직<br>이제 쉽고 빠르게 찾으세요</p>
     <div style="background:#fff;border-radius:20px;padding:28px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,.08)">
       <p style="font-size:15px;color:#999;text-align:center;margin-bottom:18px">카카오톡으로 3초만에 시작</p>
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px">
+        <input type="checkbox" id="agree-terms" style="width:20px;height:20px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)"/>
+        <label for="agree-terms" style="font-size:13px;color:#666;line-height:1.5;cursor:pointer">
+          <span onclick="event.preventDefault();openModal('modal-terms')" style="color:var(--primary);text-decoration:underline">이용약관</span> 및
+          <span onclick="event.preventDefault();openModal('modal-privacy')" style="color:var(--primary);text-decoration:underline">개인정보처리방침</span>에 동의합니다
+        </label>
+      </div>
       <button class="btn btn-kakao" id="kakao-btn" onclick="doKakaoLogin()">
         <span style="font-size:22px">💬</span> 카카오로 시작하기
       </button>
@@ -439,7 +446,7 @@
   </div>
 
   <!-- 앱 공지 배너 -->
-  <div id="app-notice-banner" style="display:none;background:#FF9800;color:#fff;padding:14px 16px;margin:8px 12px;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600">
+  <div id="app-notice-banner" style="display:none;background:#FF9800;color:#fff;padding:14px 16px;margin:8px 12px;border-radius:10px;align-items:center;gap:10px;font-size:14px;font-weight:600">
     <span>📢</span>
     <span id="app-notice-text" style="flex:1"></span>
     <button onclick="closeNoticeBanner()" style="background:rgba(0,0,0,.2);color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px">✕</button>
@@ -998,11 +1005,11 @@
     <div class="modal-header">신고하기</div>
     <div style="margin-bottom:16px">
       <div class="modal-section-title">신고 사유를 선택해 주세요</div>
-      <button class="report-reason-btn" onclick="selectReason('fake')">🚫 허위/사기 공고</button>
-      <button class="report-reason-btn" onclick="selectReason('inappropriate')">⚠️ 부적절한 내용</button>
-      <button class="report-reason-btn" onclick="selectReason('abusive')">😠 욕설/비방</button>
-      <button class="report-reason-btn" onclick="selectReason('duplicate')">♻️ 중복 게시</button>
-      <button class="report-reason-btn" onclick="selectReason('other')">❓ 기타</button>
+      <button class="report-reason-btn" onclick="selectReason('fake', this)">🚫 허위/사기 공고</button>
+      <button class="report-reason-btn" onclick="selectReason('inappropriate', this)">⚠️ 부적절한 내용</button>
+      <button class="report-reason-btn" onclick="selectReason('abusive', this)">😠 욕설/비방</button>
+      <button class="report-reason-btn" onclick="selectReason('duplicate', this)">♻️ 중복 게시</button>
+      <button class="report-reason-btn" onclick="selectReason('other', this)">❓ 기타</button>
     </div>
     <div style="display:flex;gap:10px">
       <button class="btn" style="flex:1" onclick="submitReport()">신고하기</button>
@@ -1166,10 +1173,15 @@
       ② 해킹 등에 대비한 기술적 대책: Firebase Security Rules를 통한 접근 제어<br>
       ③ 개인정보 취급 최소화: 서비스 제공에 필요한 최소한의 개인정보만 수집<br><br>
 
+      <b style="font-size:14px;color:#333">제7조의2 (개인정보의 파기절차 및 방법)</b><br>
+      ① 케어링크는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체없이 해당 개인정보를 파기합니다.<br>
+      ② 파기절차: 이용자가 입력한 정보는 목적 달성 후 별도의 DB로 옮겨져 내부 방침 및 기타 관련 법령에 따라 일정기간 저장된 후 파기됩니다.<br>
+      ③ 파기방법: 전자적 파일 형태의 정보는 기록을 재생할 수 없는 기술적 방법을 사용합니다.<br><br>
+
       <b style="font-size:14px;color:#333">제8조 (개인정보 보호책임자)</b><br>
       케어링크는 개인정보 처리에 관한 업무를 총괄하고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제를 위하여 아래와 같이 개인정보 보호책임자를 지정합니다.<br>
       <div style="background:#FFF8F5;border-radius:8px;padding:12px;margin:6px 0">
-        • 개인정보 보호책임자: 심상욱<br>
+        • 개인정보 보호책임자: 케어링크 대표<br>
         • 이메일: tkddnr5949@gmail.com<br>
         • 문의: 앱 내 1:1 문의 채팅
       </div><br>
@@ -1445,7 +1457,7 @@
       문의: 앱 내 채팅으로 문의해 주세요<br>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#ccc;line-height:1.8">
         <b style="color:#bbb">케어링크</b><br>
-        대표: 심상욱 &nbsp;|&nbsp; 이메일: tkddnr5949@gmail.com<br>
+        대표: 케어링크 &nbsp;|&nbsp; 이메일: tkddnr5949@gmail.com<br>
         본 서비스는 요양보호사 구인구직 정보 제공 플랫폼입니다<br>
         © 2026 케어링크. All rights reserved.
       </div>
@@ -1469,6 +1481,14 @@ const state = {
   bookmarks: new Set(),
   appNotice: '', reports: [], searchQuery: '',
 };
+
+// ============================================================
+//  XSS 방지 (HTML 이스케이프)
+// ============================================================
+function escapeHtml(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 // ============================================================
 //  콘텐츠 필터링 (광고·성적·욕설·사기 차단)
@@ -1524,25 +1544,6 @@ function getRelativeTime(timestamp){
   return (d.getMonth()+1)+'월 '+d.getDate()+'일';
 }
 
-// ============================================================
-//  공고 만료 자동 처리 (14일)
-// ============================================================
-function checkExpiryNotices(){
-  const now = Date.now();
-  const DAY_MS = 86400000;
-  state.listings.forEach(l => {
-    if(l.status === 'active' && l.createdAt){
-      const age = now - l.createdAt;
-      if(age > 14 * DAY_MS){
-        l.status = 'expired';
-        // Firebase에도 반영
-        if(fbDB && l.fbKey){
-          fbDB.ref('listings/'+l.fbKey+'/status').set('expired');
-        }
-      }
-    }
-  });
-}
 
 // ============================================================
 //  신고 누적 자동 숨김 (3건 이상)
@@ -1628,43 +1629,7 @@ function getApproxCoords(area, id){
   return [base[0]+latOff, base[1]+lngOff];
 }
 
-// ============================================================
-//  SAMPLE DATA  (with status + createdAt + exactAddress)
-// ============================================================
-const NOW = Date.now();
-const DAY = 86400000;
-const sampleListings = [
-  {id:1,type:'employer',title:'방문요양 요양보호사 구합니다 (급구)',area:'서울 강남구',
-   workType:'visit',days:'월~금 오전 10시~오후 4시',hours:'주 5일, 하루 6시간',
-   salary:'시급 13,000원',desc:'80대 어머니 모시고 있습니다. 식사 보조, 화장실 보조, 가벼운 산책 등 일상생활 지원 해주실 따뜻한 분 구합니다.',
-   contact:'010-1234-5678',name:'김○○ 가족',time:'방금 전',urgent:true,
-   status:'active',createdAt:NOW,exactAddress:'역삼동 123-4 행복아파트 101동'},
-  {id:2,type:'caregiver',title:'요양보호사 자격증 보유, 구직합니다',area:'서울 마포구',
-   workType:'visit',days:'협의 가능',hours:'주 5일',salary:'협의',
-   desc:'요양보호사 자격증 보유, 경력 3년입니다. 치매 어르신 경험 있습니다. 마포구, 은평구 가능합니다.',
-   contact:'010-9876-5432',name:'이○○',time:'30분 전',urgent:false,
-   status:'active',createdAt:NOW-3*DAY,exactAddress:''},
-  {id:3,type:'employer',title:'입주요양보호사 구합니다',area:'경기 성남시',
-   workType:'live',days:'주 6일 (일요일 휴무)',hours:'입주 상주',salary:'월 280만원 + 식사 제공',
-   desc:'70대 아버지 모실 입주 요양보호사 구합니다. 2인 가구이며 주거 환경 쾌적합니다. 조리 가능하신 분 우대합니다.',
-   contact:'010-5555-7777',name:'박○○',time:'1시간 전',urgent:false,
-   status:'active',createdAt:NOW-5*DAY,exactAddress:'분당구 서현동 456 행복빌라 302호'},
-  {id:4,type:'employer',title:'주간보호센터 요양보호사 채용 (정규직)',area:'서울 노원구',
-   workType:'center',days:'월~금 09:00~18:00',hours:'주 40시간',salary:'월 240만원 (4대 보험)',
-   desc:'노원구 소재 주간보호센터에서 요양보호사를 정규직으로 채용합니다. 4대 보험, 퇴직금, 명절상여 등 복리후생 좋습니다.',
-   contact:'02-000-0000',name:'행복노원 주간보호센터',time:'2시간 전',urgent:true,
-   status:'active',createdAt:NOW-7*DAY,exactAddress:'노원구 상계동 789 노원주간보호센터'},
-  {id:5,type:'caregiver',title:'요양보호사, 입주 가능합니다',area:'인천 부평구',
-   workType:'live',days:'협의 가능',hours:'입주 가능',salary:'월 260만원 이상 희망',
-   desc:'요양보호사 자격증 취득 후 5년 근무. 치매, 중풍, 골절 어르신 경험 다수. 인천, 서울 가능합니다.',
-   contact:'010-2222-3333',name:'최○○',time:'3시간 전',urgent:false,
-   status:'matched',createdAt:NOW-10*DAY,exactAddress:''},
-  {id:6,type:'employer',title:'병원동행 도우미 구합니다',area:'서울 서초구',
-   workType:'hospital',days:'주 2~3회 (협의)',hours:'회당 3~4시간',salary:'시급 14,000원',
-   desc:'거동이 불편한 할머니 병원 동행 도와주실 분 구합니다. 정기 검진이 있어 한 달에 2~3회 정도입니다.',
-   contact:'010-8888-1111',name:'정○○',time:'5시간 전',urgent:false,
-   status:'active',createdAt:NOW-13*DAY,exactAddress:'서초구 방배동 10-1 방배아파트 201동'},
-];
+// (샘플 데이터 제거됨 — Firebase 실시간 DB에서만 공고를 불러옵니다)
 
 // ============================================================
 //  INIT
@@ -1784,6 +1749,11 @@ function switchTab(tab){
 
 window.doKakaoLogin = doKakaoLogin;
 function doKakaoLogin(){
+  const agreed = document.getElementById('agree-terms');
+  if(agreed && !agreed.checked){
+    showToast('이용약관 및 개인정보처리방침에 동의해 주세요');
+    return;
+  }
   // SDK 준비 확인 (IIFE에서 이미 초기화되므로 중복 init 제거)
   if(!window.Kakao || !Kakao.isInitialized()){
     showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
@@ -2203,8 +2173,8 @@ function renderMapMarkers(){
     const marker=L.marker(coords,{icon}).addTo(map);
     marker.bindPopup(`
       <div class="map-popup-card">
-        <div class="map-popup-title">${item.title}</div>
-        <div class="map-popup-salary">${item.salary}</div>
+        <div class="map-popup-title">${escapeHtml(item.title)}</div>
+        <div class="map-popup-salary">${escapeHtml(item.salary)}</div>
         <div class="map-popup-area">📍 ${landmark}</div>
         <button class="map-popup-btn" onclick="openDetailFromMap(${item.id})">상세 보기</button>
       </div>`,{maxWidth:240,className:'carelink-popup'});
@@ -2260,7 +2230,7 @@ function renderListings(filter){
       html+=`<div class="listing-card${isMatched?' matched-card':''}" onclick="openDetail(${item.id})">
         ${isMatched?`<div class="matched-overlay"><div class="matched-stamp">✅ 매칭완료</div></div>`:''}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-          <div class="listing-title">${item.title}</div>
+          <div class="listing-title">${escapeHtml(item.title)}</div>
         </div>
         <div class="listing-meta">
           ${item.urgent&&item.status==='active'?'<span class="badge badge-urgent">🔥 급구</span>':''}
@@ -2268,9 +2238,9 @@ function renderListings(filter){
           <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
           ${isMatched?'<span class="badge badge-matched">✅ 매칭완료</span>':''}
         </div>
-        <div class="listing-desc">${item.desc}</div>
+        <div class="listing-desc">${escapeHtml(item.desc)}</div>
         <div class="listing-bottom">
-          <span class="listing-salary">${item.salary}</span>
+          <span class="listing-salary">${escapeHtml(item.salary)}</span>
           <span class="listing-area-time">📍${item.area} · ${item.createdAt ? getRelativeTime(item.createdAt) : item.time}</span>
         </div>
       </div>`;
@@ -2307,14 +2277,14 @@ function openDetail(id){
       <div style="font-size:21px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:12px">${item.title}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:14px;color:#aaa">📍${item.area} · ${item.time}</div>
-        <div style="font-size:14px;color:#aaa">${item.name}</div>
+        <div style="font-size:14px;color:#aaa">${escapeHtml(item.name)}</div>
       </div>
     </div>
     <div class="detail-section">
       <div class="detail-section-title">${item.type==='caregiver'?'구직 조건':'근무 조건'}</div>
       <div class="detail-info-row"><span class="detail-info-icon">💼</span><span class="detail-info-label">근무 유형</span><span class="detail-info-value">${getWorkTypeLabel(item.workType)}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📅</span><span class="detail-info-label">${item.type==='caregiver'?'희망 시간':'근무 요일'}</span><span class="detail-info-value">${item.days}</span></div>
-      <div class="detail-info-row"><span class="detail-info-icon">💰</span><span class="detail-info-label">급여</span><span class="detail-info-value" style="color:var(--primary);font-size:17px">${item.salary}</span></div>
+      <div class="detail-info-row"><span class="detail-info-icon">💰</span><span class="detail-info-label">급여</span><span class="detail-info-value" style="color:var(--primary);font-size:17px">${escapeHtml(item.salary)}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${isMatched&&item.exactAddress?item.exactAddress:landmark} ${isMatched?'':'<span style="font-size:12px;color:#aaa">(매칭 후 상세주소 공개)</span>'}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📞</span><span class="detail-info-label">연락처</span><span class="detail-info-value">${isMatched?item.contact:`<span style="color:#2E7D32;font-weight:700">🔒 안심번호 연결</span> <span style="font-size:12px;color:#aaa">(매칭 후 실번호 공개)</span>`}</span></div>
       ${item.type==='caregiver' && item.canDrive!==null && item.canDrive!==undefined
@@ -2334,7 +2304,7 @@ function openDetail(id){
       : ''}
     <div class="detail-section">
       <div class="detail-section-title">상세 내용</div>
-      <div style="font-size:16px;color:var(--text);line-height:1.8">${item.desc}</div>
+      <div style="font-size:16px;color:var(--text);line-height:1.8;white-space:pre-wrap">${escapeHtml(item.desc)}</div>
     </div>
     ${isMatched?`<div class="detail-section" style="background:#E8F5E9">
       <div style="display:flex;align-items:center;gap:10px">
@@ -2387,6 +2357,7 @@ function confirmMatch(){
 // ============================================================
 //  EXPIRY  (14 days)
 // ============================================================
+const DAY = 86400000;
 function checkExpiryNotices(){
   const expiring=state.listings.filter(l=>{
     const age=(Date.now()-l.createdAt)/DAY;
@@ -2445,6 +2416,7 @@ function getSafeNumber(realNumber){
 }
 
 function openContactModal(){
+  if(!state.user){ showToast('로그인 후 연락처를 확인할 수 있습니다'); return; }
   const item = state.selectedListing; if(!item) return;
   const safeNum = getSafeNumber(item.contact);
 
@@ -2459,7 +2431,7 @@ function openContactModal(){
 
       <!-- 안심번호 표시 -->
       <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:13px;color:#aaa;margin-bottom:6px">${item.name} 님의 안심번호</div>
+        <div style="font-size:13px;color:#aaa;margin-bottom:6px">${escapeHtml(item.name)} 님의 안심번호</div>
         <div style="font-size:26px;font-weight:900;color:var(--text);letter-spacing:2px;background:#f5f5f5;border-radius:12px;padding:14px">${safeNum}</div>
         <div style="font-size:12px;color:#aaa;margin-top:6px">⚠️ 통화 종료 후 번호는 자동 소멸됩니다</div>
       </div>
@@ -2673,6 +2645,10 @@ function setPostType(type){
 }
 
 function submitPost(){
+  if(state._lastPostTime && Date.now() - state._lastPostTime < 30000){
+    showToast('⚠️ 잠시 후 다시 시도해주세요 (30초 간격)');
+    return;
+  }
   const title=document.getElementById('post-title').value.trim();
   const area=document.getElementById('post-area').value;
   const phone=document.getElementById('post-phone').value.trim();
@@ -2680,6 +2656,11 @@ function submitPost(){
   if(!title){showToast('제목을 입력해 주세요');return;}
   if(!area){showToast('지역을 선택해 주세요');return;}
   if(!phone){showToast('연락처를 입력해 주세요');return;}
+  const phoneDigits = phone.replace(/\D/g,'');
+  if(phoneDigits.length < 10 || phoneDigits.length > 11){
+    showToast('올바른 연락처를 입력해 주세요');
+    return;
+  }
 
   // 콘텐츠 필터링 검사
   const titleCheck = checkContentFilter(title);
@@ -2743,6 +2724,7 @@ function submitPost(){
       desc:finalDesc,contact:phone,
       name:(state.user&&state.user.name)||'나',
       postedBy:(state.user&&state.user.name)||'나',
+      postedByKakaoId:(state.user&&state.user.kakaoId)||'',
       time:'방금 전',urgent:false,status:'active',
       createdAt:Date.now(),exactAddress:'',
       expData: expData||{}, canDrive: driveAble||null,
@@ -2767,6 +2749,7 @@ function submitPost(){
     desc:desc||'상세 내용 없음',contact:phone,
     name:(state.user&&state.user.name)||'나',
     postedBy:(state.user&&state.user.name)||'나',
+    postedByKakaoId:(state.user&&state.user.kakaoId)||'',
     time:'방금 전',urgent,status:'active',
     createdAt:Date.now(),exactAddress,
   };
@@ -2780,6 +2763,7 @@ function submitPost(){
   }
   resetPostForm();
   showToast('✅ 구인 공고가 등록되었습니다! (14일 후 자동 삭제)');
+  state._lastPostTime = Date.now();
   setTimeout(()=>switchTab('home'),1000);
 }
 
@@ -2795,7 +2779,7 @@ function updateMyListings(item){
   const el=document.getElementById('my-listings-area');
   if(el.textContent.includes('없습니다')) el.innerHTML='';
   el.innerHTML=`<div style="background:#f9f9f9;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border)" onclick="openDetail(${item.id})">
-    <div style="font-size:15px;font-weight:700">${item.title}</div>
+    <div style="font-size:15px;font-weight:700">${escapeHtml(item.title)}</div>
     <div style="font-size:13px;color:#aaa;margin-top:4px">📍${item.area} · ${item.time} · <span style="color:var(--primary)">14일 후 만료</span></div>
   </div>`+el.innerHTML;
 }
@@ -3031,7 +3015,7 @@ function showBookmarks(){
           <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
           ${item.status==='matched'?'<span class="badge badge-matched">✅ 매칭완료</span>':''}
         </div>
-        <div style="font-size:16px;font-weight:700;margin-bottom:4px">${item.title}</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">${escapeHtml(item.title)}</div>
         <div style="font-size:13px;color:#aaa">📍${item.area} · ${item.salary}</div>
       </div>`).join('');
   }
@@ -3105,7 +3089,7 @@ state.chatUnsubscribe = null; // Firebase 리스너 해제용
 
 // 채팅방 ID 생성: listing_{id}_{userA}_{userB} 형태
 function makeChatId(listingId){
-  const me = (state.user && state.user.name) || 'me';
+  const me = (state.user && state.user.kakaoId) || (state.user && state.user.name) || 'me';
   return 'listing_' + listingId + '__' + me.replace(/\s/g,'');
 }
 
@@ -3113,6 +3097,7 @@ function makeChatId(listingId){
 //  채팅방 열기 (공고 상세 → 채팅하기 버튼)
 // ============================================================
 function openChatRoom(listingId){
+  if(!state.user){ showToast('로그인 후 채팅할 수 있습니다'); return; }
   const item = state.listings.find(l=>l.id==listingId);
   if(!item) return;
   const chatId = makeChatId(listingId);
@@ -3187,7 +3172,7 @@ function renderMessages(chatId){
   let html='';
   let lastDate='';
   chat.messages.forEach(msg=>{
-    const isMe = msg.senderId==='me' || msg.sender===myName;
+    const isMe = msg.senderId===(state.user&&state.user.kakaoId) || msg.senderId==='me' || msg.sender===myName;
     const d = new Date(msg.time||Date.now());
     const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일`;
     const timeStr = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
@@ -3199,13 +3184,13 @@ function renderMessages(chatId){
     html+=`<div class="msg-row ${isMe?'me':''}">
       ${!isMe?`<div class="chat-avatar" style="width:36px;height:36px;font-size:18px;flex-shrink:0">${chat.otherIcon||'👤'}</div>`:''}
       <div>
-        ${!isMe?`<div class="msg-name">${msg.sender}</div>`:''}
+        ${!isMe?`<div class="msg-name">${escapeHtml(msg.sender)}</div>`:''}
         ${msg.type==='image'
           ? `<div class="msg-bubble ${isMe?'me':'other'}" style="padding:6px;background:transparent;border:none">
                <div style="font-size:11px;color:#aaa;margin-bottom:4px;text-align:${isMe?'right':'left'}">[${msg.imageLabel||'서류'}]</div>
                <img src="${msg.imageUrl}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer" onclick="window.open(this.src)"/>
              </div>`
-          : `<div class="msg-bubble ${isMe?'me':'other'}">${msg.text||''}</div>`
+          : `<div class="msg-bubble ${isMe?'me':'other'}">${escapeHtml(msg.text||'')}</div>`
         }
       </div>
       <div class="msg-time">${timeStr}</div>
@@ -3278,7 +3263,7 @@ function sendMessage(){
 
   const msg = {
     sender: myName,
-    senderId: 'me',
+    senderId: (state.user&&state.user.kakaoId)||'me',
     text,
     time: Date.now(),
   };
@@ -3378,7 +3363,7 @@ function renderChatListDraw(){
       <div class="chat-avatar">${chat.otherIcon||'👤'}</div>
       <div style="flex:1;overflow:hidden">
         <div class="chat-name">${chat.otherName}</div>
-        <div class="chat-last">${lastText}</div>
+        <div class="chat-last">${escapeHtml(lastText)}</div>
         ${subLabel}
       </div>
       <div class="chat-time">${lastTime}</div>
@@ -4192,10 +4177,10 @@ function openReportModal(listingId){
 }
 
 // 신고 사유 선택
-function selectReason(reason){
+function selectReason(reason, el){
   window._selectedReason = reason;
   document.querySelectorAll('.report-reason-btn').forEach(btn => btn.classList.remove('selected'));
-  event.target.closest('.report-reason-btn')?.classList.add('selected');
+  if(el) el.classList.add('selected');
 }
 
 // 신고 제출
@@ -4205,12 +4190,21 @@ function submitReport(){
     return;
   }
   if(!state.reports) state.reports = [];
-  state.reports.push({
+  const reportData = {
     id: Date.now(),
     listingId: window._currentReportListingId,
     reason: window._selectedReason,
     time: new Date().toLocaleString(),
-  });
+  };
+  state.reports.push(reportData);
+  if(fbDB){
+    fbDB.ref('reports').push({
+      listingId: window._currentReportListingId,
+      reason: window._selectedReason,
+      reporterKakaoId: (state.user&&state.user.kakaoId)||'',
+      time: Date.now(),
+    });
+  }
   closeModal('modal-report');
   checkAutoHideByReports();
   renderListings();
@@ -4243,7 +4237,7 @@ function openAdminReportsModal(){
       };
       return `
         <div style="background:#fafafa;padding:14px;border-radius:10px;margin-bottom:10px">
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${title}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${escapeHtml(title)}</div>
           <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px">
             <div>🚨 ${reasonLabels[report.reason]}</div>
             <div style="margin-top:2px;color:#aaa">${report.time}</div>
@@ -4340,7 +4334,7 @@ function renderMyListings(){
   const area = document.getElementById('my-listings-area');
   if(!area || !state.user) return;
 
-  const myListings = state.listings.filter(l => l.postedBy === state.user.name);
+  const myListings = state.listings.filter(l => l.postedByKakaoId === state.user.kakaoId || l.postedBy === state.user.name);
   if(myListings.length === 0){
     area.innerHTML = `
       <div style="text-align:center;padding:20px;color:#aaa;line-height:1.6">
@@ -4366,7 +4360,7 @@ function renderMyListings(){
 
     return `
       <div style="background:#f9f9f9;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${listing.title}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${escapeHtml(listing.title)}</div>
         <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px">
           <div>📍 ${listing.area || '위치 미지정'}</div>
           <div style="margin-top:2px">📅 ${posted.toLocaleDateString()} · <span style="color:${statusColor}">⏱️ ${statusText}</span></div>
@@ -4429,7 +4423,7 @@ function confirmWithdraw(){
   // Firebase에서 사용자 관련 데이터 완전 삭제
   if(fbDB && user.name){
     // 1. 내가 올린 공고 삭제
-    const myListings = state.listings.filter(l => l.postedBy === user.name);
+    const myListings = state.listings.filter(l => l.postedByKakaoId === user.kakaoId || l.postedBy === user.name);
     myListings.forEach(l => {
       if(l.fbKey) fbDB.ref('listings/' + l.fbKey).remove();
     });
