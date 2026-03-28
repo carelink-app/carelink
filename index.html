@@ -1378,7 +1378,7 @@
 <div class="toast" id="toast"></div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ============================================================
 //  STATE
 // ============================================================
@@ -1602,14 +1602,12 @@ function switchTab(tab){
   }
 })();
 
+window.doKakaoLogin = doKakaoLogin;
 function doKakaoLogin(){
-  // SDK 준비 확인
-  if(!window.Kakao){
+  // SDK 준비 확인 (IIFE에서 이미 초기화되므로 중복 init 제거)
+  if(!window.Kakao || !Kakao.isInitialized()){
     showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
     return;
-  }
-  if(!Kakao.isInitialized()){
-    Kakao.init('caab60a0d7759feab93abb6cb6a8b331');
   }
 
   const btn = document.getElementById('kakao-btn');
@@ -2072,7 +2070,9 @@ function renderListings(filter){
 
   const container=document.getElementById('listing-list');
   let html=`<div class="floating-notice">👆 공고를 눌러 자세히 보고 연락할 수 있어요 · 지도 버튼으로 근처 공고도 확인하세요</div>`;
-  if(!list.length){
+  if(!state._firebaseLoaded && fbDB && !list.length){
+    html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#aaa;text-align:center"><div style="font-size:40px;margin-bottom:16px">⏳</div><div style="font-size:16px;line-height:1.6">공고를 불러오는 중...</div></div>`;
+  } else if(!list.length){
     html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#aaa;text-align:center"><div style="font-size:60px;margin-bottom:16px">🔍</div><div style="font-size:16px;line-height:1.6">해당 조건의 공고가 없습니다.<br>다른 조건으로 검색해 보세요.</div></div>`;
   } else {
     list.forEach(item=>{
@@ -2852,6 +2852,11 @@ function initFirebase(){
       document.getElementById('firebase-setup-notice').style.display='block';
       return;
     }
+    // 이미 초기화된 경우 중복 방지
+    if(firebase.apps && firebase.apps.length > 0){
+      fbDB = firebase.database();
+      return;
+    }
     firebase.initializeApp(FIREBASE_CONFIG);
     fbDB = firebase.database();
     console.log('[케어링크] Firebase 연결 성공 ✅');
@@ -2867,9 +2872,10 @@ function initFirebase(){
       listings.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
       state.listings = listings;
+      state._firebaseLoaded = true;
       checkExpiryNotices();
       renderListings();
-      if(state.mapInstance) updateMapMarkers();
+      if(state.mapInstance) renderMapMarkers();
       renderMyListings();
     });
 
@@ -3040,7 +3046,7 @@ function sendDocFromChat(type){
   } else {
     if(!chat.messages) chat.messages=[];
     chat.messages.push(msgData);
-    renderChatMessages(chatId);
+    renderMessages(chatId);
   }
   showToast(label+' 전송 완료 ✅');
 }
@@ -3864,16 +3870,39 @@ function updateAdminStats(){
   });
 }
 
-// 공고 검색 함수
+// 홈 화면 전체 렌더링
+function renderHomeScreen(){
+  renderAdBanners();
+  renderListings();
+}
+
+// 헤더 UI 업데이트 (로그인 사용자 반영)
+function updateHeaderUI(){
+  const pName = document.getElementById('profile-name');
+  const pType = document.getElementById('profile-type-label');
+  if(pName && state.user) pName.textContent = state.user.name || '';
+  if(pType && state.user){
+    const roleLabel = (state.role === 'employer' ? '구인자' : '요양보호사');
+    const genderLabel = state.user.gender ? ' · ' + (state.user.gender === 'male' ? '남성' : '여성') : '';
+    const birthLabel = state.user.birth ? ' · ' + state.user.birth : '';
+    pType.textContent = roleLabel + genderLabel + birthLabel;
+  }
+}
+
+// 공고 검색 함수 (디바운싱 적용)
+let _searchTimer = null;
 function searchListings(){
-  const input = document.getElementById('home-search-input');
-  const query = (input?.value || '').trim().toLowerCase();
-  state.searchQuery = query;
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(function(){
+    const input = document.getElementById('home-search-input');
+    const query = (input ? input.value : '').trim().toLowerCase();
+    state.searchQuery = query;
 
-  const clearBtn = document.getElementById('search-clear-btn');
-  if(clearBtn) clearBtn.style.display = query ? '' : 'none';
+    const clearBtn = document.getElementById('search-clear-btn');
+    if(clearBtn) clearBtn.style.display = query ? '' : 'none';
 
-  renderHomeScreen();
+    renderHomeScreen();
+  }, 200);
 }
 
 // 검색 초기화
@@ -4213,6 +4242,10 @@ function confirmWithdraw(){
 // ============================================================
 //  START
 // =======================================================
+document.addEventListener('DOMContentLoaded', function() {
+  initFirebase();
+  init();
+});
 
 </script>
 </body>
