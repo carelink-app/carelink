@@ -199,7 +199,64 @@
     .toggle-switch.on{background:var(--primary)}
     .toggle-switch-dot{position:absolute;width:24px;height:24px;background:#fff;border-radius:12px;top:2px;left:2px;transition:left .3s}
     .toggle-switch.on .toggle-switch-dot{left:22px}
+
+    /* Pull-to-refresh indicator */
+    .pull-indicator{text-align:center;padding:12px;color:var(--primary);font-size:13px;font-weight:600;display:none}
+    .pull-indicator.visible{display:block}
+
+    /* Skeleton loading */
+    @keyframes skeleton-pulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:skeleton-pulse 1.5s ease-in-out infinite;border-radius:8px}
+    .skeleton-card{background:#fff;padding:18px 16px;border-bottom:1px solid var(--border)}
+    .skeleton-line{height:14px;margin-bottom:10px;border-radius:6px}
+    .skeleton-line.title{width:70%;height:18px}
+    .skeleton-line.short{width:40%}
+    .skeleton-line.medium{width:55%}
+
+    /* Character counter */
+    .char-counter{font-size:12px;color:#aaa;text-align:right;margin-top:4px}
+    .char-counter.warn{color:#E53935}
+    .char-counter.ok{color:var(--green)}
+
+    /* Profile completion bar */
+    .completion-bar-wrap{background:#f0f0f0;border-radius:10px;height:8px;overflow:hidden;margin-top:8px}
+    .completion-bar{height:100%;background:linear-gradient(90deg,var(--primary),#FF9A6C);border-radius:10px;transition:width .5s ease}
+
+    /* Share button */
+    .share-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;background:transparent}
+
+    /* PWA install banner */
+    .pwa-banner{background:linear-gradient(135deg,#FF6B35,#FF9A6C);color:#fff;padding:14px 16px;display:none;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.2)}
+    .pwa-banner.show{display:flex}
+    .pwa-banner-text{flex:1;font-size:14px;font-weight:600}
+    .pwa-banner-btn{background:#fff;color:var(--primary);border:none;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
+    .pwa-banner-close{color:rgba(255,255,255,.8);font-size:20px;cursor:pointer;padding:4px}
+
+    /* Improved empty state */
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#aaa;text-align:center}
+    .empty-state-icon{font-size:60px;margin-bottom:16px}
+    .empty-state-text{font-size:16px;line-height:1.6}
+    .empty-state-btn{margin-top:20px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer}
+
+    /* Toast upgrade */
+    .toast{position:absolute;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.85);color:#fff;font-size:14px;padding:12px 22px;border-radius:24px;white-space:nowrap;z-index:200;opacity:0;transition:all .3s ease;pointer-events:none;backdrop-filter:blur(10px)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* Badge pulse animation for urgent */
+    @keyframes urgentPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .badge-urgent{animation:urgentPulse 2s ease-in-out infinite}
+
+    /* Listing card hover/touch effect improvement */
+    .listing-card{transition:background .15s, transform .1s}
+    .listing-card:active{transform:scale(0.98)}
   </style>
+  <!-- PWA Manifest -->
+  <link rel="manifest" id="pwa-manifest">
+  <meta name="theme-color" content="#FF6B35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="케어링크">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👵🏻</text></svg>">
 </head>
 <body>
 <div id="app">
@@ -361,6 +418,14 @@
 
 <!-- ===== HOME ===== -->
 <div id="screen-home" class="screen">
+  <!-- PWA 설치 배너 -->
+  <div id="pwa-install-banner" class="pwa-banner">
+    <span style="font-size:24px">📱</span>
+    <div class="pwa-banner-text">홈 화면에 추가하면 더 빠르게!</div>
+    <button class="pwa-banner-btn" onclick="installPWA()">설치</button>
+    <span class="pwa-banner-close" onclick="closePWABanner()">✕</span>
+  </div>
+
   <div class="header">
     <div style="font-size:20px;font-weight:900;color:var(--primary)">케어링크</div>
     <div style="flex:1;margin-left:8px;font-size:15px;color:var(--text-sub)">📍 <span id="home-area-label">내 지역</span></div>
@@ -409,7 +474,8 @@
   </div>
 
   <!-- 목록 뷰 -->
-  <div id="list-view" class="scroll-area" style="flex:1">
+  <div id="list-view" class="scroll-area" style="flex:1" onscroll="handlePullRefresh(this)">
+    <div id="pull-indicator" class="pull-indicator">↻ 당겨서 새로고침</div>
     <div id="listing-list"></div>
   </div>
 
@@ -483,7 +549,8 @@
     <!-- 공통: 제목 -->
     <div class="form-group">
       <label class="form-label">📌 제목</label>
-      <input class="form-input" id="post-title" type="text" placeholder="예) 어머니 방문요양 요양보호사 구합니다"/>
+      <input class="form-input" id="post-title" type="text" placeholder="예) 어머니 방문요양 요양보호사 구합니다" maxlength="50" oninput="updateTitleCounter()"/>
+      <div id="post-title-counter" class="char-counter">0 / 50자</div>
     </div>
 
     <!-- 공통: 지역(구) -->
@@ -519,7 +586,8 @@
     <!-- 공통: 상세내용 -->
     <div class="form-group">
       <label class="form-label" id="post-desc-label">📝 상세 내용</label>
-      <textarea class="form-textarea" id="post-desc" rows="5" placeholder="자세한 내용을 입력해 주세요."></textarea>
+      <textarea class="form-textarea" id="post-desc" rows="5" placeholder="자세한 내용을 입력해 주세요." maxlength="1000" oninput="updateCharCounter()"></textarea>
+      <div id="post-char-counter" class="char-counter">0 / 1,000자</div>
     </div>
 
     <button class="btn btn-primary" style="font-size:18px;padding:18px" onclick="submitPost()">공고 올리기</button>
@@ -540,6 +608,16 @@
         </div>
         <div class="profile-sub" id="profile-type-label">요양보호사</div>
         <div class="profile-sub" id="profile-area-label" style="margin-top:2px">📍 서울 강남구</div>
+        <!-- 프로필 완성도 -->
+        <div id="profile-completion-wrap" style="margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--text-sub)">프로필 완성도</span>
+            <span id="profile-completion-pct" style="font-size:12px;font-weight:700;color:var(--primary)">0%</span>
+          </div>
+          <div class="completion-bar-wrap">
+            <div class="completion-bar" id="profile-completion-bar" style="width:0%"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div style="height:8px;background:var(--bg)"></div>
@@ -1393,6 +1471,103 @@ const state = {
 };
 
 // ============================================================
+//  콘텐츠 필터링 (광고·성적·욕설·사기 차단)
+// ============================================================
+const BANNED_KEYWORDS = {
+  ads: ['부업','재택알바','일당 50만','일당 100만','고수익','투잡','코인','가상화폐','비트코인',
+        '대출','무담보','저금리','당일입금','선입금','수익보장','100% 수익','자동수익',
+        '텔레그램','카톡 문의','오픈채팅방','구글 검색','클릭','조회수','좋아요 알바',
+        'MLM','다단계','네트워크마케팅','추천인','모집설명회','사업설명회','무료세미나',
+        '보험영업','보험설계사 모집','대리운전 모집','배달 알바','쿠팡','택배'],
+  sexual: ['섹스','성인','야동','만남','폰섹','원나잇','조건만남','조건녀','출장안마',
+           '마사지','키스방','오피','유흥','룸싸롱','풀싸롱','안마시술','성매매',
+           '19금','음란','야한','벗방','노출','가슴','엉덩이'],
+  scam: ['급전','사채','개인돈','일수','월변','신용불량','연체자 가능',
+         '보증금 필요','선불','계좌이체 후','입금 먼저','수수료 선납',
+         '로또','도박','카지노','바카라','슬롯','토토','스포츠배팅',
+         '피싱','해킹','계정거래','아이디 판매','인증번호'],
+  profanity: ['시발','씨발','ㅅㅂ','ㅆㅂ','개새끼','ㄱㅅㄲ','병신','ㅂㅅ','지랄','ㅈㄹ',
+              '느금마','니미','꺼져','닥쳐','미친놈','미친년','장애인 비하',
+              '한남','한녀','틀딱','급식충'],
+};
+
+function checkContentFilter(text){
+  if(!text) return null;
+  const lower = text.toLowerCase().replace(/\s/g,'');
+  for(const [category, words] of Object.entries(BANNED_KEYWORDS)){
+    for(const word of words){
+      if(lower.includes(word.replace(/\s/g,'').toLowerCase())){
+        const labels = {ads:'광고성 내용',sexual:'부적절한 내용',scam:'사기/도박 관련 내용',profanity:'욕설/비방'};
+        return {category, word, label: labels[category]||'부적절한 내용'};
+      }
+    }
+  }
+  return null;
+}
+
+// ============================================================
+//  상대 시간 표시 (당근마켓 스타일)
+// ============================================================
+function getRelativeTime(timestamp){
+  if(!timestamp) return '';
+  const diff = Date.now() - timestamp;
+  const sec = Math.floor(diff/1000);
+  if(sec < 60) return '방금 전';
+  const min = Math.floor(sec/60);
+  if(min < 60) return min+'분 전';
+  const hr = Math.floor(min/60);
+  if(hr < 24) return hr+'시간 전';
+  const day = Math.floor(hr/24);
+  if(day < 7) return day+'일 전';
+  if(day < 30) return Math.floor(day/7)+'주 전';
+  const d = new Date(timestamp);
+  return (d.getMonth()+1)+'월 '+d.getDate()+'일';
+}
+
+// ============================================================
+//  공고 만료 자동 처리 (14일)
+// ============================================================
+function checkExpiryNotices(){
+  const now = Date.now();
+  const DAY_MS = 86400000;
+  state.listings.forEach(l => {
+    if(l.status === 'active' && l.createdAt){
+      const age = now - l.createdAt;
+      if(age > 14 * DAY_MS){
+        l.status = 'expired';
+        // Firebase에도 반영
+        if(fbDB && l.fbKey){
+          fbDB.ref('listings/'+l.fbKey+'/status').set('expired');
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+//  신고 누적 자동 숨김 (3건 이상)
+// ============================================================
+function checkAutoHideByReports(){
+  if(!state.reports || state.reports.length === 0) return;
+  const countMap = {};
+  state.reports.forEach(r => {
+    countMap[r.listingId] = (countMap[r.listingId]||0) + 1;
+  });
+  Object.entries(countMap).forEach(([lid, cnt]) => {
+    if(cnt >= 3){
+      const listing = state.listings.find(l => l.id == lid);
+      if(listing && listing.status === 'active'){
+        listing.status = 'reported_hidden';
+        listing._hiddenReason = '신고 '+cnt+'건 누적으로 자동 숨김';
+        if(fbDB && listing.fbKey){
+          fbDB.ref('listings/'+listing.fbKey+'/status').set('reported_hidden');
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
 //  DISTRICT COORDS  (center of district)
 // ============================================================
 const DISTRICT_COORDS = {
@@ -1570,6 +1745,7 @@ function switchTab(tab){
     updateAdminUI();
     updateCertSectionLabel();
     renderMyListings();
+    updateProfileCompletion();
     // 기존 사진 복원
     if(state.user&&state.user.certPhoto){
       const previewArea=document.getElementById('cert-preview-area');
@@ -2051,12 +2227,12 @@ function getDaysAgo(createdAt){
 function renderListings(filter){
   filter=filter||state.filter;
   let list=state.listings;
-  if(filter==='visit') list=list.filter(l=>l.workType==='visit'&&l.status!=='expired');
-  else if(filter==='live') list=list.filter(l=>l.workType==='live'&&l.status!=='expired');
+  if(filter==='visit') list=list.filter(l=>l.workType==='visit'&&l.status!=='expired'&&l.status!=='reported_hidden');
+  else if(filter==='live') list=list.filter(l=>l.workType==='live'&&l.status!=='expired'&&l.status!=='reported_hidden');
   else if(filter==='urgent') list=list.filter(l=>l.urgent&&l.status==='active');
-  else if(filter==='caregiver') list=list.filter(l=>l.type==='caregiver'&&l.status!=='expired');
+  else if(filter==='caregiver') list=list.filter(l=>l.type==='caregiver'&&l.status!=='expired'&&l.status!=='reported_hidden');
   else if(filter==='matched') list=list.filter(l=>l.status==='matched');
-  else list=list.filter(l=>l.status!=='expired');
+  else list=list.filter(l=>l.status!=='expired' && l.status!=='reported_hidden');
 
   // 검색 필터 적용
   if(state.searchQuery){
@@ -2091,7 +2267,7 @@ function renderListings(filter){
         <div class="listing-desc">${item.desc}</div>
         <div class="listing-bottom">
           <span class="listing-salary">${item.salary}</span>
-          <span class="listing-area-time">📍${item.area} · ${item.time}</span>
+          <span class="listing-area-time">📍${item.area} · ${item.createdAt ? getRelativeTime(item.createdAt) : item.time}</span>
         </div>
       </div>`;
     });
@@ -2501,6 +2677,18 @@ function submitPost(){
   if(!area){showToast('지역을 선택해 주세요');return;}
   if(!phone){showToast('연락처를 입력해 주세요');return;}
 
+  // 콘텐츠 필터링 검사
+  const titleCheck = checkContentFilter(title);
+  if(titleCheck){
+    showToast('⚠️ 제목에 '+titleCheck.label+'이 포함되어 있어 등록할 수 없습니다.');
+    return;
+  }
+  const descCheck = checkContentFilter(desc);
+  if(descCheck){
+    showToast('⚠️ 상세내용에 '+descCheck.label+'이 포함되어 있어 등록할 수 없습니다.');
+    return;
+  }
+
   let workType='visit', days='협의', salary='협의', exactAddress='', urgent=false;
 
   if(state.postType==='employer'){
@@ -2617,8 +2805,26 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2400);
 }
 function shareDetail(){
-  if(navigator.share) navigator.share({title:'케어링크 공고',text:'요양보호사 공고',url:window.location.href});
-  else showToast('링크가 복사되었습니다!');
+  const item = state.selectedListing;
+  const title = item ? item.title : '케어링크 공고';
+  const area = item ? item.area : '';
+  const salary = item ? item.salary : '';
+  const shareText = `[케어링크] ${title}\n📍 ${area} · 💰 ${salary}\n요양보호사 구인구직 앱에서 확인하세요!`;
+  const shareUrl = window.location.href;
+
+  if(navigator.share){
+    navigator.share({title:'케어링크 - '+title, text:shareText, url:shareUrl}).catch(()=>{});
+  } else {
+    // 클립보드 복사 fallback
+    const copyText = shareText + '\n' + shareUrl;
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(copyText).then(()=>{
+        showToast('공고 링크가 복사되었습니다! 📋');
+      }).catch(()=>showToast('공유 기능을 사용할 수 없습니다'));
+    } else {
+      showToast('공유 기능을 사용할 수 없습니다');
+    }
+  }
 }
 function showMyKakaoId(){
   const id = state.user?.kakaoId || '로그인 정보 없음';
@@ -3055,6 +3261,14 @@ function sendMessage(){
   const input = document.getElementById('chat-input-text');
   const text = input.value.trim();
   if(!text) return;
+
+  // 채팅 메시지 콘텐츠 필터링
+  const msgCheck = checkContentFilter(text);
+  if(msgCheck){
+    showToast('⚠️ '+msgCheck.label+'이 포함된 메시지는 전송할 수 없습니다.');
+    return;
+  }
+
   const chatId = state.activeChatId; if(!chatId) return;
   const myName = (state.user && state.user.name) || '나';
 
@@ -3994,6 +4208,8 @@ function submitReport(){
     time: new Date().toLocaleString(),
   });
   closeModal('modal-report');
+  checkAutoHideByReports();
+  renderListings();
   showToast('신고가 접수되었습니다. 검토 후 처리하겠습니다.');
 }
 
@@ -4240,11 +4456,186 @@ function confirmWithdraw(){
 }
 
 // ============================================================
+//  글자수 카운터 (당근마켓 스타일)
+// ============================================================
+function updateCharCounter(){
+  const desc = document.getElementById('post-desc');
+  const counter = document.getElementById('post-char-counter');
+  if(!desc || !counter) return;
+  const len = desc.value.length;
+  counter.textContent = len.toLocaleString() + ' / 1,000자';
+  counter.className = 'char-counter' + (len > 900 ? ' warn' : len > 100 ? ' ok' : '');
+}
+function updateTitleCounter(){
+  const title = document.getElementById('post-title');
+  const counter = document.getElementById('post-title-counter');
+  if(!title || !counter) return;
+  const len = title.value.length;
+  counter.textContent = len + ' / 50자';
+  counter.className = 'char-counter' + (len > 45 ? ' warn' : len > 10 ? ' ok' : '');
+}
+
+// ============================================================
+//  프로필 완성도 계산 (케어닥 참고)
+// ============================================================
+function updateProfileCompletion(){
+  if(!state.user) return;
+  const u = state.user;
+  let total = 5, done = 0; // 기본: 이름, 역할, 지역, 연락처, 자격증/사업자
+  if(u.name) done++;
+  if(state.role) done++;
+  if(u.area) done++;
+  if(u.phone) done++;
+  if(u.certPhoto) done++;
+  // 추가 항목
+  if(state.role !== 'employer'){
+    total += 2; // 경력, 이력서
+    if(u.careerPhoto) done++;
+    if(u.healthPhoto) done++;
+  }
+  const pct = Math.round((done/total)*100);
+  const pctEl = document.getElementById('profile-completion-pct');
+  const barEl = document.getElementById('profile-completion-bar');
+  if(pctEl) pctEl.textContent = pct + '%';
+  if(barEl) barEl.style.width = pct + '%';
+}
+
+// ============================================================
+//  Pull-to-refresh (당근마켓 스타일)
+// ============================================================
+let _pullRefreshCooldown = false;
+function handlePullRefresh(el){
+  const indicator = document.getElementById('pull-indicator');
+  if(!indicator) return;
+  if(el.scrollTop <= 0 && !_pullRefreshCooldown){
+    indicator.classList.add('visible');
+    indicator.textContent = '↻ 새로고침 중...';
+    _pullRefreshCooldown = true;
+    // Refresh listings
+    renderHomeScreen();
+    setTimeout(()=>{
+      indicator.textContent = '✅ 새로고침 완료';
+      setTimeout(()=>{
+        indicator.classList.remove('visible');
+        _pullRefreshCooldown = false;
+      }, 800);
+    }, 600);
+  }
+}
+
+// ============================================================
+//  스켈레톤 로딩 (인기 앱 참고)
+// ============================================================
+function showSkeletonLoading(){
+  const container = document.getElementById('listing-list');
+  if(!container) return;
+  let html = '';
+  for(let i=0; i<4; i++){
+    html += `<div class="skeleton-card">
+      <div class="skeleton skeleton-line title"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <div class="skeleton" style="width:60px;height:22px;border-radius:12px"></div>
+        <div class="skeleton" style="width:60px;height:22px;border-radius:12px"></div>
+      </div>
+      <div class="skeleton skeleton-line medium"></div>
+      <div class="skeleton skeleton-line short"></div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+// ============================================================
+//  PWA 설치 지원 (홈 화면 추가)
+// ============================================================
+let _deferredPWAPrompt = null;
+
+// PWA manifest 동적 생성
+function initPWAManifest(){
+  const manifest = {
+    name: '케어링크 - 요양보호사 구인구직',
+    short_name: '케어링크',
+    description: '요양보호사 구인구직 매칭 앱',
+    start_url: window.location.href,
+    display: 'standalone',
+    background_color: '#F5F5F5',
+    theme_color: '#FF6B35',
+    icons: [{
+      src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">👵🏻</text></svg>',
+      sizes: '192x192',
+      type: 'image/svg+xml'
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const manifestEl = document.getElementById('pwa-manifest');
+  if(manifestEl) manifestEl.href = URL.createObjectURL(blob);
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredPWAPrompt = e;
+  // 배너 표시 (한 번 닫았으면 다시 안 보여줌)
+  if(!localStorage.getItem('carelink_pwa_dismissed')){
+    const banner = document.getElementById('pwa-install-banner');
+    if(banner) banner.classList.add('show');
+  }
+});
+
+function installPWA(){
+  if(_deferredPWAPrompt){
+    _deferredPWAPrompt.prompt();
+    _deferredPWAPrompt.userChoice.then(result => {
+      if(result.outcome === 'accepted') showToast('홈 화면에 추가되었습니다! 📱');
+      _deferredPWAPrompt = null;
+      closePWABanner();
+    });
+  } else {
+    showToast('브라우저 메뉴에서 "홈 화면에 추가"를 눌러주세요 📱');
+    closePWABanner();
+  }
+}
+function closePWABanner(){
+  const banner = document.getElementById('pwa-install-banner');
+  if(banner) banner.classList.remove('show');
+  try { localStorage.setItem('carelink_pwa_dismissed','1'); } catch(e){}
+}
+
+// ============================================================
+//  네트워크 상태 표시 (오프라인 알림)
+// ============================================================
+window.addEventListener('online', ()=>showToast('인터넷에 연결되었습니다 ✅'));
+window.addEventListener('offline', ()=>showToast('⚠️ 인터넷 연결이 끊어졌습니다. 일부 기능이 제한됩니다.'));
+
+// ============================================================
+//  뒤로가기 처리 (앱 같은 UX)
+// ============================================================
+window.addEventListener('popstate', function(e){
+  const cs = state.currentScreen;
+  if(cs === 'detail' || cs === 'chatroom' || cs === 'admin' || cs === 'resume' || cs === 'settings'){
+    navigate('home');
+  }
+});
+// 화면 전환 시 history push
+const _origNavigate = navigate;
+// (navigate 이미 정의돼 있으므로 popstate에서만 처리)
+
+// ============================================================
+//  입력 접근성 개선 (키보드 올라올 때 스크롤)
+// ============================================================
+document.addEventListener('focusin', function(e){
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA'){
+    setTimeout(()=>e.target.scrollIntoView({behavior:'smooth',block:'center'}), 300);
+  }
+});
+
+// ============================================================
 //  START
 // =======================================================
 document.addEventListener('DOMContentLoaded', function() {
+  initPWAManifest();
   initFirebase();
   init();
+  // 초기 스켈레톤 로딩 (Firebase 로드 전)
+  if(!state._firebaseLoaded) showSkeletonLoading();
 });
 
 </script>
