@@ -63,7 +63,7 @@
     /* 채팅방 */
     .msg-row{display:flex;margin-bottom:12px;align-items:flex-end;gap:6px}
     .msg-row.me{flex-direction:row-reverse}
-    .msg-bubble{max-width:68%;padding:12px 15px;border-radius:18px;font-size:15px;line-height:1.5;word-break:break-all}
+    .msg-bubble{max-width:68%;padding:12px 15px;border-radius:18px;font-size:15px;line-height:1.5;word-break:break-word;overflow-wrap:break-word}
     .msg-bubble.other{background:#f0f0f0;color:var(--text);border-bottom-left-radius:4px}
     .msg-bubble.me{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
     .msg-time{font-size:11px;color:#aaa;flex-shrink:0}
@@ -588,6 +588,20 @@
         style="font-size:18px;letter-spacing:1px"
         oninput="autoFormatPhone(this)" onkeydown="blockNonNumeric(event)"/>
       <div style="margin-top:6px;font-size:13px;color:#aaa">숫자만 입력하면 자동으로 - 가 붙어요</div>
+    </div>
+
+    <!-- 연락처 공개 여부 -->
+    <div class="form-group">
+      <label class="form-label">🔒 연락처 공개 설정</label>
+      <div id="post-share-phone-wrap" style="display:flex;gap:10px;margin-top:6px">
+        <div id="share-phone-yes" onclick="setSharePhone(true)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
+          📞 연락처 공개<br><span style="font-weight:400;font-size:12px">안심번호 + 채팅 가능</span>
+        </div>
+        <div id="share-phone-no" onclick="setSharePhone(false)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:#999;transition:all .2s">
+          💬 채팅만<br><span style="font-weight:400;font-size:12px">번호 비공개</span>
+        </div>
+      </div>
+      <div id="share-phone-hint" style="margin-top:8px;font-size:12px;color:#aaa;line-height:1.5">📌 연락처를 공개하면 안심번호(050)로 표시되어 실제 번호가 보호됩니다.</div>
     </div>
 
     <!-- 공통: 상세내용 -->
@@ -1620,12 +1634,12 @@ function getLandmark(area){
   return arr[Math.floor(Math.random()*arr.length)];
 }
 function getApproxCoords(area, id){
-  // 각 공고마다 자연스럽게 다른 방향/거리로 흩뿌림 (200m~1km 범위 내 랜덤)
+  // 각 공고마다 자연스럽게 다른 방향/거리로 흩뿌림 (최대 ±100m 범위)
   const base = DISTRICT_COORDS[area];
   if(!base) return [37.5665,126.9780];
   const seed = (id || 1) * 3571 + area.length * 7919;
-  const latOff = (((seed * 13) % 200) - 100) * 0.000045;   // ±450m
-  const lngOff = (((seed * 17) % 200) - 100) * 0.000055;
+  const latOff = (((seed * 13) % 200) - 100) * 0.00001;   // ±100m
+  const lngOff = (((seed * 17) % 200) - 100) * 0.000012;
   return [base[0]+latOff, base[1]+lngOff];
 }
 
@@ -2286,7 +2300,13 @@ function openDetail(id){
       <div class="detail-info-row"><span class="detail-info-icon">📅</span><span class="detail-info-label">${item.type==='caregiver'?'희망 시간':'근무 요일'}</span><span class="detail-info-value">${item.days}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">💰</span><span class="detail-info-label">급여</span><span class="detail-info-value" style="color:var(--primary);font-size:17px">${escapeHtml(item.salary)}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${isMatched&&item.exactAddress?item.exactAddress:landmark} ${isMatched?'':'<span style="font-size:12px;color:#aaa">(매칭 후 상세주소 공개)</span>'}</span></div>
-      <div class="detail-info-row"><span class="detail-info-icon">📞</span><span class="detail-info-label">연락처</span><span class="detail-info-value">${isMatched?item.contact:`<span style="color:#2E7D32;font-weight:700">🔒 안심번호 연결</span> <span style="font-size:12px;color:#aaa">(매칭 후 실번호 공개)</span>`}</span></div>
+      <div class="detail-info-row"><span class="detail-info-icon">📞</span><span class="detail-info-label">연락처</span><span class="detail-info-value">${
+        item.sharePhone===false
+          ? '<span style="color:#1565C0;font-weight:700">💬 채팅만 가능</span>'
+          : isMatched
+            ? item.contact
+            : '<span style="color:#2E7D32;font-weight:700">🔒 안심번호 연결</span> <span style="font-size:12px;color:#aaa">(매칭 후 실번호 공개)</span>'
+      }</span></div>
       ${item.type==='caregiver' && item.canDrive!==null && item.canDrive!==undefined
         ? `<div class="detail-info-row"><span class="detail-info-icon">🚗</span><span class="detail-info-label">운전 가능</span><span class="detail-info-value" style="color:${item.canDrive?'#2E7D32':'#E53935'};font-weight:700">${item.canDrive?'🚗 가능':'🚫 불가능'}</span></div>`
         : ''}
@@ -2320,11 +2340,12 @@ function openDetail(id){
   if(isMatched){
     document.getElementById('contact-bar').innerHTML=`<div class="btn-matched" style="width:100%">✅ 이미 매칭완료된 공고입니다</div>`;
   } else {
-    document.getElementById('contact-bar').innerHTML=`
-      <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="openContactModal()">📞 전화</button>
-      <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="openChatRoom(${item.id})">💬 채팅하기</button>
-      <button class="btn" style="background:#FFF3E0;color:#E65100;border:2px solid #FFB74D;min-width:56px;border-radius:12px;padding:14px 10px;font-size:13px;font-weight:700" onclick="openMatchModal(${item.id})">🤝<br>매칭<br>완료</button>
-    `;
+    document.getElementById('contact-bar').innerHTML = item.sharePhone===false
+      ? `<button class="btn btn-primary" style="flex:1;font-size:15px" onclick="openChatRoom(${item.id})">💬 채팅하기</button>
+         <button class="btn" style="background:#FFF3E0;color:#E65100;border:2px solid #FFB74D;min-width:56px;border-radius:12px;padding:14px 10px;font-size:13px;font-weight:700" onclick="openMatchModal(${item.id})">🤝<br>매칭<br>완료</button>`
+      : `<button class="btn btn-outline" style="flex:1;font-size:15px" onclick="openContactModal()">📞 전화</button>
+         <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="openChatRoom(${item.id})">💬 채팅하기</button>
+         <button class="btn" style="background:#FFF3E0;color:#E65100;border:2px solid #FFB74D;min-width:56px;border-radius:12px;padding:14px 10px;font-size:13px;font-weight:700" onclick="openMatchModal(${item.id})">🤝<br>매칭<br>완료</button>`;
   }
   // 찜 버튼 상태 업데이트
   const bookmarkBtn=document.getElementById('detail-bookmark-btn');
@@ -2418,47 +2439,48 @@ function getSafeNumber(realNumber){
 function openContactModal(){
   if(!state.user){ showToast('로그인 후 연락처를 확인할 수 있습니다'); return; }
   const item = state.selectedListing; if(!item) return;
-  const safeNum = getSafeNumber(item.contact);
+
+  // 채팅만 선택한 공고
+  if(item.sharePhone===false){
+    showToast('💬 이 공고는 채팅으로만 연락 가능합니다');
+    return;
+  }
+
+  const phoneNum = item.contact;
+  const safeNum = getSafeNumber(phoneNum);
+  const isMatched = item.status==='matched';
 
   document.getElementById('modal-contact-content').innerHTML=`
     <div style="padding:10px 0 24px">
 
       <!-- 안심번호 안내 -->
       <div style="background:#E8F5E9;border-radius:14px;padding:16px;margin-bottom:20px;text-align:center">
-        <div style="font-size:13px;color:#2E7D32;font-weight:700;margin-bottom:6px">🔒 안심번호로 연결됩니다</div>
-        <div style="font-size:12px;color:#555;line-height:1.6">실제 번호는 상대방에게 노출되지 않아요.<br>통화는 안심번호를 통해 안전하게 연결됩니다.</div>
+        <div style="font-size:13px;color:#2E7D32;font-weight:700;margin-bottom:6px">🔒 안심번호로 표시됩니다</div>
+        <div style="font-size:12px;color:#555;line-height:1.6">화면에는 안심번호가 표시되어 캡처 시 실제 번호가 보호됩니다.<br>전화 버튼을 누르면 상대방에게 바로 연결됩니다.</div>
       </div>
 
       <!-- 안심번호 표시 -->
       <div style="text-align:center;margin-bottom:20px">
         <div style="font-size:13px;color:#aaa;margin-bottom:6px">${escapeHtml(item.name)} 님의 안심번호</div>
         <div style="font-size:26px;font-weight:900;color:var(--text);letter-spacing:2px;background:#f5f5f5;border-radius:12px;padding:14px">${safeNum}</div>
-        <div style="font-size:12px;color:#aaa;margin-top:6px">⚠️ 통화 종료 후 번호는 자동 소멸됩니다</div>
+        ${isMatched?'<div style="font-size:12px;color:#2E7D32;margin-top:8px">✅ 매칭완료 — 실제번호: '+escapeHtml(phoneNum)+'</div>':''}
       </div>
 
-      <!-- 전화 걸기 -->
-      <a href="tel:${safeNum}" style="text-decoration:none" onclick="closeModal('modal-contact')">
+      <!-- 전화 걸기 (실제 번호로 연결) -->
+      <a href="tel:${phoneNum}" style="text-decoration:none" onclick="closeModal('modal-contact')">
         <button class="btn btn-primary" style="font-size:18px;padding:17px;margin-bottom:12px">
-          📞 안심번호로 전화하기
+          📞 전화하기
         </button>
       </a>
 
-      <!-- 실제 번호 보기 (매칭 완료 시에만) -->
-      ${item.status==='matched'
-        ? `<div style="text-align:center;margin-top:8px">
-             <div style="font-size:13px;color:#aaa;margin-bottom:6px">✅ 매칭 완료 — 실제 번호 공개</div>
-             <a href="tel:${item.contact}" style="text-decoration:none" onclick="closeModal('modal-contact')">
-               <button class="btn btn-outline" style="font-size:16px;padding:13px">${item.contact}</button>
-             </a>
-           </div>`
-        : `<div style="text-align:center;margin-top:4px">
-             <div style="font-size:12px;color:#bbb">실제 번호는 매칭 완료 후 공개됩니다</div>
-           </div>`
-      }
+      <!-- 채팅하기 -->
+      <button class="btn btn-outline" style="font-size:15px;padding:13px" onclick="closeModal('modal-contact');openChatRoom(${item.id})">
+        💬 채팅으로 연락하기
+      </button>
 
-      <!-- 통신사 API 미연동 데모 안내 -->
+      <!-- 주의사항 -->
       <div style="background:#FFF8E1;border-radius:10px;padding:12px;margin-top:16px;font-size:12px;color:#F57F17;line-height:1.6;text-align:center">
-        ⚙️ <b>개발자 메모</b>: 실제 서비스 시 다날·KT비즈 안심번호 API 연동 필요
+        ⚠️ 연락처는 구인/구직 목적으로만 사용해주세요.<br>부적절한 연락은 신고 대상이 됩니다.
       </div>
     </div>`;
   document.getElementById('modal-contact').classList.add('open');
@@ -2620,6 +2642,24 @@ function selectDrive(canDrive){
   }
 }
 
+// 연락처 공개 설정 (기본값: 공개)
+var sharePhoneSelected = true;
+function setSharePhone(val){
+  sharePhoneSelected = val;
+  const yesEl=document.getElementById('share-phone-yes');
+  const noEl=document.getElementById('share-phone-no');
+  const hint=document.getElementById('share-phone-hint');
+  if(val){
+    yesEl.style.background='var(--primary)';yesEl.style.color='#fff';yesEl.style.borderColor='var(--primary)';
+    noEl.style.background='#fff';noEl.style.color='#999';noEl.style.borderColor='var(--border)';
+    hint.textContent='📌 연락처를 공개하면 안심번호(050)로 표시되어 실제 번호가 보호됩니다.';
+  } else {
+    noEl.style.background='var(--primary)';noEl.style.color='#fff';noEl.style.borderColor='var(--primary)';
+    yesEl.style.background='#fff';yesEl.style.color='#999';yesEl.style.borderColor='var(--border)';
+    hint.textContent='💬 채팅으로만 연락 가능합니다. 연락처가 공개되지 않습니다.';
+  }
+}
+
 function setPostType(type){
   state.postType=type;
   const e=document.getElementById('post-type-employer');
@@ -2728,6 +2768,7 @@ function submitPost(){
       time:'방금 전',urgent:false,status:'active',
       createdAt:Date.now(),exactAddress:'',
       expData: expData||{}, canDrive: driveAble||null,
+      sharePhone: sharePhoneSelected,
     };
     if(fbDB){
       fbDB.ref('listings').push(newItem);
@@ -2752,6 +2793,7 @@ function submitPost(){
     postedByKakaoId:(state.user&&state.user.kakaoId)||'',
     time:'방금 전',urgent,status:'active',
     createdAt:Date.now(),exactAddress,
+    sharePhone: sharePhoneSelected,
   };
   if(fbDB){
     fbDB.ref('listings').push(newItem);
@@ -2772,6 +2814,7 @@ function resetPostForm(){
     const el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('post-area').value='';
+  sharePhoneSelected=true; setSharePhone(true);
   // 동적 필드 초기화 (타입 재렌더)
   setPostType(state.postType);
 }
@@ -2834,6 +2877,7 @@ function showMyKakaoId(){
 
 function doLogout(){
   state.user=null; state.role=null;
+  state.chats={}; state._userChatsLoaded=false;
   // localStorage 프로필 삭제
   try { localStorage.removeItem('carelink_profile'); } catch(e){}
   const btn=document.getElementById('kakao-btn');
@@ -3315,15 +3359,22 @@ function autoResizeInput(el){
 //  채팅 목록 렌더링
 // ============================================================
 function renderChatList(){
-  // 관리자인 경우 Firebase에서 모든 support_ 채팅 로드 후 재렌더
-  if(fbDB && state.user && state.user.kakaoId === ADMIN_KAKAO_ID && !state._adminChatsLoaded){
-    state._adminChatsLoaded = true;
-    fbDB.ref('chats').once('value', snap=>{
-      snap.forEach(chatSnap=>{
-        const chatId = chatSnap.key;
-        if(!chatId.startsWith('support_')) return;
-        const chatData = chatSnap.val()||{};
-        const meta = chatData.meta||{};
+  if(!fbDB || !state.user || !state.user.kakaoId){ renderChatListDraw(); return; }
+
+  // 이미 로드했으면 다시 로드 안 함
+  if(state._userChatsLoaded){ renderChatListDraw(); return; }
+  state._userChatsLoaded = true;
+
+  fbDB.ref('chats').once('value', snap=>{
+    const myId = state.user.kakaoId;
+    const isAdmin = myId === ADMIN_KAKAO_ID;
+    snap.forEach(chatSnap=>{
+      const chatId = chatSnap.key;
+      const chatData = chatSnap.val()||{};
+      const meta = chatData.meta||{};
+
+      // 관리자: support_ 채팅 로드
+      if(isAdmin && chatId.startsWith('support_')){
         if(!state.chats[chatId]){
           state.chats[chatId]={
             title: '1:1 문의',
@@ -3334,12 +3385,40 @@ function renderChatList(){
             messages: [],
           };
         }
-      });
-      renderChatListDraw();
+        return;
+      }
+
+      // 일반 사용자: 본인 kakaoId가 포함된 채팅 로드
+      if(chatId.includes('__'+myId)){
+        if(!state.chats[chatId]){
+          state.chats[chatId]={
+            title: meta.title || '채팅',
+            otherName: meta.otherName || '상대방',
+            otherIcon: meta.isSupport ? '👤' : '🏠',
+            listingId: meta.listingId || null,
+            isSupport: meta.isSupport || false,
+            messages: [],
+          };
+        }
+        return;
+      }
+
+      // support_ 채팅에서 본인이 발신자인 경우
+      if(chatId.startsWith('support_'+myId)){
+        if(!state.chats[chatId]){
+          state.chats[chatId]={
+            title: '1:1 문의',
+            otherName: '케어링크 운영자',
+            otherIcon: '🛟',
+            listingId: null,
+            isSupport: true,
+            messages: [],
+          };
+        }
+      }
     });
-    return;
-  }
-  renderChatListDraw();
+    renderChatListDraw();
+  });
 }
 
 function renderChatListDraw(){
