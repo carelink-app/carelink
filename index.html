@@ -568,20 +568,20 @@
       <div id="post-type-caregiver" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;color:#999" onclick="setPostType('caregiver')">👩‍⚕️ 구직합니다</div>
     </div>
 
-    <!-- 공통: 제목 -->
-    <div class="form-group">
-      <label class="form-label">📌 제목</label>
-      <input class="form-input" id="post-title" type="text" placeholder="예) 어머니 방문요양 요양보호사 구합니다" maxlength="50" oninput="updateTitleCounter()"/>
+    <!-- 구인: 기관명 / 구직: 숨김 -->
+    <div class="form-group" id="post-title-wrap">
+      <label class="form-label" id="post-title-label">🏥 기관명</label>
+      <input class="form-input" id="post-title" type="text" placeholder="예) ○○요양원, 개인(가정)" maxlength="50" oninput="updateTitleCounter()"/>
       <div id="post-title-counter" class="char-counter">0 / 50자</div>
     </div>
 
     <!-- 공통: 지역 (도로명주소 검색) -->
     <div class="form-group">
-      <label class="form-label">📍 근무지 주소</label>
-      <div style="display:flex;gap:8px">
+      <label class="form-label" id="post-addr-label">📍 근무지 주소</label>
+      <div style="display:flex;gap:6px">
         <input class="form-input" id="post-addr-display" type="text" placeholder="주소를 검색하세요" readonly
-          style="flex:1;cursor:pointer;background:#fafafa" onclick="openAddrSearch()"/>
-        <button type="button" class="btn btn-primary" style="padding:12px 18px;font-size:14px;white-space:nowrap;min-width:auto" onclick="openAddrSearch()">🔍 검색</button>
+          style="flex:1;cursor:pointer;background:#fafafa;padding:10px 12px;font-size:14px" onclick="openAddrSearch()"/>
+        <button type="button" class="btn btn-primary" style="padding:8px 14px;font-size:13px;white-space:nowrap;min-width:auto" onclick="openAddrSearch()">🔍 검색</button>
       </div>
       <div id="post-addr-detail-wrap" style="display:none;margin-top:8px">
         <input class="form-input" id="post-addr-detail" type="text" placeholder="상세주소 (비공개 · 지도 정확도 향상용)" />
@@ -1993,9 +1993,9 @@ function switchTab(tab){
     setPostType(state.postType || 'employer');
   }
   if(tab==='chat'){
-    // 채팅 배지 숨기기
-    const chatBadge = document.getElementById('chat-badge');
-    if(chatBadge) chatBadge.style.display = 'none';
+    // 채팅 탭 진입 시 모든 읽지 않은 표시 초기화
+    state.unreadChatIds = {};
+    updateChatBadge();
     // 관리자: 새 탭 진입 시마다 최신 문의 목록 새로 로드
     if(state.user && state.user.kakaoId === ADMIN_KAKAO_ID) state._adminChatsLoaded = false;
     renderChatList();
@@ -2816,12 +2816,8 @@ function closeModal(id){
 // ============================================================
 const EMPLOYER_FIELDS = `
   <div class="form-group">
-    <label class="form-label">🏠 상세 주소 <span style="font-size:12px;color:#aaa">(매칭 후 상대방에게만 공개)</span></label>
-    <input class="form-input" id="post-exact-addr" type="text" placeholder="예) 역삼동 123-4 행복아파트 101동"/>
-  </div>
-  <div class="form-group">
     <label class="form-label">🕐 근무 유형</label>
-    <select class="form-select" id="post-worktype">
+    <select class="form-select" id="post-worktype" style="padding:10px 12px;font-size:14px">
       <option value="">선택</option>
       <option value="visit">방문요양</option>
       <option value="live">입주요양</option>
@@ -2831,128 +2827,113 @@ const EMPLOYER_FIELDS = `
   </div>
   <div class="form-group">
     <label class="form-label">📅 근무 요일</label>
-    <div id="post-days-wrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-mon">
-        <input type="checkbox" class="day-cb" value="월" style="display:none" onchange="toggleDayStyle(this)"/> 월
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-tue">
-        <input type="checkbox" class="day-cb" value="화" style="display:none" onchange="toggleDayStyle(this)"/> 화
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-wed">
-        <input type="checkbox" class="day-cb" value="수" style="display:none" onchange="toggleDayStyle(this)"/> 수
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-thu">
-        <input type="checkbox" class="day-cb" value="목" style="display:none" onchange="toggleDayStyle(this)"/> 목
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-fri">
-        <input type="checkbox" class="day-cb" value="금" style="display:none" onchange="toggleDayStyle(this)"/> 금
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-sat">
-        <input type="checkbox" class="day-cb" value="토" style="display:none" onchange="toggleDayStyle(this)"/> 토
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-sun">
-        <input type="checkbox" class="day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/> 일
-      </label>
+    <div id="post-days-wrap" style="display:flex;gap:4px;margin-top:4px">
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-mon"><input type="checkbox" class="day-cb" value="월" style="display:none" onchange="toggleDayStyle(this)"/>월</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-tue"><input type="checkbox" class="day-cb" value="화" style="display:none" onchange="toggleDayStyle(this)"/>화</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-wed"><input type="checkbox" class="day-cb" value="수" style="display:none" onchange="toggleDayStyle(this)"/>수</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-thu"><input type="checkbox" class="day-cb" value="목" style="display:none" onchange="toggleDayStyle(this)"/>목</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-fri"><input type="checkbox" class="day-cb" value="금" style="display:none" onchange="toggleDayStyle(this)"/>금</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-sat"><input type="checkbox" class="day-cb" value="토" style="display:none" onchange="toggleDayStyle(this)"/>토</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-sun"><input type="checkbox" class="day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/>일</label>
     </div>
   </div>
   <div class="form-group">
     <label class="form-label">🕐 근무 시간</label>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-      <select class="form-select" id="post-start-hour" style="width:80px">
+    <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+      <select class="form-select" id="post-start-hour" style="width:62px;padding:8px 4px;font-size:13px">
         <option value="">시</option>
         <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
         <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
         <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
         <option>21</option><option>22</option>
       </select>
-      <span style="font-weight:700">:</span>
-      <select class="form-select" id="post-start-min" style="width:80px">
+      <span style="font-size:13px;font-weight:700">:</span>
+      <select class="form-select" id="post-start-min" style="width:58px;padding:8px 4px;font-size:13px">
         <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
       </select>
-      <span style="font-size:14px;color:#aaa">~</span>
-      <select class="form-select" id="post-end-hour" style="width:80px">
+      <span style="font-size:13px;color:#aaa;margin:0 2px">~</span>
+      <select class="form-select" id="post-end-hour" style="width:62px;padding:8px 4px;font-size:13px">
         <option value="">시</option>
         <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
         <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
         <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
         <option>21</option><option>22</option>
       </select>
-      <span style="font-weight:700">:</span>
-      <select class="form-select" id="post-end-min" style="width:80px">
+      <span style="font-size:13px;font-weight:700">:</span>
+      <select class="form-select" id="post-end-min" style="width:58px;padding:8px 4px;font-size:13px">
         <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
       </select>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
-      <input type="checkbox" id="post-time-flexible" style="width:22px;height:22px;accent-color:var(--primary)"/>
-      <label for="post-time-flexible" style="font-size:14px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <input type="checkbox" id="post-time-flexible" style="width:18px;height:18px;accent-color:var(--primary)"/>
+      <label for="post-time-flexible" style="font-size:13px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
     </div>
   </div>
   <div class="form-group">
     <label class="form-label">💰 급여</label>
-    <input class="form-input" id="post-salary" type="text" placeholder="예) 시급 13,000원 / 월 220만원"/>
+    <input class="form-input" id="post-salary" type="text" placeholder="예) 시급 13,000원 / 월 220만원" style="padding:10px 12px;font-size:14px"/>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-    <input type="checkbox" id="post-urgent" style="width:22px;height:22px"/>
-    <label for="post-urgent" style="font-size:16px;font-weight:600;cursor:pointer">🔥 급구 표시</label>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <input type="checkbox" id="post-urgent" style="width:20px;height:20px"/>
+    <label for="post-urgent" style="font-size:15px;font-weight:600;cursor:pointer">🔥 급구 표시</label>
   </div>`;
 
 const CAREGIVER_FIELDS = `
   <div class="form-group">
-    <label class="form-label">📌 희망 동네 <span style="font-size:12px;color:#aaa">쉼표로 여러 곳 입력 가능</span></label>
-    <input class="form-input" id="post-preferred-dong" type="text" placeholder="예) 태장2동, 태장1동, 반곡동"/>
-    <div style="margin-top:8px;font-size:13px;color:#aaa">✏️ 동 이름을 쉼표로 구분해서 입력해 주세요</div>
+    <label class="form-label">📏 희망 근무 거리</label>
+    <div style="display:flex;gap:6px;margin-top:4px" id="cg-dist-wrap">
+      <div class="cg-dist-btn" onclick="selectCgDist(1)" id="cg-dist-1" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">1km</div>
+      <div class="cg-dist-btn" onclick="selectCgDist(3)" id="cg-dist-3" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">3km</div>
+      <div class="cg-dist-btn" onclick="selectCgDist(5)" id="cg-dist-5" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">5km</div>
+      <div class="cg-dist-btn" onclick="selectCgDist(10)" id="cg-dist-10" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">10km</div>
+      <div class="cg-dist-btn" onclick="selectCgDist(0)" id="cg-dist-0" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">무관</div>
+    </div>
+    <div style="margin-top:4px;font-size:12px;color:#aaa">실거주지 기준 희망 근무 거리</div>
   </div>
   <div class="form-group">
     <label class="form-label">🕐 가능한 근무 유형 <span style="font-size:12px;color:#aaa">복수 선택 가능</span></label>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
-      <label style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:16px" id="wt-label-visit">
-        <input type="checkbox" id="wt-visit" value="visit" style="width:22px;height:22px;accent-color:var(--primary)" onchange="highlightWorkType('visit',this.checked)"/>
-        방문요양
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-visit">
+        <input type="checkbox" id="wt-visit" value="visit" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('visit',this.checked)"/> 방문요양
       </label>
-      <label style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:16px" id="wt-label-live">
-        <input type="checkbox" id="wt-live" value="live" style="width:22px;height:22px;accent-color:var(--primary)" onchange="highlightWorkType('live',this.checked)"/>
-        입주요양
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-live">
+        <input type="checkbox" id="wt-live" value="live" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('live',this.checked)"/> 입주요양
       </label>
-      <label style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:16px" id="wt-label-center">
-        <input type="checkbox" id="wt-center" value="center" style="width:22px;height:22px;accent-color:var(--primary)" onchange="highlightWorkType('center',this.checked)"/>
-        주간보호센터
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-center">
+        <input type="checkbox" id="wt-center" value="center" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('center',this.checked)"/> 주간보호센터
       </label>
-      <label style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:12px;cursor:pointer;font-size:16px" id="wt-label-hospital">
-        <input type="checkbox" id="wt-hospital" value="hospital" style="width:22px;height:22px;accent-color:var(--primary)" onchange="highlightWorkType('hospital',this.checked)"/>
-        병원동행
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-hospital">
+        <input type="checkbox" id="wt-hospital" value="hospital" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('hospital',this.checked)"/> 병원동행
       </label>
     </div>
   </div>
 
   <div class="form-group">
-    <label class="form-label">📋 경력 <span style="font-size:12px;color:#aaa">유형별 경험 기간 선택</span></label>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
-      <div id="exp-row-nursing" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:2px solid var(--border);border-radius:12px;background:#fff;transition:all .2s">
-        <div style="font-size:15px;font-weight:600;color:var(--text)">🏥 요양원/요양병원</div>
-        <select class="form-select" id="exp-nursing" style="width:136px;font-size:14px;padding:8px 10px" onchange="highlightExpRow('nursing',this.value)">
+    <label class="form-label">📋 경력</label>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <div id="exp-type-new" onclick="selectExpType('new')" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:15px;font-weight:700;transition:all .2s">🌱 신입</div>
+      <div id="exp-type-exp" onclick="selectExpType('exp')" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:15px;font-weight:700;transition:all .2s">💼 경력자</div>
+    </div>
+    <div id="exp-detail-wrap" style="display:none;margin-top:10px;display:flex;flex-direction:column;gap:8px">
+      <div id="exp-row-nursing" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;transition:all .2s">
+        <div style="font-size:14px;font-weight:600">🏥 요양원/요양병원</div>
+        <select class="form-select" id="exp-nursing" style="width:120px;font-size:13px;padding:6px 8px" onchange="highlightExpRow('nursing',this.value)">
           <option value="">없음</option><option value="약 1년">약 1년</option><option value="약 2년">약 2년</option>
-          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년 이상</option>
+          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년+</option>
         </select>
       </div>
-      <div id="exp-row-daycenter" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:2px solid var(--border);border-radius:12px;background:#fff;transition:all .2s">
-        <div style="font-size:15px;font-weight:600;color:var(--text)">🏠 주간보호센터</div>
-        <select class="form-select" id="exp-daycenter" style="width:136px;font-size:14px;padding:8px 10px" onchange="highlightExpRow('daycenter',this.value)">
+      <div id="exp-row-daycenter" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;transition:all .2s">
+        <div style="font-size:14px;font-weight:600">🏠 주간보호센터</div>
+        <select class="form-select" id="exp-daycenter" style="width:120px;font-size:13px;padding:6px 8px" onchange="highlightExpRow('daycenter',this.value)">
           <option value="">없음</option><option value="약 1년">약 1년</option><option value="약 2년">약 2년</option>
-          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년 이상</option>
+          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년+</option>
         </select>
       </div>
-      <div id="exp-row-visitcenter" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:2px solid var(--border);border-radius:12px;background:#fff;transition:all .2s">
-        <div style="font-size:15px;font-weight:600;color:var(--text)">🚶 방문요양센터</div>
-        <select class="form-select" id="exp-visitcenter" style="width:136px;font-size:14px;padding:8px 10px" onchange="highlightExpRow('visitcenter',this.value)">
+      <div id="exp-row-visitcenter" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;transition:all .2s">
+        <div style="font-size:14px;font-weight:600">🚶 방문요양</div>
+        <select class="form-select" id="exp-visitcenter" style="width:120px;font-size:13px;padding:6px 8px" onchange="highlightExpRow('visitcenter',this.value)">
           <option value="">없음</option><option value="약 1년">약 1년</option><option value="약 2년">약 2년</option>
-          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년 이상</option>
-        </select>
-      </div>
-      <div id="exp-row-homecarer" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:2px solid var(--border);border-radius:12px;background:#fff;transition:all .2s">
-        <div style="font-size:15px;font-weight:600;color:var(--text)">🏡 재가요양</div>
-        <select class="form-select" id="exp-homecarer" style="width:136px;font-size:14px;padding:8px 10px" onchange="highlightExpRow('homecarer',this.value)">
-          <option value="">없음</option><option value="약 1년">약 1년</option><option value="약 2년">약 2년</option>
-          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년 이상</option>
+          <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년+</option>
         </select>
       </div>
     </div>
@@ -2960,69 +2941,51 @@ const CAREGIVER_FIELDS = `
 
   <div class="form-group">
     <label class="form-label">🚗 운전 가능 여부</label>
-    <div style="display:flex;gap:12px;margin-top:4px">
-      <div id="drive-yes" onclick="selectDrive(true)"
-        style="flex:1;padding:16px;border-radius:14px;border:2px solid var(--border);text-align:center;cursor:pointer;font-size:16px;font-weight:700;transition:all .2s">
-        🚗 운전 가능
-      </div>
-      <div id="drive-no" onclick="selectDrive(false)"
-        style="flex:1;padding:16px;border-radius:14px;border:2px solid var(--border);text-align:center;cursor:pointer;font-size:16px;font-weight:700;transition:all .2s">
-        🚫 불가능
-      </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <div id="drive-yes" onclick="selectDrive(true)" style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);text-align:center;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">🚗 가능</div>
+      <div id="drive-no" onclick="selectDrive(false)" style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);text-align:center;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">🚫 불가</div>
     </div>
   </div>
 
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px" id="cg-days-wrap">
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-mon">
-        <input type="checkbox" class="cg-day-cb" value="월" style="display:none" onchange="toggleDayStyle(this)"/> 월
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-tue">
-        <input type="checkbox" class="cg-day-cb" value="화" style="display:none" onchange="toggleDayStyle(this)"/> 화
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-wed">
-        <input type="checkbox" class="cg-day-cb" value="수" style="display:none" onchange="toggleDayStyle(this)"/> 수
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-thu">
-        <input type="checkbox" class="cg-day-cb" value="목" style="display:none" onchange="toggleDayStyle(this)"/> 목
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-fri">
-        <input type="checkbox" class="cg-day-cb" value="금" style="display:none" onchange="toggleDayStyle(this)"/> 금
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-sat">
-        <input type="checkbox" class="cg-day-cb" value="토" style="display:none" onchange="toggleDayStyle(this)"/> 토
-      </label>
-      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-sun">
-        <input type="checkbox" class="cg-day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/> 일
-      </label>
+  <div class="form-group">
+    <label class="form-label">📅 희망 근무 요일/시간</label>
+    <div style="display:flex;gap:4px;margin-top:4px" id="cg-days-wrap">
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-mon"><input type="checkbox" class="cg-day-cb" value="월" style="display:none" onchange="toggleDayStyle(this)"/>월</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-tue"><input type="checkbox" class="cg-day-cb" value="화" style="display:none" onchange="toggleDayStyle(this)"/>화</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-wed"><input type="checkbox" class="cg-day-cb" value="수" style="display:none" onchange="toggleDayStyle(this)"/>수</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-thu"><input type="checkbox" class="cg-day-cb" value="목" style="display:none" onchange="toggleDayStyle(this)"/>목</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-fri"><input type="checkbox" class="cg-day-cb" value="금" style="display:none" onchange="toggleDayStyle(this)"/>금</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-sat"><input type="checkbox" class="cg-day-cb" value="토" style="display:none" onchange="toggleDayStyle(this)"/>토</label>
+      <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="cg-day-label-sun"><input type="checkbox" class="cg-day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/>일</label>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
-      <select class="form-select" id="cg-start-hour" style="width:80px">
+    <div style="display:flex;align-items:center;gap:4px;margin-top:8px">
+      <select class="form-select" id="cg-start-hour" style="width:62px;padding:8px 4px;font-size:13px">
         <option value="">시</option>
         <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
         <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
         <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
         <option>21</option><option>22</option>
       </select>
-      <span style="font-weight:700">:</span>
-      <select class="form-select" id="cg-start-min" style="width:80px">
+      <span style="font-size:13px;font-weight:700">:</span>
+      <select class="form-select" id="cg-start-min" style="width:58px;padding:8px 4px;font-size:13px">
         <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
       </select>
-      <span style="font-size:14px;color:#aaa">~</span>
-      <select class="form-select" id="cg-end-hour" style="width:80px">
+      <span style="font-size:13px;color:#aaa;margin:0 2px">~</span>
+      <select class="form-select" id="cg-end-hour" style="width:62px;padding:8px 4px;font-size:13px">
         <option value="">시</option>
         <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
         <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
         <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
         <option>21</option><option>22</option>
       </select>
-      <span style="font-weight:700">:</span>
-      <select class="form-select" id="cg-end-min" style="width:80px">
+      <span style="font-size:13px;font-weight:700">:</span>
+      <select class="form-select" id="cg-end-min" style="width:58px;padding:8px 4px;font-size:13px">
         <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
       </select>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
-      <input type="checkbox" id="cg-time-flexible" style="width:22px;height:22px;accent-color:var(--primary)"/>
-      <label for="cg-time-flexible" style="font-size:14px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <input type="checkbox" id="cg-time-flexible" style="width:18px;height:18px;accent-color:var(--primary)"/>
+      <label for="cg-time-flexible" style="font-size:13px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
     </div>
   </div>`;
 
@@ -3059,6 +3022,39 @@ function selectDrive(canDrive){
     no.style.borderColor='var(--primary)'; no.style.background='var(--primary-light)'; no.style.color='var(--primary)';
     yes.style.borderColor='var(--border)'; yes.style.background='#fff'; yes.style.color='var(--text)';
   }
+}
+
+// 구직: 경력 유형 선택 (신입/경력자)
+let selectedExpType = null;
+function selectExpType(type){
+  selectedExpType = type;
+  const newBtn = document.getElementById('exp-type-new');
+  const expBtn = document.getElementById('exp-type-exp');
+  const detailWrap = document.getElementById('exp-detail-wrap');
+  if(type === 'new'){
+    if(newBtn){newBtn.style.borderColor='var(--primary)';newBtn.style.background='var(--primary-light)';newBtn.style.color='var(--primary)';}
+    if(expBtn){expBtn.style.borderColor='var(--border)';expBtn.style.background='#fff';expBtn.style.color='var(--text)';}
+    if(detailWrap) detailWrap.style.display='none';
+  } else {
+    if(expBtn){expBtn.style.borderColor='var(--primary)';expBtn.style.background='var(--primary-light)';expBtn.style.color='var(--primary)';}
+    if(newBtn){newBtn.style.borderColor='var(--border)';newBtn.style.background='#fff';newBtn.style.color='var(--text)';}
+    if(detailWrap) detailWrap.style.display='flex';
+  }
+}
+
+// 구직: 희망 근무 거리 선택
+let selectedCgDist = 5; // default 5km
+function selectCgDist(km){
+  selectedCgDist = km;
+  [1,3,5,10,0].forEach(v=>{
+    const el=document.getElementById('cg-dist-'+v);
+    if(!el) return;
+    if(v===km){
+      el.style.borderColor='var(--primary)';el.style.background='var(--primary)';el.style.color='#fff';
+    } else {
+      el.style.borderColor='var(--border)';el.style.background='#fff';el.style.color='var(--text)';
+    }
+  });
 }
 
 // 지역 3단계 선택 데이터
@@ -3149,6 +3145,16 @@ function setSharePhone(val){
     yesEl.style.background='#fff';yesEl.style.color='#999';yesEl.style.borderColor='var(--border)';
     hint.textContent='💬 채팅으로만 연락 가능합니다. 연락처가 공개되지 않습니다.';
   }
+  updatePhoneVisibility();
+}
+function updatePhoneVisibility(){
+  const phoneGroup = document.getElementById('post-phone') ? document.getElementById('post-phone').closest('.form-group') : null;
+  if(!phoneGroup) return;
+  if(sharePhoneSelected === false){
+    phoneGroup.style.display='none';
+  } else {
+    phoneGroup.style.display='';
+  }
 }
 
 function setPostType(type){
@@ -3162,17 +3168,38 @@ function setPostType(type){
   document.getElementById('post-dynamic-fields').innerHTML = isEmployer ? EMPLOYER_FIELDS : CAREGIVER_FIELDS;
   document.getElementById('post-header-title').textContent = isEmployer ? '구인 공고 올리기' : '구직 공고 올리기';
 
-  // 구인: 제목 placeholder 변경
+  // 구인: 기관명 표시 / 구직: 제목 숨김
+  const titleWrap=document.getElementById('post-title-wrap');
+  const titleLabel=document.getElementById('post-title-label');
   const titleInput=document.getElementById('post-title');
-  if(titleInput) titleInput.placeholder=isEmployer
-    ? '예) 어머니 방문요양 요양보호사 구합니다'
-    : '예) 경력 5년 요양보호사, 구직합니다';
+  if(isEmployer){
+    if(titleWrap) titleWrap.style.display='';
+    if(titleLabel) titleLabel.textContent='🏥 기관명';
+    if(titleInput) titleInput.placeholder='예) ○○요양원, 개인(가정)';
+  } else {
+    if(titleWrap) titleWrap.style.display='none';
+    if(titleInput) titleInput.value=''; // 구직은 제목 없음
+  }
+
+  // 주소 라벨 변경
+  const addrLabelEl=document.getElementById('post-addr-label');
+  const addrInput=document.getElementById('post-addr-display');
+  if(isEmployer){
+    if(addrLabelEl) addrLabelEl.textContent='📍 근무지 주소';
+    if(addrInput) addrInput.placeholder='근무지 주소를 검색하세요';
+  } else {
+    if(addrLabelEl) addrLabelEl.textContent='📍 실거주지 주소';
+    if(addrInput) addrInput.placeholder='본인 실거주지를 검색하세요';
+  }
 
   // 구직: 상세내용 안내 문구 변경
   const descArea=document.getElementById('post-desc');
   if(descArea) descArea.placeholder=isEmployer
     ? '어르신 상태, 원하는 조건 등 자세히 적어주세요.'
     : '경력, 자격증 취득 연도, 가능한 어르신 유형(치매/중풍 등), 특기사항 등을 자유롭게 적어주세요.';
+
+  // 채팅만 선택 시 연락처 숨기기 처리
+  updatePhoneVisibility();
 }
 
 // ── 도로명주소 검색 (Daum Postcode API) ──
@@ -3261,17 +3288,25 @@ function submitPost(){
     showToast('⚠️ 잠시 후 다시 시도해주세요 (30초 간격)');
     return;
   }
-  const title=document.getElementById('post-title').value.trim();
+  let title=document.getElementById('post-title').value.trim();
   const area=document.getElementById('post-area').value;
   const phone=document.getElementById('post-phone').value.trim();
   const desc=document.getElementById('post-desc').value.trim();
-  if(!title){showToast('제목을 입력해 주세요');return;}
+  // 구인: 기관명 필수 / 구직: 자동 생성
+  if(state.postType==='employer'){
+    if(!title){showToast('기관명을 입력해 주세요');return;}
+  } else {
+    title = (state.user&&state.user.name||'요양보호사') + ' 구직합니다';
+  }
   if(!area){showToast('주소를 검색해 주세요');return;}
-  if(!phone){showToast('연락처를 입력해 주세요');return;}
-  const phoneDigits = phone.replace(/\D/g,'');
-  if(phoneDigits.length < 10 || phoneDigits.length > 11){
-    showToast('올바른 연락처를 입력해 주세요');
-    return;
+  // 채팅만 선택 시 연락처 필수 아님
+  if(sharePhoneSelected !== false){
+    if(!phone){showToast('연락처를 입력해 주세요');return;}
+    const phoneDigits = phone.replace(/\D/g,'');
+    if(phoneDigits.length < 10 || phoneDigits.length > 11){
+      showToast('올바른 연락처를 입력해 주세요');
+      return;
+    }
   }
 
   // 주소 관련 데이터
@@ -3309,17 +3344,18 @@ function submitPost(){
     workType=types[0]||'visit';
     const labels={visit:'방문요양',live:'입주요양',center:'주간보호',hospital:'병원동행'};
     days=collectDaysTime('cg-day-cb','cg-start-hour','cg-start-min','cg-end-hour','cg-end-min','cg-time-flexible');
-    const preferredDong=(document.getElementById('post-preferred-dong')||{}).value.trim();
     exactAddress=''; // 구직자는 상세주소 없음
     salary='협의';
 
-    // 경력 수집
+    // 경력 수집 (재가요양 제거됨)
     const expData={};
-    const expMap={nursing:'요양원/요양병원', daycenter:'주간보호센터', visitcenter:'방문요양센터', homecarer:'재가요양'};
-    Object.keys(expMap).forEach(key=>{
-      const sel=document.getElementById('exp-'+key);
-      if(sel&&sel.value) expData[expMap[key]]=sel.value;
-    });
+    const expMap={nursing:'요양원/요양병원', daycenter:'주간보호센터', visitcenter:'방문요양'};
+    if(selectedExpType === 'exp'){
+      Object.keys(expMap).forEach(key=>{
+        const sel=document.getElementById('exp-'+key);
+        if(sel&&sel.value) expData[expMap[key]]=sel.value;
+      });
+    }
 
     // 운전가능여부
     const driveAble = selectedDrive; // true/false/null
@@ -3327,20 +3363,20 @@ function submitPost(){
 
     // 경력 요약 텍스트 생성
     const expEntries=Object.entries(expData);
+    const expTypeLine = selectedExpType==='new' ? '🌱 신입\n' : '';
     const expLine=expEntries.length
       ? '📋 경력: '+expEntries.map((e,i)=>`${i+1}.${e[0]} ${e[1]}`).join(', ')+'\n'
       : '';
     const driveLine = driveAble===true ? '🚗 운전 가능\n' : driveAble===false ? '🚫 운전 불가\n' : '';
+    const distLine = selectedCgDist > 0 ? `📏 희망 근무거리: ${selectedCgDist}km 이내\n` : '📏 근무거리: 무관\n';
 
-    // 희망동네를 desc 앞에 붙임
-    const dongLine=preferredDong?`🏘️ 희망 동네: ${preferredDong}\n`:'';
     const worktypeLine=types.length?`✅ 가능 유형: ${types.map(t=>labels[t]).join(', ')}\n`:'';
     const descVal=desc||'';
-    const finalDesc=(dongLine+worktypeLine+expLine+driveLine+descVal).trim()||'상세 내용 없음';
+    const finalDesc=(worktypeLine+expTypeLine+expLine+driveLine+distLine+descVal).trim()||'상세 내용 없음';
     const newItem={
       id:Date.now(),type:'caregiver',title,area,
       workType,days,hours:'협의',salary,
-      desc:finalDesc,contact:phone,
+      desc:finalDesc,contact:phone||'',
       name:(state.user&&state.user.name)||'나',
       postedBy:(state.user&&state.user.name)||'나',
       postedByKakaoId:(state.user&&state.user.kakaoId)||'',
@@ -3348,6 +3384,7 @@ function submitPost(){
       createdAt:Date.now(),exactAddress:addrDetail,
       lat:postLat, lng:postLng, roadAddress:roadAddress, bname:bname,
       expData: expData||{}, canDrive: driveAble||null,
+      expType: selectedExpType||'', wishDist: selectedCgDist||0,
       sharePhone: sharePhoneSelected,
     };
     if(fbDB){
@@ -3811,9 +3848,9 @@ function openChatRoom(listingId, forceInquirerId){
   document.getElementById('chatroom-listing-banner').style.display = 'flex';
   document.getElementById('chatroom-phone-btn').style.display = 'flex';
 
-  // 채팅 배지 숨기기 (채팅방 진입 시)
-  const chatBadge = document.getElementById('chat-badge');
-  if(chatBadge) chatBadge.style.display = 'none';
+  // 해당 채팅방 읽음 처리
+  delete state.unreadChatIds[chatId];
+  updateChatBadge();
 
   // 메시지 로드
   loadMessages(chatId);
@@ -4108,10 +4145,26 @@ function renderChatList(){
   });
 }
 
+// 읽지 않은 채팅 수 관리
+if(!state.unreadChatCount) state.unreadChatCount = 0;
+if(!state.unreadChatIds) state.unreadChatIds = {};
+
+function updateChatBadge(){
+  const badge = document.getElementById('chat-badge');
+  if(!badge) return;
+  const count = Object.keys(state.unreadChatIds).length;
+  if(count > 0){
+    badge.style.display = 'inline';
+    badge.textContent = count > 99 ? '99+' : count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 // 실시간 채팅 알림 리스너 (새 메시지 감지)
 function startChatNotificationListener(){
   if(!fbDB || !state.user || !state.user.kakaoId) return;
-  if(state._chatNotifListener) return; // 이미 리스닝 중
+  if(state._chatNotifListener) return;
   state._chatNotifListener = true;
   const myId = state.user.kakaoId;
 
@@ -4123,10 +4176,10 @@ function startChatNotificationListener(){
     const amPoster = meta.posterId === myId;
     if(!amInquirer && !amPoster) return;
 
-    // 현재 보고 있는 채팅방이 아니면 배지 표시
+    // 현재 보고 있는 채팅방이 아니면 읽지 않은 수 증가
     if(state.activeChatId !== chatId && meta.lastMsg){
-      const badge = document.getElementById('chat-badge');
-      if(badge){ badge.style.display = 'inline'; badge.textContent = 'N'; }
+      state.unreadChatIds[chatId] = true;
+      updateChatBadge();
     }
     // 채팅 목록 데이터 갱신
     if(state.chats[chatId]){
@@ -4147,7 +4200,7 @@ function startChatNotificationListener(){
     const amInquirer = chatId.includes('__'+myId);
     const amPoster = meta.posterId === myId;
     if(!amInquirer && !amPoster) return;
-    if(state.chats[chatId]) return; // 이미 있음
+    if(state.chats[chatId]) return;
 
     const otherName = amPoster
       ? (meta.inquirerName || '문의자')
@@ -4164,9 +4217,11 @@ function startChatNotificationListener(){
       lastTime: meta.lastTime || 0,
       messages: [],
     };
-    // 배지 표시
-    const badge = document.getElementById('chat-badge');
-    if(badge){ badge.style.display = 'inline'; badge.textContent = 'N'; }
+    // 새 채팅방도 읽지 않은 것으로
+    if(meta.lastMsg){
+      state.unreadChatIds[chatId] = true;
+      updateChatBadge();
+    }
   });
 }
 
