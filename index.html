@@ -10,9 +10,13 @@
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
     integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
     crossorigin="anonymous"></script>
+  <!-- Kakao Maps SDK (Geocoder용) -->
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=caab60a0d7759feab93abb6cb6a8b331&libraries=services&autoload=false"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <!-- 다음 우편번호(도로명주소 검색) -->
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <style>
     :root{
       --kakao:#FEE500;--kakao-text:#3C1E1E;
@@ -571,25 +575,22 @@
       <div id="post-title-counter" class="char-counter">0 / 50자</div>
     </div>
 
-    <!-- 공통: 지역 (3단계 선택) -->
+    <!-- 공통: 지역 (도로명주소 검색) -->
     <div class="form-group">
-      <label class="form-label">📍 지역</label>
+      <label class="form-label">📍 근무지 주소</label>
       <div style="display:flex;gap:8px">
-        <select class="form-select" id="post-sido" style="flex:1" onchange="onSidoChange()">
-          <option value="">시/도</option>
-          <option>서울</option><option>경기</option><option>인천</option><option>부산</option>
-          <option>대구</option><option>대전</option><option>광주</option><option>울산</option><option>세종</option>
-          <option>강원</option><option>충북</option><option>충남</option>
-          <option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option>
-        </select>
-        <select class="form-select" id="post-sigungu" style="flex:1" onchange="onSigunguChange()" disabled>
-          <option value="">구/시</option>
-        </select>
+        <input class="form-input" id="post-addr-display" type="text" placeholder="주소를 검색하세요" readonly
+          style="flex:1;cursor:pointer;background:#fafafa" onclick="openAddrSearch()"/>
+        <button type="button" class="btn btn-primary" style="padding:12px 18px;font-size:14px;white-space:nowrap;min-width:auto" onclick="openAddrSearch()">🔍 검색</button>
       </div>
-      <input class="form-input" id="post-dong" type="text" placeholder="동/읍/면 입력 (선택)" style="margin-top:8px" />
-      <div style="margin-top:4px;font-size:12px;color:#aaa">예) 역삼동, 태장2동</div>
+      <div id="post-addr-detail-wrap" style="display:none;margin-top:8px">
+        <input class="form-input" id="post-addr-detail" type="text" placeholder="상세주소 (비공개 · 지도 정확도 향상용)" />
+      </div>
+      <div id="post-addr-info" style="margin-top:6px;font-size:12px;color:#aaa"></div>
     </div>
     <input type="hidden" id="post-area" />
+    <input type="hidden" id="post-lat" />
+    <input type="hidden" id="post-lng" />
 
     <!-- 타입별 동적 필드 -->
     <div id="post-dynamic-fields"></div>
@@ -1880,12 +1881,39 @@ function getLandmark(area){
   const arr = LANDMARKS[area] || ['공원 인근'];
   return arr[Math.floor(Math.random()*arr.length)];
 }
-function getApproxCoords(area, id){
-  // 각 공고마다 자연스럽게 다른 방향/거리로 흩뿌림 (최대 ±100m 범위)
+// 주소를 동 단위까지만 보여주는 함수 (프라이버시 보호)
+// "서울특별시 강남구 테헤란로 123" → "서울 강남구 역삼동" (bname 있으면)
+// "강원도 원주시 태장동 ..." → "강원도 원주시 태장동"
+function truncateAddrToDong(item){
+  // roadAddress에서 동/리/읍/면까지만 추출
+  if(item.roadAddress){
+    // Daum Postcode에서 받은 bname(법정동명)이 area에 없으면 area 사용
+    const addr = item.roadAddress;
+    // "시/도 구/시 동/읍/면/로" 에서 로/길 이전까지
+    // 패턴: 시도 시군구 동읍면리 까지만
+    const m = addr.match(/^(.+?[시도])\s+(.+?[시군구])\s+(.+?[동읍면리가])/);
+    if(m) return m[1]+' '+m[2]+' '+m[3];
+    // fallback: area 값 사용
+    return item.area || addr.split(/\s+/).slice(0,3).join(' ');
+  }
+  return item.area || '';
+}
+
+function getApproxCoords(area, id, item){
+  // 프라이버시 보호: 정확한 좌표가 있어도 ±200~500m 랜덤 오프셋 적용
+  // 지도에서 "이 근방에 공고가 있다" 정도만 보여줌
+  const seed = (id || 1) * 3571 + (area||'').length * 7919;
+
+  if(item && item.lat && item.lng && item.lat !== 0 && item.lng !== 0){
+    // 도로명주소로 등록한 공고: 동 단위 수준으로 흩뿌림 (±200~500m)
+    const latOff = (((seed * 13) % 600) - 300) * 0.00001;
+    const lngOff = (((seed * 17) % 600) - 300) * 0.000012;
+    return [item.lat + latOff, item.lng + lngOff];
+  }
+  // 기존 방식: DISTRICT_COORDS 기반 (±100m)
   const base = DISTRICT_COORDS[area];
   if(!base) return [37.5665,126.9780];
-  const seed = (id || 1) * 3571 + area.length * 7919;
-  const latOff = (((seed * 13) % 200) - 100) * 0.00001;   // ±100m
+  const latOff = (((seed * 13) % 200) - 100) * 0.00001;
   const lngOff = (((seed * 17) % 200) - 100) * 0.000012;
   return [base[0]+latOff, base[1]+lngOff];
 }
@@ -1919,6 +1947,7 @@ function init(){
         renderAppNotice();
         updateAdminUI();
         updateAdminStats();
+        startChatNotificationListener();
         navigate('home');
         return; // 로그인 화면 건너뜀
       }
@@ -1964,6 +1993,9 @@ function switchTab(tab){
     setPostType(state.postType || 'employer');
   }
   if(tab==='chat'){
+    // 채팅 배지 숨기기
+    const chatBadge = document.getElementById('chat-badge');
+    if(chatBadge) chatBadge.style.display = 'none';
     // 관리자: 새 탭 진입 시마다 최신 문의 목록 새로 로드
     if(state.user && state.user.kakaoId === ADMIN_KAKAO_ID) state._adminChatsLoaded = false;
     renderChatList();
@@ -2101,6 +2133,7 @@ document.addEventListener('DOMContentLoaded', function(){
         state.role = saved.role;
         localStorage.setItem('carelink_profile', JSON.stringify(saved));
         updateHeaderUI();
+        startChatNotificationListener();
         showToast('🎉 ' + nickname + '님, 어서오세요!');
         navigate('home');
         return;
@@ -2320,6 +2353,7 @@ function confirmSetup(){
   renderAppNotice();
   updateAdminUI();
   updateAdminStats();
+  startChatNotificationListener();
   navigate('home');
 }
 
@@ -2341,7 +2375,7 @@ function setViewMode(mode){
 function initMap(){
   if(state.mapInstance){renderMapMarkers();return;}
   const fallback = DISTRICT_COORDS['서울 강남구']||[37.5665,126.9780];
-  const map = L.map('leaflet-map',{center:fallback,zoom:13,zoomControl:false,attributionControl:false});
+  const map = L.map('leaflet-map',{center:fallback,zoom:13,zoomControl:false,attributionControl:false,maxZoom:15});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
   state.mapInstance = map;
 
@@ -2452,14 +2486,14 @@ function renderMapMarkers(){
   let filtered = active;
   if(mapDistanceFilter > 0 && state.myCoords){
     filtered = active.filter(item=>{
-      const coords = getApproxCoords(item.area, item.id);
+      const coords = getApproxCoords(item.area, item.id, item);
       const dist = state.mapInstance.distance(state.myCoords, L.latLng(coords[0],coords[1]));
       return dist <= mapDistanceFilter * 1000;
     });
   }
 
   filtered.forEach(item=>{
-    const coords=getApproxCoords(item.area,item.id);
+    const coords=getApproxCoords(item.area,item.id,item);
     const landmark=getLandmark(item.area);
     const color=item.type==='employer'?'#FF6B35':'#1565C0';
     const icon=L.divIcon({
@@ -2471,7 +2505,7 @@ function renderMapMarkers(){
       <div class="map-popup-card">
         <div class="map-popup-title">${escapeHtml(item.title)}</div>
         <div class="map-popup-salary">${escapeHtml(item.salary)}</div>
-        <div class="map-popup-area">📍 ${landmark}</div>
+        <div class="map-popup-area">📍 ${item.bname?(item.area+' '+item.bname):item.area}</div>
         <button class="map-popup-btn" onclick="openDetailFromMap(${item.id})">상세 보기</button>
       </div>`,{maxWidth:240,className:'carelink-popup'});
     state.mapMarkers.push(marker);
@@ -2537,7 +2571,7 @@ function renderListings(filter){
         <div class="listing-desc">${escapeHtml(item.desc)}</div>
         <div class="listing-bottom">
           <span class="listing-salary">${escapeHtml(item.salary)}</span>
-          <span class="listing-area-time">📍${item.area} · ${item.createdAt ? getRelativeTime(item.createdAt) : item.time}</span>
+          <span class="listing-area-time">📍${item.bname?(item.area+' '+item.bname):item.area} · ${item.createdAt ? getRelativeTime(item.createdAt) : item.time}</span>
         </div>
       </div>`;
     });
@@ -2581,7 +2615,7 @@ function openDetail(id){
       <div class="detail-info-row"><span class="detail-info-icon">💼</span><span class="detail-info-label">근무 유형</span><span class="detail-info-value">${getWorkTypeLabel(item.workType)}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📅</span><span class="detail-info-label">${item.type==='caregiver'?'희망 시간':'근무 요일'}</span><span class="detail-info-value">${item.days}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">💰</span><span class="detail-info-label">급여</span><span class="detail-info-value" style="color:var(--primary);font-size:17px">${escapeHtml(item.salary)}</span></div>
-      <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${isMatched&&item.exactAddress?item.exactAddress:landmark} ${isMatched?'':'<span style="font-size:12px;color:#aaa">(매칭 후 상세주소 공개)</span>'}</span></div>
+      <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${item.bname ? (item.area+' '+item.bname) : (item.area||landmark)} <span style="font-size:12px;color:#aaa">(동 단위까지만 공개)</span></span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📞</span><span class="detail-info-label">연락처</span><span class="detail-info-value">${
         item.sharePhone===false
           ? '<span style="color:#1565C0;font-weight:700">💬 채팅만 가능</span>'
@@ -2653,7 +2687,7 @@ function confirmMatch(){
   closeModal('modal-match');
   openDetail(item.id);
   // show address reveal modal
-  document.getElementById('match-addr-text').textContent=item.exactAddress||'(상세주소 미입력)';
+  document.getElementById('match-addr-text').textContent=item.bname?(item.area+' '+item.bname):(item.area||'(위치 미입력)');
   setTimeout(()=>document.getElementById('modal-match-addr').classList.add('open'),400);
 }
 
@@ -3141,6 +3175,87 @@ function setPostType(type){
     : '경력, 자격증 취득 연도, 가능한 어르신 유형(치매/중풍 등), 특기사항 등을 자유롭게 적어주세요.';
 }
 
+// ── 도로명주소 검색 (Daum Postcode API) ──
+function openAddrSearch(){
+  new daum.Postcode({
+    oncomplete: function(data){
+      // data.roadAddress  → "서울특별시 강남구 테헤란로 123"
+      // data.sido         → "서울특별시" or "서울"
+      // data.sigungu      → "강남구"
+      // data.bname        → "역삼동"
+      // data.zonecode     → 우편번호
+      const roadAddr = data.roadAddress || data.jibunAddress || '';
+      document.getElementById('post-addr-display').value = roadAddr;
+      document.getElementById('post-addr-detail-wrap').style.display = 'block';
+
+      // 시/도 → 짧은 이름 변환 (서울특별시→서울, 경기도→경기 등)
+      const sidoShort = {
+        '서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천',
+        '광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종',
+        '경기도':'경기','강원특별자치도':'강원','강원도':'강원',
+        '충청북도':'충북','충청남도':'충남','전라북도':'전북','전북특별자치도':'전북',
+        '전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'
+      };
+      const sido = sidoShort[data.sido] || data.sido.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/,'');
+      const sigungu = data.sigungu.replace(/\s/g,'');
+      const bname = data.bname || ''; // 법정동명 (e.g. "역삼동")
+      const areaKey = sido + ' ' + sigungu; // e.g. "서울 강남구"
+      document.getElementById('post-area').value = areaKey;
+      // 법정동명 저장 (동 단위 표시용)
+      if(!document.getElementById('post-bname')){
+        const bn = document.createElement('input');
+        bn.type='hidden'; bn.id='post-bname';
+        document.getElementById('post-area').parentNode.appendChild(bn);
+      }
+      document.getElementById('post-bname').value = bname;
+
+      // 좌표 변환: Kakao Geocoding REST API
+      geocodeAddress(roadAddr, areaKey);
+    }
+  }).open();
+}
+
+function geocodeAddress(address, areaKey){
+  // Kakao Maps SDK로 좌표 변환
+  if(window.kakao && kakao.maps){
+    const doGeocode = function(){
+      try {
+        const geocoder = new kakao.maps.services.Geocoder();
+        geocoder.addressSearch(address, function(result, status){
+          if(status === kakao.maps.services.Status.OK && result.length > 0){
+            document.getElementById('post-lat').value = parseFloat(result[0].y);
+            document.getElementById('post-lng').value = parseFloat(result[0].x);
+          } else {
+            fallbackCoords(areaKey);
+          }
+        });
+      } catch(e){
+        fallbackCoords(areaKey);
+      }
+    };
+    // autoload=false이므로 load 후 실행
+    if(kakao.maps.services){
+      doGeocode();
+    } else {
+      kakao.maps.load(doGeocode);
+    }
+  } else {
+    fallbackCoords(areaKey);
+  }
+}
+
+function fallbackCoords(areaKey){
+  const coords = DISTRICT_COORDS[areaKey];
+  if(coords){
+    document.getElementById('post-lat').value = coords[0];
+    document.getElementById('post-lng').value = coords[1];
+  } else {
+    // 기본 좌표 (서울 시청)
+    document.getElementById('post-lat').value = 37.5665;
+    document.getElementById('post-lng').value = 126.9780;
+  }
+}
+
 function submitPost(){
   if(state._lastPostTime && Date.now() - state._lastPostTime < 30000){
     showToast('⚠️ 잠시 후 다시 시도해주세요 (30초 간격)');
@@ -3151,13 +3266,20 @@ function submitPost(){
   const phone=document.getElementById('post-phone').value.trim();
   const desc=document.getElementById('post-desc').value.trim();
   if(!title){showToast('제목을 입력해 주세요');return;}
-  if(!area){showToast('지역을 선택해 주세요');return;}
+  if(!area){showToast('주소를 검색해 주세요');return;}
   if(!phone){showToast('연락처를 입력해 주세요');return;}
   const phoneDigits = phone.replace(/\D/g,'');
   if(phoneDigits.length < 10 || phoneDigits.length > 11){
     showToast('올바른 연락처를 입력해 주세요');
     return;
   }
+
+  // 주소 관련 데이터
+  const postLat = parseFloat(document.getElementById('post-lat').value) || 0;
+  const postLng = parseFloat(document.getElementById('post-lng').value) || 0;
+  const roadAddress = (document.getElementById('post-addr-display').value||'').trim();
+  const addrDetail = (document.getElementById('post-addr-detail').value||'').trim();
+  const bname = (document.getElementById('post-bname')||{}).value||'';
 
   // 콘텐츠 필터링 검사
   const titleCheck = checkContentFilter(title);
@@ -3223,7 +3345,8 @@ function submitPost(){
       postedBy:(state.user&&state.user.name)||'나',
       postedByKakaoId:(state.user&&state.user.kakaoId)||'',
       time:'방금 전',urgent:false,status:'active',
-      createdAt:Date.now(),exactAddress:'',
+      createdAt:Date.now(),exactAddress:addrDetail,
+      lat:postLat, lng:postLng, roadAddress:roadAddress, bname:bname,
       expData: expData||{}, canDrive: driveAble||null,
       sharePhone: sharePhoneSelected,
     };
@@ -3249,7 +3372,8 @@ function submitPost(){
     postedBy:(state.user&&state.user.name)||'나',
     postedByKakaoId:(state.user&&state.user.kakaoId)||'',
     time:'방금 전',urgent,status:'active',
-    createdAt:Date.now(),exactAddress,
+    createdAt:Date.now(),exactAddress:addrDetail||exactAddress,
+    lat:postLat, lng:postLng, roadAddress:roadAddress, bname:bname,
     sharePhone: sharePhoneSelected,
   };
   if(fbDB){
@@ -3273,13 +3397,17 @@ function resetPostForm(){
   document.getElementById('post-area').value='';
   sharePhoneSelected=true; setSharePhone(true);
 
-  // 지역 초기화
-  const sidoEl=document.getElementById('post-sido');
-  if(sidoEl) sidoEl.value='';
-  const sigunguEl=document.getElementById('post-sigungu');
-  if(sigunguEl){sigunguEl.innerHTML='<option value="">구/시</option>';sigunguEl.disabled=true;}
-  const dongEl=document.getElementById('post-dong');
-  if(dongEl) dongEl.value='';
+  // 주소 초기화
+  const addrDisplay=document.getElementById('post-addr-display');
+  if(addrDisplay) addrDisplay.value='';
+  const addrDetailEl=document.getElementById('post-addr-detail');
+  if(addrDetailEl) addrDetailEl.value='';
+  const addrDetailWrap=document.getElementById('post-addr-detail-wrap');
+  if(addrDetailWrap) addrDetailWrap.style.display='none';
+  const postLatEl=document.getElementById('post-lat');
+  if(postLatEl) postLatEl.value='';
+  const postLngEl=document.getElementById('post-lng');
+  if(postLngEl) postLngEl.value='';
 
   // 동적 필드 초기화 (타입 재렌더)
   setPostType(state.postType);
@@ -3656,13 +3784,37 @@ function openChatRoom(listingId, forceInquirerId){
     };
   }
   state.activeChatId = chatId;
+
+  // Firebase에 meta 즉시 저장 (상대방이 채팅 목록에서 볼 수 있도록)
+  if(fbDB){
+    const myName = (state.user && state.user.name) || '나';
+    const initMeta = {
+      listingId: listingId,
+      title: item.title,
+      posterId: posterId,
+      inquirerId: inquirerId,
+    };
+    if(amIPoster){
+      initMeta.posterName = myName;
+    } else {
+      initMeta.inquirerName = myName;
+    }
+    // merge하여 기존 meta 유지
+    fbDB.ref('chats/'+chatId+'/meta').update(initMeta);
+  }
+
   // 채팅방 헤더 세팅
-  document.getElementById('chatroom-title').textContent = item.name;
+  document.getElementById('chatroom-title').textContent = amIPoster ? otherName : item.name;
   document.getElementById('chatroom-subtitle').textContent = item.area + ' · ' + getWorkTypeLabel(item.workType);
   document.getElementById('chatroom-listing-title').textContent = item.title;
   document.getElementById('chatroom-listing-salary').textContent = item.salary;
   document.getElementById('chatroom-listing-banner').style.display = 'flex';
   document.getElementById('chatroom-phone-btn').style.display = 'flex';
+
+  // 채팅 배지 숨기기 (채팅방 진입 시)
+  const chatBadge = document.getElementById('chat-badge');
+  if(chatBadge) chatBadge.style.display = 'none';
+
   // 메시지 로드
   loadMessages(chatId);
   navigate('chatroom');
@@ -3881,10 +4033,7 @@ function autoResizeInput(el){
 function renderChatList(){
   if(!fbDB || !state.user || !state.user.kakaoId){ renderChatListDraw(); return; }
 
-  // 이미 로드했으면 다시 로드 안 함
-  if(state._userChatsLoaded){ renderChatListDraw(); return; }
-  state._userChatsLoaded = true;
-
+  // 매번 새로 읽어서 실시간 반영
   fbDB.ref('chats').once('value', snap=>{
     const myId = state.user.kakaoId;
     const isAdmin = myId === ADMIN_KAKAO_ID;
@@ -3912,11 +4061,19 @@ function renderChatList(){
       const amInquirer = chatId.includes('__'+myId);
       const amPoster = meta.posterId === myId;
       if(amInquirer || amPoster){
-        if(!state.chats[chatId]){
-          // 상대방 이름 결정: 내가 문의자면 작성자 이름, 내가 작성자면 문의자 이름
-          const otherName = amPoster
-            ? (meta.inquirerName || '문의자')
-            : (meta.posterName || meta.otherName || '상대방');
+        // 상대방 이름 결정: 내가 문의자면 작성자 이름, 내가 작성자면 문의자 이름
+        const otherName = amPoster
+          ? (meta.inquirerName || '문의자')
+          : (meta.posterName || meta.otherName || '상대방');
+        // 기존 채팅 있으면 메타 갱신, 없으면 새로 생성
+        if(state.chats[chatId]){
+          state.chats[chatId].title = meta.title || state.chats[chatId].title;
+          state.chats[chatId].otherName = otherName;
+          state.chats[chatId].posterId = meta.posterId || state.chats[chatId].posterId;
+          state.chats[chatId].inquirerId = meta.inquirerId || state.chats[chatId].inquirerId;
+          state.chats[chatId].lastMsg = meta.lastMsg || '';
+          state.chats[chatId].lastTime = meta.lastTime || 0;
+        } else {
           state.chats[chatId]={
             title: meta.title || '채팅',
             otherName: otherName,
@@ -3925,6 +4082,8 @@ function renderChatList(){
             isSupport: meta.isSupport || false,
             posterId: meta.posterId || '',
             inquirerId: meta.inquirerId || '',
+            lastMsg: meta.lastMsg || '',
+            lastTime: meta.lastTime || 0,
             messages: [],
           };
         }
@@ -3949,6 +4108,68 @@ function renderChatList(){
   });
 }
 
+// 실시간 채팅 알림 리스너 (새 메시지 감지)
+function startChatNotificationListener(){
+  if(!fbDB || !state.user || !state.user.kakaoId) return;
+  if(state._chatNotifListener) return; // 이미 리스닝 중
+  state._chatNotifListener = true;
+  const myId = state.user.kakaoId;
+
+  fbDB.ref('chats').on('child_changed', snap=>{
+    const chatId = snap.key;
+    const chatData = snap.val()||{};
+    const meta = chatData.meta||{};
+    const amInquirer = chatId.includes('__'+myId);
+    const amPoster = meta.posterId === myId;
+    if(!amInquirer && !amPoster) return;
+
+    // 현재 보고 있는 채팅방이 아니면 배지 표시
+    if(state.activeChatId !== chatId && meta.lastMsg){
+      const badge = document.getElementById('chat-badge');
+      if(badge){ badge.style.display = 'inline'; badge.textContent = 'N'; }
+    }
+    // 채팅 목록 데이터 갱신
+    if(state.chats[chatId]){
+      state.chats[chatId].lastMsg = meta.lastMsg || '';
+      state.chats[chatId].lastTime = meta.lastTime || 0;
+      const otherName = amPoster
+        ? (meta.inquirerName || '문의자')
+        : (meta.posterName || '상대방');
+      state.chats[chatId].otherName = otherName;
+    }
+  });
+
+  // 새 채팅방 생성 감지
+  fbDB.ref('chats').on('child_added', snap=>{
+    const chatId = snap.key;
+    const chatData = snap.val()||{};
+    const meta = chatData.meta||{};
+    const amInquirer = chatId.includes('__'+myId);
+    const amPoster = meta.posterId === myId;
+    if(!amInquirer && !amPoster) return;
+    if(state.chats[chatId]) return; // 이미 있음
+
+    const otherName = amPoster
+      ? (meta.inquirerName || '문의자')
+      : (meta.posterName || '상대방');
+    state.chats[chatId]={
+      title: meta.title || '채팅',
+      otherName: otherName,
+      otherIcon: '🏠',
+      listingId: meta.listingId || null,
+      isSupport: false,
+      posterId: meta.posterId || '',
+      inquirerId: meta.inquirerId || '',
+      lastMsg: meta.lastMsg || '',
+      lastTime: meta.lastTime || 0,
+      messages: [],
+    };
+    // 배지 표시
+    const badge = document.getElementById('chat-badge');
+    if(badge){ badge.style.display = 'inline'; badge.textContent = 'N'; }
+  });
+}
+
 function renderChatListDraw(){
   const area = document.getElementById('chat-list-area');
   const empty = document.getElementById('chat-empty');
@@ -3961,8 +4182,12 @@ function renderChatListDraw(){
     const chat = state.chats[chatId];
     const msgs = chat.messages||[];
     const last = msgs[msgs.length-1];
-    const lastText = last?(last.type==='image'?('['+( last.imageLabel||'이미지')+']'):last.text):'대화를 시작해보세요';
-    const lastTime = last?formatChatTime(last.time||last.ts):'';
+    const lastText = last
+      ? (last.type==='image'?('['+( last.imageLabel||'이미지')+']'):last.text)
+      : (chat.lastMsg || '대화를 시작해보세요');
+    const lastTime = last
+      ? formatChatTime(last.time||last.ts)
+      : (chat.lastTime ? formatChatTime(chat.lastTime) : '');
     const subLabel = chat.isSupport
       ? `<div style="font-size:12px;color:var(--primary);margin-top:2px">🛟 1:1 문의</div>`
       : `<div style="font-size:12px;color:#bbb;margin-top:2px">📋 ${chat.title}</div>`;
