@@ -571,94 +571,25 @@
       <div id="post-title-counter" class="char-counter">0 / 50자</div>
     </div>
 
-    <!-- 공통: 지역(구) -->
+    <!-- 공통: 지역 (3단계 선택) -->
     <div class="form-group">
-      <label class="form-label">📍 지역 (구/시)</label>
-      <select class="form-select" id="post-area">
-        <option value="">지역 선택</option>
-        <optgroup label="서울">
-          <option>서울 강남구</option><option>서울 강동구</option><option>서울 강북구</option><option>서울 강서구</option>
-          <option>서울 관악구</option><option>서울 광진구</option><option>서울 구로구</option><option>서울 금천구</option>
-          <option>서울 노원구</option><option>서울 도봉구</option><option>서울 동대문구</option><option>서울 동작구</option>
-          <option>서울 마포구</option><option>서울 서대문구</option><option>서울 서초구</option><option>서울 성동구</option>
-          <option>서울 성북구</option><option>서울 송파구</option><option>서울 양천구</option><option>서울 영등포구</option>
-          <option>서울 용산구</option><option>서울 은평구</option><option>서울 종로구</option><option>서울 중구</option>
-          <option>서울 중랑구</option>
-        </optgroup>
-        <optgroup label="경기">
-          <option>경기 수원시</option><option>경기 성남시</option><option>경기 고양시</option><option>경기 용인시</option>
-          <option>경기 부천시</option><option>경기 안산시</option><option>경기 안양시</option><option>경기 남양주시</option>
-          <option>경기 화성시</option><option>경기 평택시</option><option>경기 의정부시</option><option>경기 시흥시</option>
-          <option>경기 파주시</option><option>경기 광명시</option><option>경기 김포시</option><option>경기 군포시</option>
-          <option>경기 광주시</option><option>경기 이천시</option><option>경기 양주시</option><option>경기 오산시</option>
-          <option>경기 구리시</option><option>경기 안성시</option><option>경기 포천시</option><option>경기 의왕시</option>
-          <option>경기 하남시</option><option>경기 여주시</option><option>경기 동두천시</option><option>경기 과천시</option>
-        </optgroup>
-        <optgroup label="인천">
-          <option>인천 중구</option><option>인천 동구</option><option>인천 미추홀구</option><option>인천 연수구</option>
-          <option>인천 남동구</option><option>인천 부평구</option><option>인천 계양구</option><option>인천 서구</option>
-        </optgroup>
-        <optgroup label="부산">
-          <option>부산 해운대구</option><option>부산 동래구</option><option>부산 남구</option><option>부산 부산진구</option>
-          <option>부산 사하구</option><option>부산 금정구</option><option>부산 북구</option><option>부산 사상구</option>
-          <option>부산 연제구</option><option>부산 수영구</option>
-        </optgroup>
-        <optgroup label="대구">
-          <option>대구 수성구</option><option>대구 달서구</option><option>대구 북구</option><option>대구 중구</option>
-          <option>대구 동구</option><option>대구 서구</option><option>대구 남구</option><option>대구 달성군</option>
-        </optgroup>
-        <optgroup label="대전">
-          <option>대전 유성구</option><option>대전 서구</option><option>대전 중구</option><option>대전 동구</option><option>대전 대덕구</option>
-        </optgroup>
-        <optgroup label="광주">
-          <option>광주 서구</option><option>광주 북구</option><option>광주 남구</option><option>광주 동구</option><option>광주 광산구</option>
-        </optgroup>
-        <optgroup label="울산">
-          <option>울산 남구</option><option>울산 중구</option><option>울산 동구</option><option>울산 북구</option><option>울산 울주군</option>
-        </optgroup>
-        <optgroup label="세종">
-          <option>세종시</option>
-        </optgroup>
-        <optgroup label="강원">
-          <option>강원 춘천시</option><option>강원 원주시</option><option>강원 강릉시</option><option>강원 동해시</option>
-          <option>강원 속초시</option><option>강원 삼척시</option><option>강원 태백시</option><option>강원 홍천군</option>
-          <option>강원 횡성군</option><option>강원 영월군</option><option>강원 평창군</option><option>강원 정선군</option>
-          <option>강원 철원군</option><option>강원 화천군</option><option>강원 양구군</option><option>강원 인제군</option>
-          <option>강원 고성군</option><option>강원 양양군</option>
-        </optgroup>
-        <optgroup label="충북">
-          <option>충북 청주시</option><option>충북 충주시</option><option>충북 제천시</option><option>충북 보은군</option>
-          <option>충북 옥천군</option><option>충북 영동군</option><option>충북 진천군</option><option>충북 괴산군</option>
-          <option>충북 음성군</option><option>충북 단양군</option>
-        </optgroup>
-        <optgroup label="충남">
-          <option>충남 천안시</option><option>충남 아산시</option><option>충남 서산시</option><option>충남 논산시</option>
-          <option>충남 당진시</option><option>충남 공주시</option><option>충남 보령시</option><option>충남 계룡시</option>
-          <option>충남 홍성군</option><option>충남 예산군</option><option>충남 태안군</option>
-        </optgroup>
-        <optgroup label="전북">
-          <option>전북 전주시</option><option>전북 익산시</option><option>전북 군산시</option><option>전북 정읍시</option>
-          <option>전북 남원시</option><option>전북 김제시</option><option>전북 완주군</option><option>전북 부안군</option>
-        </optgroup>
-        <optgroup label="전남">
-          <option>전남 목포시</option><option>전남 여수시</option><option>전남 순천시</option><option>전남 광양시</option>
-          <option>전남 나주시</option><option>전남 무안군</option><option>전남 해남군</option><option>전남 영암군</option>
-        </optgroup>
-        <optgroup label="경북">
-          <option>경북 포항시</option><option>경북 경주시</option><option>경북 구미시</option><option>경북 안동시</option>
-          <option>경북 김천시</option><option>경북 영주시</option><option>경북 상주시</option><option>경북 경산시</option>
-          <option>경북 영천시</option><option>경북 칠곡군</option>
-        </optgroup>
-        <optgroup label="경남">
-          <option>경남 창원시</option><option>경남 김해시</option><option>경남 진주시</option><option>경남 양산시</option>
-          <option>경남 거제시</option><option>경남 통영시</option><option>경남 사천시</option><option>경남 밀양시</option>
-          <option>경남 거창군</option><option>경남 함안군</option>
-        </optgroup>
-        <optgroup label="제주">
-          <option>제주 제주시</option><option>제주 서귀포시</option>
-        </optgroup>
-      </select>
+      <label class="form-label">📍 지역</label>
+      <div style="display:flex;gap:8px">
+        <select class="form-select" id="post-sido" style="flex:1" onchange="onSidoChange()">
+          <option value="">시/도</option>
+          <option>서울</option><option>경기</option><option>인천</option><option>부산</option>
+          <option>대구</option><option>대전</option><option>광주</option><option>울산</option><option>세종</option>
+          <option>강원</option><option>충북</option><option>충남</option>
+          <option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option>
+        </select>
+        <select class="form-select" id="post-sigungu" style="flex:1" onchange="onSigunguChange()" disabled>
+          <option value="">구/시</option>
+        </select>
+      </div>
+      <input class="form-input" id="post-dong" type="text" placeholder="동/읍/면 입력 (선택)" style="margin-top:8px" />
+      <div style="margin-top:4px;font-size:12px;color:#aaa">예) 역삼동, 태장2동</div>
     </div>
+    <input type="hidden" id="post-area" />
 
     <!-- 타입별 동적 필드 -->
     <div id="post-dynamic-fields"></div>
@@ -678,13 +609,13 @@
       <label class="form-label">🔒 연락처 공개 설정</label>
       <div id="post-share-phone-wrap" style="display:flex;gap:10px;margin-top:6px">
         <div id="share-phone-yes" onclick="setSharePhone(true)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
-          📞 연락처 공개<br><span style="font-weight:400;font-size:12px">안심번호 + 채팅 가능</span>
+          📞 연락처 공개<br><span style="font-weight:400;font-size:12px">전화 + 채팅 가능</span>
         </div>
         <div id="share-phone-no" onclick="setSharePhone(false)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:#999;transition:all .2s">
           💬 채팅만<br><span style="font-weight:400;font-size:12px">번호 비공개</span>
         </div>
       </div>
-      <div id="share-phone-hint" style="margin-top:8px;font-size:12px;color:#aaa;line-height:1.5">📌 연락처를 공개하면 안심번호(050)로 표시되어 실제 번호가 보호됩니다.</div>
+      <div id="share-phone-hint" style="margin-top:8px;font-size:12px;color:#aaa;line-height:1.5">📌 연락처를 공개하면 전화와 채팅 모두 가능합니다.</div>
     </div>
 
     <!-- 공통: 상세내용 -->
@@ -2865,8 +2796,62 @@ const EMPLOYER_FIELDS = `
     </select>
   </div>
   <div class="form-group">
-    <label class="form-label">📅 근무 요일/시간</label>
-    <input class="form-input" id="post-days" type="text" placeholder="예) 월~금 오전 9시~오후 2시"/>
+    <label class="form-label">📅 근무 요일</label>
+    <div id="post-days-wrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-mon">
+        <input type="checkbox" class="day-cb" value="월" style="display:none" onchange="toggleDayStyle(this)"/> 월
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-tue">
+        <input type="checkbox" class="day-cb" value="화" style="display:none" onchange="toggleDayStyle(this)"/> 화
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-wed">
+        <input type="checkbox" class="day-cb" value="수" style="display:none" onchange="toggleDayStyle(this)"/> 수
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-thu">
+        <input type="checkbox" class="day-cb" value="목" style="display:none" onchange="toggleDayStyle(this)"/> 목
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-fri">
+        <input type="checkbox" class="day-cb" value="금" style="display:none" onchange="toggleDayStyle(this)"/> 금
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-sat">
+        <input type="checkbox" class="day-cb" value="토" style="display:none" onchange="toggleDayStyle(this)"/> 토
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="day-label-sun">
+        <input type="checkbox" class="day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/> 일
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">🕐 근무 시간</label>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+      <select class="form-select" id="post-start-hour" style="width:80px">
+        <option value="">시</option>
+        <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
+        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+        <option>21</option><option>22</option>
+      </select>
+      <span style="font-weight:700">:</span>
+      <select class="form-select" id="post-start-min" style="width:80px">
+        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+      </select>
+      <span style="font-size:14px;color:#aaa">~</span>
+      <select class="form-select" id="post-end-hour" style="width:80px">
+        <option value="">시</option>
+        <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
+        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+        <option>21</option><option>22</option>
+      </select>
+      <span style="font-weight:700">:</span>
+      <select class="form-select" id="post-end-min" style="width:80px">
+        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+      <input type="checkbox" id="post-time-flexible" style="width:22px;height:22px;accent-color:var(--primary)"/>
+      <label for="post-time-flexible" style="font-size:14px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
+    </div>
   </div>
   <div class="form-group">
     <label class="form-label">💰 급여</label>
@@ -2953,9 +2938,58 @@ const CAREGIVER_FIELDS = `
     </div>
   </div>
 
-  <div class="form-group">
-    <label class="form-label">⏰ 희망 근무시간</label>
-    <input class="form-input" id="post-hope-hours" type="text" placeholder="예) 오전 9시~오후 3시, 주 3일 이상"/>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px" id="cg-days-wrap">
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-mon">
+        <input type="checkbox" class="cg-day-cb" value="월" style="display:none" onchange="toggleDayStyle(this)"/> 월
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-tue">
+        <input type="checkbox" class="cg-day-cb" value="화" style="display:none" onchange="toggleDayStyle(this)"/> 화
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-wed">
+        <input type="checkbox" class="cg-day-cb" value="수" style="display:none" onchange="toggleDayStyle(this)"/> 수
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-thu">
+        <input type="checkbox" class="cg-day-cb" value="목" style="display:none" onchange="toggleDayStyle(this)"/> 목
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-fri">
+        <input type="checkbox" class="cg-day-cb" value="금" style="display:none" onchange="toggleDayStyle(this)"/> 금
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-sat">
+        <input type="checkbox" class="cg-day-cb" value="토" style="display:none" onchange="toggleDayStyle(this)"/> 토
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;padding:10px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s" id="cg-day-label-sun">
+        <input type="checkbox" class="cg-day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/> 일
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+      <select class="form-select" id="cg-start-hour" style="width:80px">
+        <option value="">시</option>
+        <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
+        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+        <option>21</option><option>22</option>
+      </select>
+      <span style="font-weight:700">:</span>
+      <select class="form-select" id="cg-start-min" style="width:80px">
+        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+      </select>
+      <span style="font-size:14px;color:#aaa">~</span>
+      <select class="form-select" id="cg-end-hour" style="width:80px">
+        <option value="">시</option>
+        <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
+        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+        <option>21</option><option>22</option>
+      </select>
+      <span style="font-weight:700">:</span>
+      <select class="form-select" id="cg-end-min" style="width:80px">
+        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+      <input type="checkbox" id="cg-time-flexible" style="width:22px;height:22px;accent-color:var(--primary)"/>
+      <label for="cg-time-flexible" style="font-size:14px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
+    </div>
   </div>`;
 
 function highlightWorkType(type, checked){
@@ -2993,6 +3027,78 @@ function selectDrive(canDrive){
   }
 }
 
+// 지역 3단계 선택 데이터
+const SIDO_SIGUNGU = {
+  '서울':['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구'],
+  '경기':['수원시','성남시','고양시','용인시','부천시','안산시','안양시','남양주시','화성시','평택시','의정부시','시흥시','파주시','광명시','김포시','군포시','광주시','이천시','양주시','오산시','구리시','안성시','포천시','의왕시','하남시','여주시','동두천시','과천시'],
+  '인천':['중구','동구','미추홀구','연수구','남동구','부평구','계양구','서구'],
+  '부산':['해운대구','동래구','남구','부산진구','사하구','금정구','북구','사상구','연제구','수영구'],
+  '대구':['수성구','달서구','북구','중구','동구','서구','남구','달성군'],
+  '대전':['유성구','서구','중구','동구','대덕구'],
+  '광주':['서구','북구','남구','동구','광산구'],
+  '울산':['남구','중구','동구','북구','울주군'],
+  '세종':['세종시'],
+  '강원':['춘천시','원주시','강릉시','동해시','속초시','삼척시','태백시','홍천군','횡성군','영월군','평창군','정선군','철원군','화천군','양구군','인제군','고성군','양양군'],
+  '충북':['청주시','충주시','제천시','보은군','옥천군','영동군','진천군','괴산군','음성군','단양군'],
+  '충남':['천안시','아산시','서산시','논산시','당진시','공주시','보령시','계룡시','홍성군','예산군','태안군'],
+  '전북':['전주시','익산시','군산시','정읍시','남원시','김제시','완주군','부안군'],
+  '전남':['목포시','여수시','순천시','광양시','나주시','무안군','해남군','영암군'],
+  '경북':['포항시','경주시','구미시','안동시','김천시','영주시','상주시','경산시','영천시','칠곡군'],
+  '경남':['창원시','김해시','진주시','양산시','거제시','통영시','사천시','밀양시','거창군','함안군'],
+  '제주':['제주시','서귀포시'],
+};
+
+function onSidoChange(){
+  const sido = document.getElementById('post-sido').value;
+  const sigungu = document.getElementById('post-sigungu');
+  sigungu.innerHTML = '<option value="">구/시</option>';
+  sigungu.disabled = !sido;
+  document.getElementById('post-dong').value = '';
+  document.getElementById('post-area').value = '';
+  if(sido && SIDO_SIGUNGU[sido]){
+    SIDO_SIGUNGU[sido].forEach(g=>{
+      sigungu.innerHTML += '<option>'+g+'</option>';
+    });
+  }
+}
+function onSigunguChange(){
+  const sido = document.getElementById('post-sido').value;
+  const sigungu = document.getElementById('post-sigungu').value;
+  if(sido && sigungu){
+    const prefix = (sido==='세종') ? '' : sido+' ';
+    document.getElementById('post-area').value = prefix + sigungu;
+  }
+}
+
+// 요일 토글 스타일
+function toggleDayStyle(cb){
+  const label = cb.parentElement;
+  if(cb.checked){
+    label.style.background = 'var(--primary)';
+    label.style.color = '#fff';
+    label.style.borderColor = 'var(--primary)';
+  } else {
+    label.style.background = '#fff';
+    label.style.color = 'var(--text)';
+    label.style.borderColor = 'var(--border)';
+  }
+}
+
+// 요일+시간 수집 헬퍼
+function collectDaysTime(dayClass, startHourId, startMinId, endHourId, endMinId, flexId){
+  const days = [];
+  document.querySelectorAll('.'+dayClass+':checked').forEach(cb=>days.push(cb.value));
+  const sh = (document.getElementById(startHourId)||{}).value||'';
+  const sm = (document.getElementById(startMinId)||{}).value||'00';
+  const eh = (document.getElementById(endHourId)||{}).value||'';
+  const em = (document.getElementById(endMinId)||{}).value||'00';
+  const flex = (document.getElementById(flexId)||{}).checked;
+  let result = days.length ? days.join(',') : '협의';
+  if(sh && eh) result += ' ' + sh+':'+sm+'~'+eh+':'+em;
+  if(flex) result += ' (시간조절가능)';
+  return result;
+}
+
 // 연락처 공개 설정 (기본값: 공개)
 var sharePhoneSelected = true;
 function setSharePhone(val){
@@ -3003,7 +3109,7 @@ function setSharePhone(val){
   if(val){
     yesEl.style.background='var(--primary)';yesEl.style.color='#fff';yesEl.style.borderColor='var(--primary)';
     noEl.style.background='#fff';noEl.style.color='#999';noEl.style.borderColor='var(--border)';
-    hint.textContent='📌 연락처를 공개하면 안심번호(050)로 표시되어 실제 번호가 보호됩니다.';
+    hint.textContent='📌 연락처를 공개하면 전화와 채팅 모두 가능합니다.';
   } else {
     noEl.style.background='var(--primary)';noEl.style.color='#fff';noEl.style.borderColor='var(--primary)';
     yesEl.style.background='#fff';yesEl.style.color='#999';yesEl.style.borderColor='var(--border)';
@@ -3070,7 +3176,7 @@ function submitPost(){
   if(state.postType==='employer'){
     exactAddress=(document.getElementById('post-exact-addr')||{}).value||'';
     workType=(document.getElementById('post-worktype')||{}).value||'visit';
-    days=(document.getElementById('post-days')||{}).value||'협의';
+    days=collectDaysTime('day-cb','post-start-hour','post-start-min','post-end-hour','post-end-min','post-time-flexible');
     salary=(document.getElementById('post-salary')||{}).value||'협의';
     urgent=(document.getElementById('post-urgent')||{}).checked||false;
   } else {
@@ -3080,7 +3186,7 @@ function submitPost(){
     });
     workType=types[0]||'visit';
     const labels={visit:'방문요양',live:'입주요양',center:'주간보호',hospital:'병원동행'};
-    days=(document.getElementById('post-hope-hours')||{}).value||'협의';
+    days=collectDaysTime('cg-day-cb','cg-start-hour','cg-start-min','cg-end-hour','cg-end-min','cg-time-flexible');
     const preferredDong=(document.getElementById('post-preferred-dong')||{}).value.trim();
     exactAddress=''; // 구직자는 상세주소 없음
     salary='협의';
@@ -3166,6 +3272,15 @@ function resetPostForm(){
   });
   document.getElementById('post-area').value='';
   sharePhoneSelected=true; setSharePhone(true);
+
+  // 지역 초기화
+  const sidoEl=document.getElementById('post-sido');
+  if(sidoEl) sidoEl.value='';
+  const sigunguEl=document.getElementById('post-sigungu');
+  if(sigunguEl){sigunguEl.innerHTML='<option value="">구/시</option>';sigunguEl.disabled=true;}
+  const dongEl=document.getElementById('post-dong');
+  if(dongEl) dongEl.value='';
+
   // 동적 필드 초기화 (타입 재렌더)
   setPostType(state.postType);
 }
