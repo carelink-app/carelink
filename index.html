@@ -3606,28 +3606,53 @@ state.activeChatId = null;
 state.chatUnsubscribe = null; // Firebase 리스너 해제용
 
 // 채팅방 ID 생성: listing_{id}_{userA}_{userB} 형태
-function makeChatId(listingId){
-  const me = (state.user && state.user.kakaoId) || (state.user && state.user.name) || 'me';
-  return 'listing_' + listingId + '__' + me.replace(/\s/g,'');
+// 채팅방 ID = listing_{공고id}__{문의자kakaoId}
+// 공고 작성자가 열어도 같은 방이 되도록, 문의자(=작성자가 아닌 쪽) ID를 사용
+function makeChatId(listingId, inquirerKakaoId){
+  const id = inquirerKakaoId || (state.user && state.user.kakaoId) || 'me';
+  return 'listing_' + listingId + '__' + String(id).replace(/\s/g,'');
 }
 
 // ============================================================
 //  채팅방 열기 (공고 상세 → 채팅하기 버튼)
 // ============================================================
-function openChatRoom(listingId){
+function openChatRoom(listingId, forceInquirerId){
   if(!state.user){ showToast('로그인 후 채팅할 수 있습니다'); return; }
   const item = state.listings.find(l=>l.id==listingId);
   if(!item) return;
-  const chatId = makeChatId(listingId);
+  const myId = state.user.kakaoId;
+  const posterId = item.postedByKakaoId;
+  const amIPoster = myId === posterId;
+
+  // 채팅 ID: 항상 문의자(=작성자가 아닌 쪽) ID를 사용
+  // 내가 작성자면 → 상대방(문의자) ID 필요 (forceInquirerId로 받음)
+  // 내가 문의자면 → 내 ID 사용
+  let inquirerId;
+  if(forceInquirerId){
+    inquirerId = forceInquirerId;
+  } else if(amIPoster){
+    // 작성자가 직접 채팅하기 누른 경우 → 자기 글에 자기가 채팅 (의미 없음)
+    showToast('본인 공고에는 채팅할 수 없습니다');
+    return;
+  } else {
+    inquirerId = myId;
+  }
+
+  const chatId = makeChatId(listingId, inquirerId);
+  const otherName = amIPoster ? (state.chats[chatId]&&state.chats[chatId].otherName)||'문의자' : item.name;
+  const otherIcon = item.type==='employer'?'🏠':'👩‍⚕️';
+
   // 채팅 정보 초기화
   if(!state.chats[chatId]){
     state.chats[chatId]={
       title: item.title,
-      otherName: item.name,
-      otherIcon: item.type==='employer'?'🏠':'👩‍⚕️',
+      otherName: otherName,
+      otherIcon: otherIcon,
       listingId: listingId,
       salary: item.salary,
       messages: [],
+      posterId: posterId,
+      inquirerId: inquirerId,
     };
   }
   state.activeChatId = chatId;
@@ -3798,15 +3823,29 @@ function sendMessage(){
         renderMessages(chatId);
       });
     // 채팅 목록용 마지막 메시지 업데이트
+    const chat = state.chats[chatId];
     const metaData = {
-      listingId: state.chats[chatId].listingId || null,
-      otherName: state.chats[chatId].otherName,
-      title: state.chats[chatId].title,
+      listingId: chat.listingId || null,
+      title: chat.title,
       lastMsg: text,
       lastTime: Date.now(),
-      isSupport: state.chats[chatId].isSupport || false,
+      isSupport: chat.isSupport || false,
+      // 양쪽 참여자 ID 저장 (채팅 목록 로드 시 사용)
+      posterId: chat.posterId || '',
+      inquirerId: chat.inquirerId || '',
+      posterName: '',
+      inquirerName: '',
     };
-    if(state.chats[chatId].isSupport){
+    // 이름 설정: 내가 누군지에 따라
+    const myKakaoId = (state.user&&state.user.kakaoId)||'';
+    if(myKakaoId === metaData.posterId){
+      metaData.posterName = myName;
+      metaData.inquirerName = chat.otherName || '문의자';
+    } else {
+      metaData.inquirerName = myName;
+      metaData.posterName = chat.otherName || '작성자';
+    }
+    if(chat.isSupport){
       metaData.senderName = myName;
     }
     fbDB.ref('chats/'+chatId+'/meta').update(metaData);
@@ -3869,15 +3908,23 @@ function renderChatList(){
         return;
       }
 
-      // 일반 사용자: 본인 kakaoId가 포함된 채팅 로드
-      if(chatId.includes('__'+myId)){
+      // 일반 사용자: 내가 참여자(작성자 또는 문의자)인 채팅 로드
+      const amInquirer = chatId.includes('__'+myId);
+      const amPoster = meta.posterId === myId;
+      if(amInquirer || amPoster){
         if(!state.chats[chatId]){
+          // 상대방 이름 결정: 내가 문의자면 작성자 이름, 내가 작성자면 문의자 이름
+          const otherName = amPoster
+            ? (meta.inquirerName || '문의자')
+            : (meta.posterName || meta.otherName || '상대방');
           state.chats[chatId]={
             title: meta.title || '채팅',
-            otherName: meta.otherName || '상대방',
+            otherName: otherName,
             otherIcon: meta.isSupport ? '👤' : '🏠',
             listingId: meta.listingId || null,
             isSupport: meta.isSupport || false,
+            posterId: meta.posterId || '',
+            inquirerId: meta.inquirerId || '',
             messages: [],
           };
         }
