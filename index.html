@@ -1926,6 +1926,12 @@ function getApproxCoords(area, id, item){
 //  INIT
 // ============================================================
 function init(){
+  // Kakao Maps SDK 미리 로드 (지오코딩용)
+  try {
+    if(window.kakao && kakao.maps && !kakao.maps.services){
+      kakao.maps.load(function(){ console.log('[CareLink] Kakao Maps SDK 미리 로드 완료'); });
+    }
+  } catch(e){}
   // Firebase onValue 리스너가 listings 채움
   // ── localStorage 자동 로그인 ──────────────────────────
   try {
@@ -1995,9 +2001,7 @@ function switchTab(tab){
     setPostType(state.postType || 'employer');
   }
   if(tab==='chat'){
-    // 채팅 탭 진입 시 모든 읽지 않은 표시 초기화
-    state.unreadChatIds = {};
-    updateChatBadge();
+    // 채팅 목록 진입 — 방별 안읽은 수는 유지 (방에 들어가야 초기화됨)
     // 관리자: 새 탭 진입 시마다 최신 문의 목록 새로 로드
     if(state.user && state.user.kakaoId === ADMIN_KAKAO_ID) state._adminChatsLoaded = false;
     renderChatList();
@@ -3247,11 +3251,16 @@ function openAddrSearch(){
   }).open();
 }
 
+var _geocodingDone = true; // 지오코딩 완료 플래그
 function geocodeAddress(address, areaKey){
   // 먼저 fallback으로 좌표 설정 (geocoding 성공하면 덮어씀)
   fallbackCoords(areaKey);
+  _geocodingDone = false;
 
-  // Kakao Maps SDK로 더 정확한 좌표 시도
+  // 주소 입력란에 로딩 표시
+  const addrEl = document.getElementById('post-addr-display');
+  if(addrEl) addrEl.style.opacity = '0.5';
+
   try {
     if(window.kakao && kakao.maps){
       const doGeocode = function(){
@@ -3261,18 +3270,38 @@ function geocodeAddress(address, areaKey){
             if(status === kakao.maps.services.Status.OK && result.length > 0){
               document.getElementById('post-lat').value = parseFloat(result[0].y);
               document.getElementById('post-lng').value = parseFloat(result[0].x);
+              console.log('[CareLink] 지오코딩 성공:', address, '→', result[0].y, result[0].x);
+            } else {
+              console.log('[CareLink] 지오코딩 결과 없음, fallback 사용:', areaKey, status);
             }
-            // 실패해도 이미 fallback 좌표가 설정됨
+            _geocodingDone = true;
+            if(addrEl) addrEl.style.opacity = '1';
           });
-        } catch(e){ /* fallback 이미 설정됨 */ }
+        } catch(e){
+          console.log('[CareLink] 지오코딩 에러:', e);
+          _geocodingDone = true;
+          if(addrEl) addrEl.style.opacity = '1';
+        }
       };
-      if(kakao.maps.services){
+      // kakao.maps.load가 이미 완료됐는지 확인
+      if(kakao.maps.services && kakao.maps.services.Geocoder){
         doGeocode();
       } else {
-        kakao.maps.load(doGeocode);
+        kakao.maps.load(function(){
+          console.log('[CareLink] kakao.maps 로드 완료');
+          doGeocode();
+        });
       }
+    } else {
+      console.log('[CareLink] kakao SDK 없음, fallback 사용');
+      _geocodingDone = true;
+      if(addrEl) addrEl.style.opacity = '1';
     }
-  } catch(e){ /* fallback 이미 설정됨 */ }
+  } catch(e){
+    console.log('[CareLink] geocodeAddress 에러:', e);
+    _geocodingDone = true;
+    if(addrEl) addrEl.style.opacity = '1';
+  }
 }
 
 function fallbackCoords(areaKey){
@@ -3288,6 +3317,18 @@ function fallbackCoords(areaKey){
 }
 
 function submitPost(){
+  // 지오코딩이 아직 진행 중이면 잠깐 기다린 후 재시도
+  if(!_geocodingDone){
+    showToast('📍 주소 좌표 변환 중... 잠시만 기다려주세요');
+    setTimeout(function(){
+      if(_geocodingDone) submitPost();
+      else {
+        _geocodingDone = true; // 타임아웃 — fallback 좌표 사용
+        submitPost();
+      }
+    }, 1500);
+    return;
+  }
   if(state._lastPostTime && Date.now() - state._lastPostTime < 30000){
     showToast('⚠️ 잠시 후 다시 시도해주세요 (30초 간격)');
     return;
@@ -4153,24 +4194,32 @@ function renderChatList(){
   });
 }
 
-// 읽지 않은 채팅 수 관리
+// 읽지 않은 채팅 수 관리 (방별 안읽은 메시지 개수)
 if(!state.unreadChatCount) state.unreadChatCount = 0;
 if(!state.unreadChatIds) state.unreadChatIds = {};
 
+function getTotalUnread(){
+  let total = 0;
+  Object.values(state.unreadChatIds).forEach(function(v){ total += (typeof v === 'number' ? v : 1); });
+  return total;
+}
+
 function updateChatBadge(){
-  const count = Object.keys(state.unreadChatIds).length;
-  const text = count > 99 ? '99+' : String(count);
-  // 메인 배지
+  const total = getTotalUnread();
+  const text = total > 99 ? '99+' : String(total);
+  // 메인 배지 (하단 네비)
   const badge = document.getElementById('chat-badge');
   if(badge){
-    badge.style.display = count > 0 ? 'inline' : 'none';
+    badge.style.display = total > 0 ? 'inline' : 'none';
     badge.textContent = text;
   }
-  // 다른 화면의 채팅 배지들
+  // 다른 화면의 하단 네비 채팅 배지들
   document.querySelectorAll('.chat-badge-all').forEach(el=>{
-    el.style.display = count > 0 ? 'inline' : 'none';
+    el.style.display = total > 0 ? 'inline' : 'none';
     el.textContent = text;
   });
+  // 채팅 목록이 보이면 다시 그리기 (방별 배지 반영)
+  if(document.getElementById('chat-list-area')) renderChatListDraw();
 }
 
 // 실시간 채팅 알림 리스너 (새 메시지 감지)
@@ -4190,7 +4239,7 @@ function startChatNotificationListener(){
 
     // 현재 보고 있는 채팅방이 아니면 읽지 않은 수 증가
     if(state.activeChatId !== chatId && meta.lastMsg){
-      state.unreadChatIds[chatId] = true;
+      state.unreadChatIds[chatId] = (typeof state.unreadChatIds[chatId]==='number' ? state.unreadChatIds[chatId] : 0) + 1;
       updateChatBadge();
     }
     // 채팅 목록 데이터 갱신
@@ -4231,7 +4280,7 @@ function startChatNotificationListener(){
     };
     // 새 채팅방도 읽지 않은 것으로
     if(meta.lastMsg){
-      state.unreadChatIds[chatId] = true;
+      state.unreadChatIds[chatId] = 1;
       updateChatBadge();
     }
   });
@@ -4258,6 +4307,11 @@ function renderChatListDraw(){
     const subLabel = chat.isSupport
       ? `<div style="font-size:12px;color:var(--primary);margin-top:2px">🛟 1:1 문의</div>`
       : `<div style="font-size:12px;color:#bbb;margin-top:2px">📋 ${chat.title}</div>`;
+    const unread = state.unreadChatIds[chatId];
+    const unreadCount = typeof unread === 'number' ? unread : 0;
+    const unreadBadge = unreadCount > 0
+      ? `<div style="background:var(--primary);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;margin-top:4px">${unreadCount > 99 ? '99+' : unreadCount}</div>`
+      : '';
     html+=`<div class="chat-item" onclick="reopenChat('${chatId}')">
       <div class="chat-avatar">${chat.otherIcon||'👤'}</div>
       <div style="flex:1;overflow:hidden">
@@ -4265,7 +4319,10 @@ function renderChatListDraw(){
         <div class="chat-last">${escapeHtml(lastText)}</div>
         ${subLabel}
       </div>
-      <div class="chat-time">${lastTime}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:50px">
+        <div class="chat-time">${lastTime}</div>
+        ${unreadBadge}
+      </div>
     </div>`;
   });
   area.innerHTML=html;
@@ -4291,6 +4348,9 @@ function reopenChat(chatId){
       document.getElementById('chatroom-phone-btn').style.display = 'flex';
     }
   }
+  // 해당 방 안읽은 수 초기화
+  delete state.unreadChatIds[chatId];
+  updateChatBadge();
   loadMessages(chatId);
   navigate('chatroom');
 }
