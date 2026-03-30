@@ -528,7 +528,7 @@
     </div>
   </div>
 
-  <button class="fab" onclick="navigate('post')">✏️</button>
+  <button class="fab" onclick="switchTab('post')">✏️</button>
 
   <div class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
@@ -542,7 +542,7 @@
 <!-- ===== DETAIL ===== -->
 <div id="screen-detail" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('home')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div class="header-title">공고 상세</div>
     <div style="display:flex;align-items:center;gap:4px">
       <div class="header-right" id="detail-bookmark-btn" onclick="toggleBookmark(state.selectedListing&&state.selectedListing.id,event)" style="font-size:22px">🤍</div>
@@ -557,7 +557,7 @@
 <!-- ===== POST ===== -->
 <div id="screen-post" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('home')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div class="header-title" id="post-header-title">구인 공고 올리기</div>
     <div class="header-right"></div>
   </div>
@@ -733,7 +733,7 @@
 <!-- ===== CHAT ROOM ===== -->
 <div id="screen-chatroom" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('chat')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
       <div class="header-title" id="chatroom-title" style="font-size:17px;text-align:left">상대방 이름</div>
       <div id="chatroom-subtitle" style="font-size:12px;color:var(--text-sub);text-align:left;padding-left:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
@@ -1241,7 +1241,7 @@
 <!-- ===== SCREEN: 이력서 관리 ===== -->
 <div id="screen-resume" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('profile')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div class="header-title">📄 이력서 관리</div>
   </div>
   <div class="scroll-area" style="padding:0 0 40px">
@@ -1309,7 +1309,7 @@
 <!-- ===== SCREEN: ADMIN DASHBOARD ===== -->
 <div id="screen-admin" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('profile')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div class="header-title">🔧 관리자 대시보드</div>
   </div>
   <div class="scroll-area" style="padding:16px">
@@ -1390,7 +1390,7 @@
 <!-- ===== SCREEN: ADMIN LISTINGS ===== -->
 <div id="screen-admin-listings" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('admin')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div class="header-title">전체 공고 관리</div>
   </div>
   <div style="background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;gap:8px">
@@ -1409,7 +1409,7 @@
 <!-- ===== SCREEN: SETTINGS ===== -->
 <div id="screen-settings" class="screen">
   <div class="header">
-    <div class="header-back" onclick="navigate('profile')">←</div>
+    <div class="header-back" onclick="goBack()">←</div>
     <div class="header-title">설정</div>
   </div>
   <div class="scroll-area" style="padding:16px">
@@ -1926,12 +1926,17 @@ function getApproxCoords(area, id, item){
 //  INIT
 // ============================================================
 function init(){
-  // Kakao Maps SDK 미리 로드 (지오코딩용)
+  // Kakao Maps SDK 미리 로드 시도 (도메인 미등록이면 실패 — Nominatim fallback 사용됨)
   try {
-    if(window.kakao && kakao.maps && !kakao.maps.services){
-      kakao.maps.load(function(){ console.log('[CareLink] Kakao Maps SDK 미리 로드 완료'); });
+    if(window.kakao && kakao.maps && typeof kakao.maps.load === 'function'){
+      kakao.maps.load(function(){
+        _kakaoMapsReady = true;
+        console.log('[CareLink] Kakao Maps SDK 미리 로드 완료');
+      });
+    } else {
+      console.log('[CareLink] Kakao Maps SDK 없음 — Nominatim 지오코딩 사용 예정');
     }
-  } catch(e){}
+  } catch(e){ console.log('[CareLink] Kakao Maps 미리 로드 실패:', e); }
   // Firebase onValue 리스너가 listings 채움
   // ── localStorage 자동 로그인 ──────────────────────────
   try {
@@ -1968,26 +1973,89 @@ function init(){
 // ============================================================
 //  NAVIGATE
 // ============================================================
+// ── 탭별 독립 히스토리 시스템 ──
+// 각 탭은 자체 히스토리 스택을 가짐 (뒤로가기 시 같은 탭 안에서만 이동)
+var TAB_SCREENS = {
+  home: ['home','detail'],
+  post: ['post'],
+  chat: ['chat','chatroom'],
+  edu: ['edu','resume'],
+  profile: ['profile','admin','admin-listings','settings']
+};
+var _tabHistory = { home:['home'], post:['post'], chat:['chat'], edu:['edu'], profile:['profile'] };
+var _activeTab = 'home';
+
+function getTabForScreen(screen){
+  for(var tab in TAB_SCREENS){
+    if(TAB_SCREENS[tab].indexOf(screen) !== -1) return tab;
+  }
+  return 'home';
+}
+
 function navigate(screen, skipHistory){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
-  state.currentScreen=screen;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById('screen-'+screen);
+  if(el) el.classList.add('active');
+  state.currentScreen = screen;
+  // 채팅방에서 나가면 activeChatId 해제
+  if(screen !== 'chatroom' && state.activeChatId){
+    state.activeChatId = null;
+    if(state.chatUnsubscribe){ state.chatUnsubscribe(); state.chatUnsubscribe=null; }
+  }
   if(screen==='resume') renderResumeScreen();
-  // 브라우저 히스토리에 기록 (뒤로가기 지원)
+
   if(!skipHistory){
-    history.pushState({screen:screen}, '', '#'+screen);
+    var tab = getTabForScreen(screen);
+    _activeTab = tab; // 현재 활성 탭 추적
+    var stack = _tabHistory[tab];
+    // 같은 화면 중복 추가 방지
+    if(!stack || stack[stack.length-1] !== screen){
+      if(!stack){ _tabHistory[tab] = [screen]; }
+      else { stack.push(screen); }
+    }
+    // 브라우저 히스토리에 탭+화면 정보 기록
+    history.pushState({screen:screen, tab:tab}, '', '#'+screen);
   }
 }
-// 뒤로가기 버튼 처리
-window.addEventListener('popstate', function(e){
-  if(e.state && e.state.screen){
-    navigate(e.state.screen, true);
+
+// 탭 내 뒤로가기 함수 (← 버튼에서 사용)
+function goBack(){
+  var tab = _activeTab;
+  var stack = _tabHistory[tab];
+  if(stack && stack.length > 1){
+    stack.pop(); // 현재 화면 제거
+    var prevScreen = stack[stack.length-1];
+    navigate(prevScreen, true); // skipHistory=true
+    history.replaceState({screen:prevScreen, tab:tab}, '', '#'+prevScreen);
   } else {
-    // 히스토리 없으면 홈으로
-    navigate('home', true);
+    // 이미 탭 루트 — 아무것도 안 함
+    var rootScreen = tab;
+    navigate(rootScreen, true);
+  }
+}
+
+// 브라우저 뒤로가기 버튼 처리 — 같은 탭 안에서만 뒤로 이동
+window.addEventListener('popstate', function(e){
+  var tab = _activeTab;
+  var stack = _tabHistory[tab];
+
+  if(stack && stack.length > 1){
+    stack.pop();
+    var prevScreen = stack[stack.length-1];
+    navigate(prevScreen, true);
+  } else {
+    // 탭의 루트 화면
+    var rootScreen = tab;
+    navigate(rootScreen, true);
+    // 앱 종료 방지: 히스토리 다시 푸시
+    history.pushState({screen:rootScreen, tab:tab}, '', '#'+rootScreen);
   }
 });
 function switchTab(tab){
+  // 탭 전환: 활성 탭 변경 + 해당 탭의 루트 화면으로 이동
+  _activeTab = tab;
+  // 탭 히스토리 초기화 (탭 전환 시 이전 탭 내 깊은 화면 초기화)
+  _tabHistory[tab] = [tab];
   const screenMap={home:'home',post:'post',profile:'profile',chat:'chat',edu:'edu'};
   navigate(screenMap[tab]||'home');
   ['home','post','chat','edu','profile'].forEach(t=>{
@@ -2526,7 +2594,7 @@ function openDetailFromMap(id){
 // ============================================================
 //  LISTING RENDER
 // ============================================================
-function getWorkTypeLabel(wt){return{visit:'방문요양',live:'입주요양',center:'주간보호',hospital:'병원동행'}[wt]||wt;}
+function getWorkTypeLabel(wt){return{visit:'방문요양',live:'입주요양',facility:'요양원/요양병원',center:'주간보호',daycenter:'주야간보호센터',hospital:'병원동행'}[wt]||wt;}
 function getDaysAgo(createdAt){
   const days=Math.floor((Date.now()-createdAt)/86400000);
   if(days===0) return '오늘';
@@ -2825,12 +2893,12 @@ function closeModal(id){
 // ============================================================
 const EMPLOYER_FIELDS = `
   <div class="form-group">
-    <label class="form-label">🕐 근무 유형</label>
-    <select class="form-select" id="post-worktype" style="padding:10px 12px;font-size:14px">
+    <label class="form-label">🏥 근무 유형</label>
+    <select class="form-select" id="post-worktype" style="padding:10px 12px;font-size:14px" onchange="onWorktypeChange()">
       <option value="">선택</option>
       <option value="visit">방문요양</option>
-      <option value="live">입주요양</option>
-      <option value="center">주간보호센터</option>
+      <option value="facility">요양원/요양병원/공동생활시설</option>
+      <option value="daycenter">주야간보호센터</option>
       <option value="hospital">병원동행</option>
     </select>
   </div>
@@ -2846,36 +2914,45 @@ const EMPLOYER_FIELDS = `
       <label style="display:flex;align-items:center;justify-content:center;width:40px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s" id="day-label-sun"><input type="checkbox" class="day-cb" value="일" style="display:none" onchange="toggleDayStyle(this)"/>일</label>
     </div>
   </div>
-  <div class="form-group">
+  <div class="form-group" id="post-time-section">
     <label class="form-label">🕐 근무 시간</label>
-    <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
-      <select class="form-select" id="post-start-hour" style="width:62px;padding:8px 4px;font-size:13px">
-        <option value="">시</option>
-        <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
-        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
-        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-        <option>21</option><option>22</option>
-      </select>
-      <span style="font-size:13px;font-weight:700">:</span>
-      <select class="form-select" id="post-start-min" style="width:58px;padding:8px 4px;font-size:13px">
-        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
-      </select>
-      <span style="font-size:13px;color:#aaa;margin:0 2px">~</span>
-      <select class="form-select" id="post-end-hour" style="width:62px;padding:8px 4px;font-size:13px">
-        <option value="">시</option>
-        <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
-        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
-        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-        <option>21</option><option>22</option>
-      </select>
-      <span style="font-size:13px;font-weight:700">:</span>
-      <select class="form-select" id="post-end-min" style="width:58px;padding:8px 4px;font-size:13px">
-        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
-      </select>
+    <div id="post-shift-wrap" style="display:none;margin-top:4px;margin-bottom:8px">
+      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s" id="shift-label">
+        <input type="checkbox" id="post-shift-pattern" style="width:18px;height:18px;accent-color:var(--primary)" onchange="onShiftPatternChange()"/>
+        주주야야휴휴 (2교대)
+      </label>
+      <div style="font-size:12px;color:#aaa;margin-top:4px">체크하면 근무시간 입력 없이 등록됩니다</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-      <input type="checkbox" id="post-time-flexible" style="width:18px;height:18px;accent-color:var(--primary)"/>
-      <label for="post-time-flexible" style="font-size:13px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
+    <div id="post-time-inputs" style="margin-top:4px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <select class="form-select" id="post-start-hour" style="width:62px;padding:8px 4px;font-size:13px">
+          <option value="">시</option>
+          <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
+          <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+          <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+          <option>21</option><option>22</option>
+        </select>
+        <span style="font-size:13px;font-weight:700">:</span>
+        <select class="form-select" id="post-start-min" style="width:58px;padding:8px 4px;font-size:13px">
+          <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+        </select>
+        <span style="font-size:13px;color:#aaa;margin:0 2px">~</span>
+        <select class="form-select" id="post-end-hour" style="width:62px;padding:8px 4px;font-size:13px">
+          <option value="">시</option>
+          <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
+          <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+          <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+          <option>21</option><option>22</option>
+        </select>
+        <span style="font-size:13px;font-weight:700">:</span>
+        <select class="form-select" id="post-end-min" style="width:58px;padding:8px 4px;font-size:13px">
+          <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <input type="checkbox" id="post-time-flexible" style="width:18px;height:18px;accent-color:var(--primary)"/>
+        <label for="post-time-flexible" style="font-size:13px;color:var(--text);cursor:pointer">⏰ 시간 조절 가능 (협의)</label>
+      </div>
     </div>
   </div>
   <div class="form-group">
@@ -3123,6 +3200,36 @@ function toggleDayStyle(cb){
   }
 }
 
+// 근무유형 변경 시 주주야야휴휴 옵션 표시/숨김
+function onWorktypeChange(){
+  var wt = (document.getElementById('post-worktype')||{}).value||'';
+  var shiftWrap = document.getElementById('post-shift-wrap');
+  var shiftCb = document.getElementById('post-shift-pattern');
+  if(shiftWrap){
+    if(wt === 'facility'){
+      shiftWrap.style.display = 'block';
+    } else {
+      shiftWrap.style.display = 'none';
+      if(shiftCb) shiftCb.checked = false;
+      onShiftPatternChange(); // 시간 입력 다시 표시
+    }
+  }
+}
+
+// 주주야야휴휴 체크 시 근무시간 입력란 숨기기
+function onShiftPatternChange(){
+  var cb = document.getElementById('post-shift-pattern');
+  var timeInputs = document.getElementById('post-time-inputs');
+  var label = document.getElementById('shift-label');
+  if(cb && cb.checked){
+    if(timeInputs) timeInputs.style.display = 'none';
+    if(label){ label.style.background='var(--primary)'; label.style.color='#fff'; label.style.borderColor='var(--primary)'; }
+  } else {
+    if(timeInputs) timeInputs.style.display = 'block';
+    if(label){ label.style.background='#fff'; label.style.color='var(--text)'; label.style.borderColor='var(--border)'; }
+  }
+}
+
 // 요일+시간 수집 헬퍼
 function collectDaysTime(dayClass, startHourId, startMinId, endHourId, endMinId, flexId){
   const days = [];
@@ -3252,55 +3359,79 @@ function openAddrSearch(){
 }
 
 var _geocodingDone = true; // 지오코딩 완료 플래그
+var _kakaoMapsReady = false; // SDK 로드 완료 플래그
+
+// Nominatim(OpenStreetMap) 무료 지오코더 — API 키 불필요, 도메인 제한 없음
+function geocodeNominatim(address, addrEl){
+  console.log('[CareLink] Nominatim 지오코딩 시도:', address);
+  fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=kr&limit=1&q=' + encodeURIComponent(address), {
+    headers: { 'Accept-Language': 'ko' }
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(data && data.length > 0){
+      var lat = parseFloat(data[0].lat);
+      var lng = parseFloat(data[0].lon);
+      if(lat && lng){
+        document.getElementById('post-lat').value = lat;
+        document.getElementById('post-lng').value = lng;
+        console.log('[CareLink] Nominatim 지오코딩 성공:', address, '→', lat, lng);
+      }
+    } else {
+      console.log('[CareLink] Nominatim 결과 없음, fallback 좌표 유지');
+    }
+    _geocodingDone = true;
+    if(addrEl) addrEl.style.opacity = '1';
+  })
+  .catch(function(e){
+    console.log('[CareLink] Nominatim 에러:', e.message);
+    _geocodingDone = true;
+    if(addrEl) addrEl.style.opacity = '1';
+  });
+}
+
 function geocodeAddress(address, areaKey){
   // 먼저 fallback으로 좌표 설정 (geocoding 성공하면 덮어씀)
   fallbackCoords(areaKey);
   _geocodingDone = false;
 
   // 주소 입력란에 로딩 표시
-  const addrEl = document.getElementById('post-addr-display');
+  var addrEl = document.getElementById('post-addr-display');
   if(addrEl) addrEl.style.opacity = '0.5';
 
-  try {
-    if(window.kakao && kakao.maps){
-      const doGeocode = function(){
+  // 1차: 카카오 Maps SDK 지오코딩 시도
+  if(window.kakao && kakao.maps){
+    try {
+      kakao.maps.load(function(){
+        _kakaoMapsReady = true;
         try {
-          const geocoder = new kakao.maps.services.Geocoder();
+          var geocoder = new kakao.maps.services.Geocoder();
           geocoder.addressSearch(address, function(result, status){
             if(status === kakao.maps.services.Status.OK && result.length > 0){
               document.getElementById('post-lat').value = parseFloat(result[0].y);
               document.getElementById('post-lng').value = parseFloat(result[0].x);
-              console.log('[CareLink] 지오코딩 성공:', address, '→', result[0].y, result[0].x);
+              console.log('[CareLink] 카카오 지오코딩 성공:', address, '→', result[0].y, result[0].x);
+              _geocodingDone = true;
+              if(addrEl) addrEl.style.opacity = '1';
             } else {
-              console.log('[CareLink] 지오코딩 결과 없음, fallback 사용:', areaKey, status);
+              // 카카오 실패 → Nominatim fallback
+              console.log('[CareLink] 카카오 결과 없음, Nominatim으로 재시도');
+              geocodeNominatim(address, addrEl);
             }
-            _geocodingDone = true;
-            if(addrEl) addrEl.style.opacity = '1';
           });
         } catch(e){
-          console.log('[CareLink] 지오코딩 에러:', e);
-          _geocodingDone = true;
-          if(addrEl) addrEl.style.opacity = '1';
+          console.log('[CareLink] 카카오 Geocoder 에러, Nominatim으로 재시도:', e);
+          geocodeNominatim(address, addrEl);
         }
-      };
-      // kakao.maps.load가 이미 완료됐는지 확인
-      if(kakao.maps.services && kakao.maps.services.Geocoder){
-        doGeocode();
-      } else {
-        kakao.maps.load(function(){
-          console.log('[CareLink] kakao.maps 로드 완료');
-          doGeocode();
-        });
-      }
-    } else {
-      console.log('[CareLink] kakao SDK 없음, fallback 사용');
-      _geocodingDone = true;
-      if(addrEl) addrEl.style.opacity = '1';
+      });
+    } catch(e){
+      console.log('[CareLink] kakao.maps.load 실패, Nominatim으로 재시도');
+      geocodeNominatim(address, addrEl);
     }
-  } catch(e){
-    console.log('[CareLink] geocodeAddress 에러:', e);
-    _geocodingDone = true;
-    if(addrEl) addrEl.style.opacity = '1';
+  } else {
+    // 카카오 SDK 자체가 없음 (도메인 미등록 등) → 바로 Nominatim 사용
+    console.log('[CareLink] 카카오 Maps SDK 미로드, Nominatim 사용');
+    geocodeNominatim(address, addrEl);
   }
 }
 
@@ -3317,16 +3448,20 @@ function fallbackCoords(areaKey){
 }
 
 function submitPost(){
-  // 지오코딩이 아직 진행 중이면 잠깐 기다린 후 재시도
+  // 지오코딩이 아직 진행 중이면 기다린 후 재시도 (최대 4초)
   if(!_geocodingDone){
     showToast('📍 주소 좌표 변환 중... 잠시만 기다려주세요');
-    setTimeout(function(){
-      if(_geocodingDone) submitPost();
-      else {
-        _geocodingDone = true; // 타임아웃 — fallback 좌표 사용
+    var _geoWaitStart = Date.now();
+    var _geoWaitTimer = setInterval(function(){
+      if(_geocodingDone || Date.now() - _geoWaitStart > 4000){
+        clearInterval(_geoWaitTimer);
+        if(!_geocodingDone){
+          _geocodingDone = true; // 4초 타임아웃 — fallback 좌표 사용
+          console.log('[CareLink] 지오코딩 타임아웃, fallback 좌표 사용');
+        }
         submitPost();
       }
-    }, 1500);
+    }, 300);
     return;
   }
   if(state._lastPostTime && Date.now() - state._lastPostTime < 30000){
@@ -3337,20 +3472,40 @@ function submitPost(){
   const area=document.getElementById('post-area').value;
   const phone=document.getElementById('post-phone').value.trim();
   const desc=document.getElementById('post-desc').value.trim();
-  // 구인: 기관명 필수 / 구직: 자동 생성
+
+  // ── 구인: 모든 필수 항목 검증 ──
   if(state.postType==='employer'){
-    if(!title){showToast('기관명을 입력해 주세요');return;}
+    if(!title){showToast('⚠️ 기관명을 입력해 주세요');return;}
+    if(!area){showToast('⚠️ 근무지 주소를 검색해 주세요');return;}
+    const wt=(document.getElementById('post-worktype')||{}).value||'';
+    if(!wt){showToast('⚠️ 근무 유형을 선택해 주세요');return;}
+    const checkedDays=document.querySelectorAll('.day-cb:checked');
+    if(!checkedDays.length){showToast('⚠️ 근무 요일을 선택해 주세요');return;}
+    const sh=(document.getElementById('post-start-hour')||{}).value||'';
+    const eh=(document.getElementById('post-end-hour')||{}).value||'';
+    const timeFlex=(document.getElementById('post-time-flexible')||{}).checked;
+    const shiftPattern=(document.getElementById('post-shift-pattern')||{}).checked;
+    if(!sh && !eh && !timeFlex && !shiftPattern){showToast('⚠️ 근무 시간을 입력해 주세요');return;}
+    const sal=(document.getElementById('post-salary')||{}).value||'';
+    if(!sal.trim()){showToast('⚠️ 급여를 입력해 주세요');return;}
+    if(sharePhoneSelected !== false){
+      if(!phone){showToast('⚠️ 연락처를 입력해 주세요');return;}
+      const phoneDigits = phone.replace(/\D/g,'');
+      if(phoneDigits.length < 10 || phoneDigits.length > 11){
+        showToast('⚠️ 올바른 연락처를 입력해 주세요');return;
+      }
+    }
+    if(!desc.trim()){showToast('⚠️ 상세 내용을 입력해 주세요');return;}
   } else {
+    // ── 구직: 기본 검증 ──
     title = (state.user&&state.user.name||'요양보호사') + ' 구직합니다';
-  }
-  if(!area){showToast('주소를 검색해 주세요');return;}
-  // 채팅만 선택 시 연락처 필수 아님
-  if(sharePhoneSelected !== false){
-    if(!phone){showToast('연락처를 입력해 주세요');return;}
-    const phoneDigits = phone.replace(/\D/g,'');
-    if(phoneDigits.length < 10 || phoneDigits.length > 11){
-      showToast('올바른 연락처를 입력해 주세요');
-      return;
+    if(!area){showToast('⚠️ 주소를 검색해 주세요');return;}
+    if(sharePhoneSelected !== false){
+      if(!phone){showToast('⚠️ 연락처를 입력해 주세요');return;}
+      const phoneDigits = phone.replace(/\D/g,'');
+      if(phoneDigits.length < 10 || phoneDigits.length > 11){
+        showToast('⚠️ 올바른 연락처를 입력해 주세요');return;
+      }
     }
   }
 
@@ -3378,7 +3533,15 @@ function submitPost(){
   if(state.postType==='employer'){
     exactAddress=(document.getElementById('post-exact-addr')||{}).value||'';
     workType=(document.getElementById('post-worktype')||{}).value||'visit';
-    days=collectDaysTime('day-cb','post-start-hour','post-start-min','post-end-hour','post-end-min','post-time-flexible');
+    var isShiftPattern = (document.getElementById('post-shift-pattern')||{}).checked;
+    if(isShiftPattern){
+      // 주주야야휴휴 선택 시
+      var daysList = [];
+      document.querySelectorAll('.day-cb:checked').forEach(function(cb){ daysList.push(cb.value); });
+      days = (daysList.length ? daysList.join(',') : '협의') + ' (주주야야휴휴 2교대)';
+    } else {
+      days=collectDaysTime('day-cb','post-start-hour','post-start-min','post-end-hour','post-end-min','post-time-flexible');
+    }
     salary=(document.getElementById('post-salary')||{}).value||'협의';
     urgent=(document.getElementById('post-urgent')||{}).checked||false;
   } else {
@@ -3554,8 +3717,11 @@ function showMyKakaoId(){
 function doLogout(){
   state.user=null; state.role=null;
   state.chats={}; state._userChatsLoaded=false;
+  state.chatLastReadTime = {};
+  state.unreadChatIds = {};
   // localStorage 프로필 삭제
   try { localStorage.removeItem('carelink_profile'); } catch(e){}
+  try { localStorage.removeItem('carelink_chatLastRead'); } catch(e){}
   const btn=document.getElementById('kakao-btn');
   if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
   navigate('login');
@@ -3893,9 +4059,8 @@ function openChatRoom(listingId, forceInquirerId){
   document.getElementById('chatroom-listing-banner').style.display = 'flex';
   document.getElementById('chatroom-phone-btn').style.display = 'flex';
 
-  // 해당 채팅방 읽음 처리
-  delete state.unreadChatIds[chatId];
-  updateChatBadge();
+  // 해당 채팅방 읽음 처리 + 읽은 시간 기록
+  markChatAsRead(chatId);
 
   // 메시지 로드
   loadMessages(chatId);
@@ -3917,6 +4082,10 @@ function loadMessages(chatId){
       snap.forEach(child=>{ msgs.push({id:child.key,...child.val()}); });
       state.chats[chatId].messages = msgs;
       renderMessages(chatId);
+      // 현재 보고 있는 채팅방이면 읽은 시간 갱신
+      if(state.activeChatId === chatId){
+        markChatAsRead(chatId);
+      }
     });
     state.chatUnsubscribe = ()=> ref.off('value', handler);
   } else {
@@ -4018,7 +4187,7 @@ function sendDocFromChat(type){
   const msgData = { sender: me, senderId: (state.user&&state.user.kakaoId)||'me', type: 'image', imageUrl: photo, imageLabel: label, time: Date.now() };
   if(fbDB){
     fbDB.ref('chats/'+chatId+'/messages').push(msgData);
-    fbDB.ref('chats/'+chatId).update({ lastMsg: '['+label+'] 사진 전송', lastTs: Date.now() });
+    fbDB.ref('chats/'+chatId+'/meta').update({ lastMsg: '['+label+'] 사진 전송', lastTime: Date.now(), lastSenderId: (state.user&&state.user.kakaoId)||'me' });
   } else {
     if(!chat.messages) chat.messages=[];
     chat.messages.push(msgData);
@@ -4067,6 +4236,7 @@ function sendMessage(){
       title: chat.title,
       lastMsg: text,
       lastTime: Date.now(),
+      lastSenderId: (state.user&&state.user.kakaoId)||'me',
       isSupport: chat.isSupport || false,
       // 양쪽 참여자 ID 저장 (채팅 목록 로드 시 사용)
       posterId: chat.posterId || '',
@@ -4198,6 +4368,22 @@ function renderChatList(){
 if(!state.unreadChatCount) state.unreadChatCount = 0;
 if(!state.unreadChatIds) state.unreadChatIds = {};
 
+// 채팅방별 마지막 읽은 시간 (localStorage 저장)
+if(!state.chatLastReadTime){
+  try {
+    state.chatLastReadTime = JSON.parse(localStorage.getItem('carelink_chatLastRead') || '{}');
+  } catch(e){ state.chatLastReadTime = {}; }
+}
+function saveChatLastReadTime(){
+  try { localStorage.setItem('carelink_chatLastRead', JSON.stringify(state.chatLastReadTime)); } catch(e){}
+}
+function markChatAsRead(chatId){
+  state.chatLastReadTime[chatId] = Date.now();
+  saveChatLastReadTime();
+  delete state.unreadChatIds[chatId];
+  updateChatBadge();
+}
+
 function getTotalUnread(){
   let total = 0;
   Object.values(state.unreadChatIds).forEach(function(v){ total += (typeof v === 'number' ? v : 1); });
@@ -4222,6 +4408,36 @@ function updateChatBadge(){
   if(document.getElementById('chat-list-area')) renderChatListDraw();
 }
 
+// 채팅 알림음 (Web Audio API — 카카오톡 스타일 짧은 비프음)
+var _notifAudioCtx = null;
+function playChatNotifSound(){
+  try {
+    if(!_notifAudioCtx) _notifAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    var ctx = _notifAudioCtx;
+    // 짧고 부드러운 알림음 (카카오톡 스타일)
+    var osc1 = ctx.createOscillator();
+    var osc2 = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc1.type = 'sine'; osc1.frequency.value = 830;
+    osc2.type = 'sine'; osc2.frequency.value = 1050;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+    osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+    osc1.start(ctx.currentTime); osc2.start(ctx.currentTime + 0.08);
+    osc1.stop(ctx.currentTime + 0.15); osc2.stop(ctx.currentTime + 0.25);
+  } catch(e){}
+}
+
+// 채팅 알림 토스트 (이름 + 메시지 미리보기)
+function showChatNotifToast(senderName, msgPreview){
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99999;background:#333;color:#fff;padding:12px 20px;border-radius:16px;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,0.3);max-width:85%;cursor:pointer;animation:fadeInDown 0.3s ease';
+  toast.innerHTML = '<b>💬 '+senderName+'</b><div style="font-size:12px;color:#ccc;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+msgPreview+'</div>';
+  toast.onclick = function(){ switchTab('chat'); toast.remove(); };
+  document.body.appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity 0.3s'; setTimeout(function(){ toast.remove(); },300); }, 3000);
+}
+
 // 실시간 채팅 알림 리스너 (새 메시지 감지)
 function startChatNotificationListener(){
   if(!fbDB || !state.user || !state.user.kakaoId) return;
@@ -4237,16 +4453,25 @@ function startChatNotificationListener(){
     const amPoster = meta.posterId === myId;
     if(!amInquirer && !amPoster) return;
 
-    // 현재 보고 있는 채팅방이 아니면 읽지 않은 수 증가
-    if(state.activeChatId !== chatId && meta.lastMsg){
-      state.unreadChatIds[chatId] = (typeof state.unreadChatIds[chatId]==='number' ? state.unreadChatIds[chatId] : 0) + 1;
-      updateChatBadge();
+    // 현재 보고 있는 채팅방이 아니면 읽지 않은 수 증가 + 알림
+    var lastRead = state.chatLastReadTime[chatId] || 0;
+    var msgTime = meta.lastTime || 0;
+    if(state.activeChatId !== chatId && meta.lastMsg && msgTime > lastRead){
+      // 마지막 메시지가 내가 보낸 게 아닐 때만 안읽음 처리
+      if(meta.lastSenderId && meta.lastSenderId !== myId){
+        var prevCount = typeof state.unreadChatIds[chatId]==='number' ? state.unreadChatIds[chatId] : 0;
+        state.unreadChatIds[chatId] = prevCount + 1;
+        updateChatBadge();
+        playChatNotifSound();
+        var senderName = amPoster ? (meta.inquirerName||'문의자') : (meta.posterName||'상대방');
+        showChatNotifToast(senderName, meta.lastMsg);
+      }
     }
     // 채팅 목록 데이터 갱신
     if(state.chats[chatId]){
       state.chats[chatId].lastMsg = meta.lastMsg || '';
       state.chats[chatId].lastTime = meta.lastTime || 0;
-      const otherName = amPoster
+      var otherName = amPoster
         ? (meta.inquirerName || '문의자')
         : (meta.posterName || '상대방');
       state.chats[chatId].otherName = otherName;
@@ -4278,10 +4503,14 @@ function startChatNotificationListener(){
       lastTime: meta.lastTime || 0,
       messages: [],
     };
-    // 새 채팅방도 읽지 않은 것으로
-    if(meta.lastMsg){
+    // lastReadTime 비교: 이미 읽은 메시지면 안읽음 표시 안 함
+    var lastRead = state.chatLastReadTime[chatId] || 0;
+    var msgTime = meta.lastTime || 0;
+    if(meta.lastMsg && msgTime > lastRead && meta.lastSenderId !== myId){
       state.unreadChatIds[chatId] = 1;
       updateChatBadge();
+      playChatNotifSound();
+      showChatNotifToast(otherName, meta.lastMsg);
     }
   });
 }
@@ -4348,9 +4577,8 @@ function reopenChat(chatId){
       document.getElementById('chatroom-phone-btn').style.display = 'flex';
     }
   }
-  // 해당 방 안읽은 수 초기화
-  delete state.unreadChatIds[chatId];
-  updateChatBadge();
+  // 해당 방 안읽은 수 초기화 + 읽은 시간 기록
+  markChatAsRead(chatId);
   loadMessages(chatId);
   navigate('chatroom');
 }
@@ -5416,6 +5644,7 @@ function confirmWithdraw(){
     localStorage.removeItem('carelink_profile');
     localStorage.removeItem('carelink_nickname');
     localStorage.removeItem('carelink_user_id');
+    localStorage.removeItem('carelink_chatLastRead');
   } catch(e){}
 
   setTimeout(() => {
@@ -5574,18 +5803,7 @@ function closePWABanner(){
 window.addEventListener('online', ()=>showToast('인터넷에 연결되었습니다 ✅'));
 window.addEventListener('offline', ()=>showToast('⚠️ 인터넷 연결이 끊어졌습니다. 일부 기능이 제한됩니다.'));
 
-// ============================================================
-//  뒤로가기 처리 (앱 같은 UX)
-// ============================================================
-window.addEventListener('popstate', function(e){
-  const cs = state.currentScreen;
-  if(cs === 'detail' || cs === 'chatroom' || cs === 'admin' || cs === 'resume' || cs === 'settings'){
-    navigate('home');
-  }
-});
-// 화면 전환 시 history push
-const _origNavigate = navigate;
-// (navigate 이미 정의돼 있으므로 popstate에서만 처리)
+// (뒤로가기는 탭별 독립 히스토리 시스템에서 처리 — 상단 navigate/popstate 참조)
 
 // ============================================================
 //  입력 접근성 개선 (키보드 올라올 때 스크롤)
