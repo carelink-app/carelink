@@ -699,7 +699,7 @@
   <div class="bottom-nav">
     <div class="nav-item" id="nav-home2" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post2" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
-    <div class="nav-item" id="nav-chat2" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span></div>
+    <div class="nav-item" id="nav-chat2" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:8px;background:var(--primary);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 5px"></span></div>
     <div class="nav-item" id="nav-edu2" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
     <div class="nav-item active" id="nav-profile2"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
@@ -724,7 +724,7 @@
   <div class="bottom-nav">
     <div class="nav-item" id="nav-home3" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post3" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
-    <div class="nav-item active" id="nav-chat3"><span class="nav-icon">💬</span><span class="nav-label">채팅</span></div>
+    <div class="nav-item active" id="nav-chat3"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:8px;background:var(--primary);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 5px"></span></div>
     <div class="nav-item" id="nav-edu3" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
     <div class="nav-item" id="nav-profile3" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
@@ -798,7 +798,7 @@
   <div class="bottom-nav">
     <div class="nav-item" id="nav-home4" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post4" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
-    <div class="nav-item" id="nav-chat4" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span></div>
+    <div class="nav-item" id="nav-chat4" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:8px;background:var(--primary);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 5px"></span></div>
     <div class="nav-item active" id="nav-edu4"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
     <div class="nav-item" id="nav-profile4" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
@@ -1065,7 +1065,7 @@
   <div style="background:#fff;border-radius:16px;width:95%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:18px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:17px;font-weight:800">이용약관</div>
-      <span onclick="closeModal('modal-terms')" style="font-size:22px;cursor:pointer;color:#aaa">✕</span>
+      <span onclick="closeModal('modal-terms')" style="font-size:24px;cursor:pointer;color:#666;padding:8px 12px;margin:-8px -12px;line-height:1">✕</span>
     </div>
     <div style="overflow-y:auto;padding:20px;font-size:13px;line-height:1.9;color:#444">
       <div style="background:#FFF8F5;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#888;line-height:1.7">
@@ -1139,7 +1139,7 @@
   <div style="background:#fff;border-radius:16px;width:95%;max-height:82vh;display:flex;flex-direction:column;overflow:hidden">
     <div style="padding:18px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:17px;font-weight:800">개인정보처리방침</div>
-      <span onclick="closeModal('modal-privacy')" style="font-size:22px;cursor:pointer;color:#aaa">✕</span>
+      <span onclick="closeModal('modal-privacy')" style="font-size:24px;cursor:pointer;color:#666;padding:8px 12px;margin:-8px -12px;line-height:1">✕</span>
     </div>
     <div style="overflow-y:auto;padding:20px;font-size:13px;line-height:1.9;color:#444">
       <div style="background:#F0F7FF;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1565C0;line-height:1.7">
@@ -1904,11 +1904,13 @@ function getApproxCoords(area, id, item){
   // 지도에서 "이 근방에 공고가 있다" 정도만 보여줌
   const seed = (id || 1) * 3571 + (area||'').length * 7919;
 
-  if(item && item.lat && item.lng && item.lat !== 0 && item.lng !== 0){
+  const itemLat = item ? parseFloat(item.lat) : 0;
+  const itemLng = item ? parseFloat(item.lng) : 0;
+  if(itemLat && itemLng && itemLat !== 0 && itemLng !== 0){
     // 도로명주소로 등록한 공고: 동 단위 수준으로 흩뿌림 (±200~500m)
     const latOff = (((seed * 13) % 600) - 300) * 0.00001;
     const lngOff = (((seed * 17) % 600) - 300) * 0.000012;
-    return [item.lat + latOff, item.lng + lngOff];
+    return [itemLat + latOff, itemLng + lngOff];
   }
   // 기존 방식: DISTRICT_COORDS 기반 (±100m)
   const base = DISTRICT_COORDS[area];
@@ -2808,7 +2810,10 @@ function openModal(id){
   el.classList.add('open');
 }
 function closeModal(id){
-  document.getElementById(id).classList.remove('open');
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('open');
+  el.style.display = 'none';
 }
 
 // ============================================================
@@ -3243,32 +3248,31 @@ function openAddrSearch(){
 }
 
 function geocodeAddress(address, areaKey){
-  // Kakao Maps SDK로 좌표 변환
-  if(window.kakao && kakao.maps){
-    const doGeocode = function(){
-      try {
-        const geocoder = new kakao.maps.services.Geocoder();
-        geocoder.addressSearch(address, function(result, status){
-          if(status === kakao.maps.services.Status.OK && result.length > 0){
-            document.getElementById('post-lat').value = parseFloat(result[0].y);
-            document.getElementById('post-lng').value = parseFloat(result[0].x);
-          } else {
-            fallbackCoords(areaKey);
-          }
-        });
-      } catch(e){
-        fallbackCoords(areaKey);
+  // 먼저 fallback으로 좌표 설정 (geocoding 성공하면 덮어씀)
+  fallbackCoords(areaKey);
+
+  // Kakao Maps SDK로 더 정확한 좌표 시도
+  try {
+    if(window.kakao && kakao.maps){
+      const doGeocode = function(){
+        try {
+          const geocoder = new kakao.maps.services.Geocoder();
+          geocoder.addressSearch(address, function(result, status){
+            if(status === kakao.maps.services.Status.OK && result.length > 0){
+              document.getElementById('post-lat').value = parseFloat(result[0].y);
+              document.getElementById('post-lng').value = parseFloat(result[0].x);
+            }
+            // 실패해도 이미 fallback 좌표가 설정됨
+          });
+        } catch(e){ /* fallback 이미 설정됨 */ }
+      };
+      if(kakao.maps.services){
+        doGeocode();
+      } else {
+        kakao.maps.load(doGeocode);
       }
-    };
-    // autoload=false이므로 load 후 실행
-    if(kakao.maps.services){
-      doGeocode();
-    } else {
-      kakao.maps.load(doGeocode);
     }
-  } else {
-    fallbackCoords(areaKey);
-  }
+  } catch(e){ /* fallback 이미 설정됨 */ }
 }
 
 function fallbackCoords(areaKey){
@@ -3904,8 +3908,12 @@ function renderMessages(chatId){
   let html='';
   let lastDate='';
   chat.messages.forEach(msg=>{
-    const isMe = msg.senderId===(state.user&&state.user.kakaoId) || msg.senderId==='me' || msg.sender===myName;
-    const d = new Date(msg.time||Date.now());
+    const myKakaoId = (state.user&&state.user.kakaoId)||'';
+    // senderId가 있으면 정확히 비교, 없으면 이름으로 fallback
+    const isMe = msg.senderId
+      ? (msg.senderId === myKakaoId || msg.senderId === 'me')
+      : (msg.sender === myName);
+    const d = new Date(msg.time||msg.ts||Date.now());
     const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일`;
     const timeStr = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
 
@@ -3966,7 +3974,7 @@ function sendDocFromChat(type){
   const chatId = state.activeChatId; if(!chatId) return;
   const chat = state.chats[chatId]; if(!chat) return;
   const me = state.user.name;
-  const msgData = { sender: me, type: 'image', imageUrl: photo, imageLabel: label, ts: Date.now() };
+  const msgData = { sender: me, senderId: (state.user&&state.user.kakaoId)||'me', type: 'image', imageUrl: photo, imageLabel: label, time: Date.now() };
   if(fbDB){
     fbDB.ref('chats/'+chatId+'/messages').push(msgData);
     fbDB.ref('chats/'+chatId).update({ lastMsg: '['+label+'] 사진 전송', lastTs: Date.now() });
@@ -4150,15 +4158,19 @@ if(!state.unreadChatCount) state.unreadChatCount = 0;
 if(!state.unreadChatIds) state.unreadChatIds = {};
 
 function updateChatBadge(){
-  const badge = document.getElementById('chat-badge');
-  if(!badge) return;
   const count = Object.keys(state.unreadChatIds).length;
-  if(count > 0){
-    badge.style.display = 'inline';
-    badge.textContent = count > 99 ? '99+' : count;
-  } else {
-    badge.style.display = 'none';
+  const text = count > 99 ? '99+' : String(count);
+  // 메인 배지
+  const badge = document.getElementById('chat-badge');
+  if(badge){
+    badge.style.display = count > 0 ? 'inline' : 'none';
+    badge.textContent = text;
   }
+  // 다른 화면의 채팅 배지들
+  document.querySelectorAll('.chat-badge-all').forEach(el=>{
+    el.style.display = count > 0 ? 'inline' : 'none';
+    el.textContent = text;
+  });
 }
 
 // 실시간 채팅 알림 리스너 (새 메시지 감지)
