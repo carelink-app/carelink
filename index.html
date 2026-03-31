@@ -65,16 +65,24 @@
     .chat-time{font-size:12px;color:#aaa;margin-left:auto;flex-shrink:0;align-self:flex-start;padding-top:2px}
     .chat-unread{background:var(--primary);color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:2px 7px;margin-left:auto;flex-shrink:0}
     /* 채팅방 */
-    .msg-row{display:flex;margin-bottom:12px;align-items:flex-end;gap:6px}
+    /* ── 카카오톡 스타일 채팅 ── */
+    .msg-row{display:flex;margin-bottom:2px;align-items:flex-end;gap:4px;padding:0 12px}
     .msg-row.me{flex-direction:row-reverse}
-    .msg-bubble{max-width:68%;padding:12px 15px;border-radius:18px;font-size:15px;line-height:1.5;word-break:break-word;overflow-wrap:break-word}
-    .msg-bubble.other{background:#f0f0f0;color:var(--text);border-bottom-left-radius:4px}
-    .msg-bubble.me{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
-    .msg-time{font-size:11px;color:#aaa;flex-shrink:0}
-    .msg-name{font-size:12px;color:#aaa;margin-bottom:4px}
-    .chat-input-bar{background:#fff;border-top:1px solid var(--border);padding:10px 12px 24px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
-    .chat-input{flex:1;border:2px solid var(--border);border-radius:22px;padding:11px 16px;font-size:15px;font-family:inherit;outline:none;resize:none;max-height:100px;line-height:1.4}
-    .chat-input:focus{border-color:var(--primary)}
+    .msg-row.first-in-group{margin-top:10px}
+    .msg-bubble{max-width:68%;padding:10px 14px;border-radius:16px;font-size:15px;line-height:1.5;word-break:break-word;overflow-wrap:break-word;position:relative}
+    .msg-bubble.other{background:#fff;color:var(--text);border-top-left-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+    .msg-bubble.me{background:#FEE500;color:#3C1E1E;border-top-right-radius:4px}
+    .msg-meta{display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:2px;min-width:42px;flex-shrink:0}
+    .msg-row.me .msg-meta{align-items:flex-start}
+    .msg-time{font-size:10px;color:#999;white-space:nowrap}
+    .msg-unread{font-size:10px;color:var(--primary);font-weight:700}
+    .msg-name{font-size:12px;color:#888;margin-bottom:3px;font-weight:600}
+    .msg-date-divider{text-align:center;font-size:12px;color:#888;margin:16px 0 8px;display:flex;align-items:center;gap:10px}
+    .msg-date-divider::before,.msg-date-divider::after{content:'';flex:1;height:1px;background:#ddd}
+    .msg-system{text-align:center;font-size:12px;color:#999;margin:12px 0;background:#f0f0f0;border-radius:20px;padding:5px 16px;align-self:center;display:inline-block}
+    .chat-input-bar{background:#eff0f2;border-top:1px solid #ddd;padding:8px 10px 24px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+    .chat-input{flex:1;border:none;border-radius:20px;padding:10px 16px;font-size:15px;font-family:inherit;outline:none;resize:none;max-height:100px;line-height:1.4;background:#fff}
+    .chat-input:focus{box-shadow:0 0 0 1px var(--primary)}
     .chat-send-btn{width:44px;height:44px;background:var(--primary);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
     .chat-send-btn:active{opacity:.8}
     .firebase-notice{background:#E3F2FD;border-left:4px solid #1565C0;padding:12px 16px;font-size:13px;color:#1565C0;line-height:1.6;margin:12px 16px;border-radius:0 10px 10px 0}
@@ -750,7 +758,7 @@
     <span style="font-size:12px;color:var(--primary);font-weight:700">보기 ›</span>
   </div>
   <!-- 메시지 영역 -->
-  <div class="scroll-area" id="chatroom-messages" style="padding:16px;display:flex;flex-direction:column"></div>
+  <div class="scroll-area" id="chatroom-messages" style="padding:12px 0;display:flex;flex-direction:column;background:#B2C7D9"></div>
   <!-- 채팅 첨부 메뉴 (+ 버튼 클릭 시) -->
   <div id="chat-attach-menu" style="display:none;background:#fff;border-top:1px solid var(--border);padding:16px 20px 8px;flex-shrink:0">
     <div style="font-size:13px;font-weight:700;color:#aaa;margin-bottom:12px">서류 전송</div>
@@ -1900,21 +1908,18 @@ function truncateAddrToDong(item){
 }
 
 function getApproxCoords(area, id, item){
-  // 프라이버시 보호: 정확한 좌표가 있어도 ±200~500m 랜덤 오프셋 적용
-  // 지도에서 "이 근방에 공고가 있다" 정도만 보여줌
-  const seed = (id || 1) * 3571 + (area||'').length * 7919;
-
+  // 프라이버시 보호: maxZoom:15로 확대 제한하여 정확한 위치 특정 불가
+  // 도로명주소 좌표를 그대로 사용하되 줌 제한으로 프라이버시 보호
   const itemLat = item ? parseFloat(item.lat) : 0;
   const itemLng = item ? parseFloat(item.lng) : 0;
   if(itemLat && itemLng && itemLat !== 0 && itemLng !== 0){
-    // 도로명주소로 등록한 공고: 동 단위 수준으로 흩뿌림 (±200~500m)
-    const latOff = (((seed * 13) % 600) - 300) * 0.00001;
-    const lngOff = (((seed * 17) % 600) - 300) * 0.000012;
-    return [itemLat + latOff, itemLng + lngOff];
+    // 도로명주소 좌표 그대로 사용 (줌 제한으로 프라이버시 보호)
+    return [itemLat, itemLng];
   }
-  // 기존 방식: DISTRICT_COORDS 기반 (±100m)
+  // 좌표 없는 공고: DISTRICT_COORDS 기반
   const base = DISTRICT_COORDS[area];
   if(!base) return [37.5665,126.9780];
+  const seed = (id || 1) * 3571 + (area||'').length * 7919;
   const latOff = (((seed * 13) % 200) - 100) * 0.00001;
   const lngOff = (((seed * 17) % 200) - 100) * 0.000012;
   return [base[0]+latOff, base[1]+lngOff];
@@ -4110,44 +4115,132 @@ function loadMessages(chatId){
 // ============================================================
 //  메시지 렌더링
 // ============================================================
+function formatKakaoTime(ts){
+  var d = new Date(ts||Date.now());
+  var h = d.getHours();
+  var m = d.getMinutes();
+  var ampm = h < 12 ? '오전' : '오후';
+  var hh = h % 12; if(hh === 0) hh = 12;
+  return ampm + ' ' + hh + ':' + (m<10?'0':'') + m;
+}
+function formatKakaoDate(ts){
+  var d = new Date(ts||Date.now());
+  var days = ['일','월','화','수','목','금','토'];
+  return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + days[d.getDay()] + '요일';
+}
+function isSameDay(t1, t2){
+  var a = new Date(t1), b = new Date(t2);
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+function isSameMinute(t1, t2){
+  var a = new Date(t1), b = new Date(t2);
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate() && a.getHours()===b.getHours() && a.getMinutes()===b.getMinutes();
+}
+
 function renderMessages(chatId){
   const chat = state.chats[chatId]; if(!chat) return;
   const container = document.getElementById('chatroom-messages'); if(!container) return;
+  container.style.background = '#B2C7D9';
+  const myKakaoId = (state.user&&state.user.kakaoId)||'';
   const myName = (state.user && state.user.name) || '나';
+  const msgs = chat.messages || [];
 
-  let html='';
-  let lastDate='';
-  chat.messages.forEach(msg=>{
-    const myKakaoId = (state.user&&state.user.kakaoId)||'';
-    // senderId가 있으면 정확히 비교, 없으면 이름으로 fallback
-    const isMe = msg.senderId
+  let html = '';
+
+  // 시스템 메시지: 채팅 시작 안내
+  if(msgs.length > 0){
+    html += '<div style="text-align:center;margin:16px 0 8px"><span class="msg-system">채팅이 시작되었습니다</span></div>';
+  }
+
+  for(var i = 0; i < msgs.length; i++){
+    var msg = msgs[i];
+    var isMe = msg.senderId
       ? (msg.senderId === myKakaoId || msg.senderId === 'me')
       : (msg.sender === myName);
-    const d = new Date(msg.time||msg.ts||Date.now());
-    const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일`;
-    const timeStr = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    var ts = msg.time || msg.ts || Date.now();
+    var prevMsg = i > 0 ? msgs[i-1] : null;
+    var nextMsg = i < msgs.length - 1 ? msgs[i+1] : null;
 
-    if(dateStr!==lastDate){
-      html+=`<div style="text-align:center;font-size:12px;color:#aaa;margin:10px 0;background:#f5f5f5;border-radius:20px;padding:4px 14px;align-self:center">${dateStr}</div>`;
-      lastDate=dateStr;
+    // 날짜 구분선
+    if(!prevMsg || !isSameDay(prevMsg.time||prevMsg.ts, ts)){
+      html += '<div class="msg-date-divider">' + formatKakaoDate(ts) + '</div>';
     }
-    html+=`<div class="msg-row ${isMe?'me':''}">
-      ${!isMe?`<div class="chat-avatar" style="width:36px;height:36px;font-size:18px;flex-shrink:0">${chat.otherIcon||'👤'}</div>`:''}
-      <div style="max-width:68%;min-width:0">
-        ${!isMe?`<div class="msg-name">${escapeHtml(msg.sender)}</div>`:''}
-        ${msg.type==='image'
-          ? `<div class="msg-bubble ${isMe?'me':'other'}" style="max-width:100%;padding:6px;background:transparent;border:none">
-               <div style="font-size:11px;color:#aaa;margin-bottom:4px;text-align:${isMe?'right':'left'}">[${msg.imageLabel||'서류'}]</div>
-               <img src="${msg.imageUrl}" style="max-width:200px;border-radius:10px;display:block;cursor:pointer" onclick="window.open(this.src)"/>
-             </div>`
-          : `<div class="msg-bubble ${isMe?'me':'other'}" style="max-width:100%">${escapeHtml(msg.text||'')}</div>`
-        }
-      </div>
-      <div class="msg-time">${timeStr}</div>
-    </div>`;
-  });
 
-  container.innerHTML = html || `<div style="text-align:center;color:#aaa;font-size:14px;margin-top:40px">대화를 시작해 보세요 👋</div>`;
+    // 같은 사람이 같은 분에 연속 보냈는지 체크
+    var prevSame = prevMsg && (prevMsg.senderId || prevMsg.sender) === (msg.senderId || msg.sender) && isSameMinute(prevMsg.time||prevMsg.ts, ts) && isSameDay(prevMsg.time||prevMsg.ts, ts);
+    var nextSame = nextMsg && (nextMsg.senderId || nextMsg.sender) === (msg.senderId || msg.sender) && isSameMinute(nextMsg.time||nextMsg.ts, ts) && isSameDay(nextMsg.time||nextMsg.ts, ts);
+
+    var isFirstInGroup = !prevSame;
+    var isLastInGroup = !nextSame;
+
+    // 시간: 연속 메시지의 마지막에만 표시
+    var timeStr = isLastInGroup ? formatKakaoTime(ts) : '';
+
+    // 읽음 표시: 내 메시지에 상대가 아직 안 읽었으면 "1" 표시
+    var unreadStr = '';
+    if(isMe && isLastInGroup){
+      // 상대방의 마지막 읽은 시간과 비교
+      var otherReadKey = chatId + '_otherRead';
+      // 간단 구현: 상대방이 메시지를 보냈으면 그 전까지는 읽은 것으로 간주
+      var otherLastMsgTime = 0;
+      for(var j = msgs.length - 1; j >= 0; j--){
+        var mj = msgs[j];
+        var mjIsMe = mj.senderId ? (mj.senderId === myKakaoId || mj.senderId === 'me') : (mj.sender === myName);
+        if(!mjIsMe){ otherLastMsgTime = mj.time || mj.ts || 0; break; }
+      }
+      if(ts > otherLastMsgTime && otherLastMsgTime > 0){
+        unreadStr = '<div class="msg-unread">1</div>';
+      } else if(otherLastMsgTime === 0 && msgs.length > 0){
+        // 상대방이 아직 한 번도 답장 안 한 경우
+        unreadStr = '<div class="msg-unread">1</div>';
+      }
+    }
+
+    // 메타 영역 (시간 + 안읽음)
+    var metaHtml = (unreadStr || timeStr)
+      ? '<div class="msg-meta">' + unreadStr + (timeStr ? '<div class="msg-time">' + timeStr + '</div>' : '') + '</div>'
+      : '';
+
+    // 말풍선 HTML
+    var bubbleHtml;
+    if(msg.type === 'image'){
+      bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '" style="padding:6px;background:' + (isMe?'#FEE500':'#fff') + '">'
+        + '<div style="font-size:11px;color:#888;margin-bottom:4px">[' + (msg.imageLabel||'서류') + ']</div>'
+        + '<img src="' + msg.imageUrl + '" style="max-width:200px;border-radius:10px;display:block;cursor:pointer" onclick="window.open(this.src)"/>'
+        + '</div>';
+    } else {
+      bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '">' + escapeHtml(msg.text||'') + '</div>';
+    }
+
+    if(isMe){
+      // 내 메시지: 오른쪽
+      html += '<div class="msg-row me' + (isFirstInGroup?' first-in-group':'') + '">'
+        + '<div style="max-width:68%;min-width:0">' + bubbleHtml + '</div>'
+        + metaHtml
+        + '</div>';
+    } else {
+      // 상대 메시지: 왼쪽 (아바타 + 이름은 그룹 첫 메시지에만)
+      html += '<div class="msg-row' + (isFirstInGroup?' first-in-group':'') + '">';
+      if(isFirstInGroup){
+        html += '<div class="chat-avatar" style="width:36px;height:36px;font-size:18px;flex-shrink:0;align-self:flex-start">' + (chat.otherIcon||'👤') + '</div>';
+        html += '<div style="max-width:68%;min-width:0">';
+        html += '<div class="msg-name">' + escapeHtml(msg.sender) + '</div>';
+        html += bubbleHtml;
+        html += '</div>';
+      } else {
+        html += '<div style="width:36px;flex-shrink:0"></div>'; // 아바타 자리 빈칸
+        html += '<div style="max-width:68%;min-width:0">' + bubbleHtml + '</div>';
+      }
+      html += metaHtml;
+      html += '</div>';
+    }
+  }
+
+  if(!msgs.length){
+    html = '<div style="text-align:center;margin:16px 0 8px"><span class="msg-system">대화를 시작해 보세요</span></div>';
+  }
+
+  container.innerHTML = html;
   // 스크롤 아래로
   setTimeout(()=>{ container.scrollTop=container.scrollHeight; },50);
 }
@@ -4188,6 +4281,7 @@ function sendDocFromChat(type){
   if(fbDB){
     fbDB.ref('chats/'+chatId+'/messages').push(msgData);
     fbDB.ref('chats/'+chatId+'/meta').update({ lastMsg: '['+label+'] 사진 전송', lastTime: Date.now(), lastSenderId: (state.user&&state.user.kakaoId)||'me' });
+    markChatAsRead(chatId);
   } else {
     if(!chat.messages) chat.messages=[];
     chat.messages.push(msgData);
@@ -4257,6 +4351,8 @@ function sendMessage(){
       metaData.senderName = myName;
     }
     fbDB.ref('chats/'+chatId+'/meta').update(metaData);
+    // 내가 보낸 시점 = 읽은 시점
+    markChatAsRead(chatId);
   } else {
     // 데모 모드: 로컬에 추가
     state.chats[chatId].messages.push({...msg, id:'msg'+Date.now()});
@@ -4343,6 +4439,12 @@ function renderChatList(){
             messages: [],
           };
         }
+        // 안읽음 판정: 상대방이 보낸 새 메시지만 (내가 보낸 건 무시)
+        var lastRead = state.chatLastReadTime[chatId] || 0;
+        var msgTime = meta.lastTime || 0;
+        if(meta.lastMsg && msgTime > lastRead && meta.lastSenderId && meta.lastSenderId !== myId){
+          state.unreadChatIds[chatId] = 1;
+        }
         return;
       }
 
@@ -4360,6 +4462,7 @@ function renderChatList(){
         }
       }
     });
+    updateChatBadge();
     renderChatListDraw();
   });
 }
