@@ -2032,9 +2032,8 @@ function goBack(){
     navigate(prevScreen, true); // skipHistory=true
     history.replaceState({screen:prevScreen, tab:tab}, '', '#'+prevScreen);
   } else {
-    // 이미 탭 루트 — 아무것도 안 함
-    var rootScreen = tab;
-    navigate(rootScreen, true);
+    // 탭 루트에서 뒤로가기 → 홈 탭으로 이동
+    switchTab('home');
   }
 }
 
@@ -2047,12 +2046,13 @@ window.addEventListener('popstate', function(e){
     stack.pop();
     var prevScreen = stack[stack.length-1];
     navigate(prevScreen, true);
+  } else if(tab !== 'home'){
+    // 탭 루트에서 뒤로가기 → 홈으로
+    switchTab('home');
   } else {
-    // 탭의 루트 화면
-    var rootScreen = tab;
-    navigate(rootScreen, true);
-    // 앱 종료 방지: 히스토리 다시 푸시
-    history.pushState({screen:rootScreen, tab:tab}, '', '#'+rootScreen);
+    // 홈 탭 루트 — 앱 종료 방지
+    navigate('home', true);
+    history.pushState({screen:'home', tab:'home'}, '', '#home');
   }
 });
 function switchTab(tab){
