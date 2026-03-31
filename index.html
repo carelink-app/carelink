@@ -1386,11 +1386,39 @@
         </div>
         <div class="admin-menu-arrow">›</div>
       </div>
+
+      <div class="admin-menu-item" onclick="navigate('admin-users')">
+        <div class="admin-menu-icon">🚫</div>
+        <div class="admin-menu-text">
+          <div class="admin-menu-text-title">회원 관리 / 영구밴</div>
+          <div class="admin-menu-text-sub" id="admin-ban-count">차단된 회원 0명</div>
+        </div>
+        <div class="admin-menu-arrow">›</div>
+      </div>
     </div>
 
     <div style="padding:20px 0;text-align:center;font-size:12px;color:#aaa">
       앱 버전 v1.0
     </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: ADMIN USERS (회원 관리/영구밴) ===== -->
+<div id="screen-admin-users" class="screen">
+  <div class="header">
+    <div class="header-back" onclick="goBack()">←</div>
+    <div class="header-title">🚫 회원 관리</div>
+  </div>
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;gap:8px">
+    <div class="tag active" id="au-tab-all" onclick="switchAdminUserTab('all')">전체 회원</div>
+    <div class="tag" id="au-tab-banned" onclick="switchAdminUserTab('banned')">차단 목록</div>
+  </div>
+  <!-- 검색 -->
+  <div style="padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)">
+    <input type="text" id="admin-user-search" placeholder="이름 또는 카카오ID로 검색" oninput="renderAdminUsers()" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:14px;box-sizing:border-box"/>
+  </div>
+  <div class="scroll-area" style="padding:12px 16px" id="admin-users-container">
+    <div style="padding:40px 0;text-align:center;color:#aaa">로딩 중...</div>
   </div>
 </div>
 
@@ -1965,6 +1993,7 @@ function init(){
         updateAdminUI();
         updateAdminStats();
         startChatNotificationListener();
+        saveUserToFirebase(); // Firebase에 유저 정보 동기화
         navigate('home');
         return; // 로그인 화면 건너뜀
       }
@@ -1984,7 +2013,7 @@ var TAB_SCREENS = {
   post: ['post'],
   chat: ['chat','chatroom'],
   edu: ['edu','resume'],
-  profile: ['profile','admin','admin-listings','settings']
+  profile: ['profile','admin','admin-listings','admin-users','settings']
 };
 var _tabHistory = { home:['home'], post:['post'], chat:['chat'], edu:['edu'], profile:['profile'] };
 var _activeTab = 'home';
@@ -2202,6 +2231,13 @@ document.addEventListener('DOMContentLoaded', function(){
 
     if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
 
+    // ── 영구밴 체크 ──
+    if(isUserBanned(kakaoId)){
+      var banInfo = state.bannedUsers[kakaoId] || {};
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n사유: ' + (banInfo.reason || '관리자 판단에 의한 차단') + '\n\n문의: tkddnr5949@gmail.com');
+      return;
+    }
+
     try {
       const saved = JSON.parse(localStorage.getItem('carelink_profile') || 'null');
       if(saved && saved.kakaoId === kakaoId && saved.role){
@@ -2210,6 +2246,7 @@ document.addEventListener('DOMContentLoaded', function(){
         state.user = saved;
         state.role = saved.role;
         localStorage.setItem('carelink_profile', JSON.stringify(saved));
+        saveUserToFirebase(); // Firebase에 유저 정보 동기화
         updateHeaderUI();
         startChatNotificationListener();
         showToast('🎉 ' + nickname + '님, 어서오세요!');
@@ -2427,6 +2464,8 @@ function confirmSetup(){
   state.user.role = state.role;
   // localStorage에 프로필 저장 (자동 로그인용)
   try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+  // Firebase에 유저 정보 저장 (관리자 회원관리용)
+  saveUserToFirebase();
   // 첫 로그인 시 공지 배너와 관리자 UI 초기화
   renderAppNotice();
   updateAdminUI();
@@ -2618,7 +2657,7 @@ function renderMapMarkers(){
   const map=state.mapInstance; if(!map) return;
   state.mapMarkers.forEach(m=>map.removeLayer(m));
   state.mapMarkers=[];
-  const active=state.listings.filter(l=>l.status==='active');
+  const active=state.listings.filter(l=>l.status==='active' && !isUserBanned(l.postedByKakaoId));
 
   // 거리 필터 적용
   let filtered = active;
@@ -2669,6 +2708,10 @@ function getDaysAgo(createdAt){
 function renderListings(filter){
   filter=filter||state.filter;
   let list=state.listings;
+
+  // 영구밴된 유저의 공고 숨김
+  list = list.filter(function(l){ return !isUserBanned(l.postedByKakaoId); });
+
   if(filter==='visit') list=list.filter(l=>l.workType==='visit'&&l.status!=='expired'&&l.status!=='reported_hidden');
   else if(filter==='live') list=list.filter(l=>l.workType==='live'&&l.status!=='expired'&&l.status!=='reported_hidden');
   else if(filter==='urgent') list=list.filter(l=>l.urgent&&l.status==='active');
@@ -3859,6 +3902,7 @@ function handleResumePhoto(input, type){
       showToast('건강보험자격득실확인서가 등록되었습니다 ✅');
     }
     try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+    saveUserToFirebase();
   };
   reader.readAsDataURL(file);
 }
@@ -4004,6 +4048,9 @@ function initFirebase(){
     firebase.initializeApp(FIREBASE_CONFIG);
     fbDB = firebase.database();
     console.log('[요양링크] Firebase 연결 성공 ✅');
+
+    // ── 영구밴 목록 로드 ────────────────────────────────────
+    loadBannedUsers();
 
     // ── 공고 실시간 동기화 ────────────────────────────────────
     fbDB.ref('listings').on('value', snap => {
@@ -5617,8 +5664,9 @@ function openAdminReportsModal(){
             <div>🚨 ${reasonLabels[report.reason]}</div>
             <div style="margin-top:2px;color:#aaa">${report.timeStr || new Date(report.time).toLocaleString()}</div>
           </div>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px" onclick="adminDeleteListing('${report.listingId}')">공고 삭제</button>
+            <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px;color:#E53935;border-color:#E53935" onclick="adminBanFromReport('${report.listingId}')">🚫 유저 영구밴</button>
             <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px" onclick="ignoreReport('${report.id}')">무시</button>
           </div>
         </div>
@@ -5792,36 +5840,289 @@ function toggleSwitch(el){
 
 // 관리자 사용자 통계
 function showAdminUserStats(){
-  showToast('현재 활성 사용자: 1명');
+  if(!fbDB) { showToast('Firebase 미연결'); return; }
+  fbDB.ref('users').once('value', snap => {
+    const users = snap.val() || {};
+    const keys = Object.keys(users);
+    const total = keys.length;
+    const roles = {};
+    keys.forEach(k => {
+      const r = users[k].role || '미지정';
+      roles[r] = (roles[r]||0) + 1;
+    });
+    const roleStr = Object.entries(roles).map(([k,v])=> k+': '+v+'명').join('\n');
+    alert(`전체 회원: ${total}명\n\n${roleStr}`);
+  });
+}
+
+// ============================================================
+//  Firebase 유저 프로필 저장 (관리자 회원관리용)
+// ============================================================
+function saveUserToFirebase(){
+  if(!fbDB || !state.user || !state.user.kakaoId) return;
+  var u = state.user;
+  var userData = {
+    name: u.name || '',
+    role: u.role || state.role || '',
+    area: u.area || '',
+    phone: u.phone || '',
+    gender: u.gender || '',
+    birth: u.birth || '',
+    profileImg: u.profileImg || '',
+    lastLogin: Date.now()
+  };
+  // 가입일은 최초 1회만 기록 (update는 기존 값 유지)
+  fbDB.ref('users/' + u.kakaoId).once('value', function(snap){
+    var existing = snap.val();
+    if(!existing){
+      userData.joinedAt = Date.now();
+    }
+    fbDB.ref('users/' + u.kakaoId).update(userData);
+  });
+}
+
+// ============================================================
+//  영구밴 시스템
+// ============================================================
+state.bannedUsers = {}; // { kakaoId: { reason, bannedAt, bannedBy } }
+
+// Firebase에서 밴 목록 로드
+function loadBannedUsers(){
+  if(!fbDB) return;
+  fbDB.ref('banned_users').on('value', snap => {
+    state.bannedUsers = snap.val() || {};
+    const cnt = Object.keys(state.bannedUsers).length;
+    const el = document.getElementById('admin-ban-count');
+    if(el) el.textContent = '차단된 회원 ' + cnt + '명';
+
+    // 현재 로그인된 사용자가 밴 당했는지 사후 체크
+    if(state.user && state.user.kakaoId && isUserBanned(state.user.kakaoId)){
+      var banInfo = state.bannedUsers[state.user.kakaoId] || {};
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n사유: ' + (banInfo.reason || '관리자 판단에 의한 차단') + '\n\n문의: tkddnr5949@gmail.com');
+      try {
+        localStorage.removeItem('carelink_profile');
+        localStorage.removeItem('carelink_nickname');
+        localStorage.removeItem('carelink_chatLastRead');
+      } catch(e){}
+      state.user = null;
+      state.role = '';
+      navigate('login');
+    }
+  });
+}
+
+// 밴 여부 체크 (로그인 시 호출)
+function isUserBanned(kakaoId){
+  return !!(state.bannedUsers && state.bannedUsers[kakaoId]);
+}
+
+// 유저 영구밴 실행 (관리자 전용)
+function adminBanUser(kakaoId, userName, reason){
+  if(!isAdmin()) return;
+  if(!kakaoId) { showToast('밴할 수 없는 사용자입니다'); return; }
+  if(kakaoId === (state.user && state.user.kakaoId)){ showToast('자기 자신을 밴할 수 없습니다'); return; }
+
+  var reasonText = reason || '관리자 판단에 의한 영구 차단';
+  if(!confirm('⚠️ 영구밴 확인\n\n대상: ' + (userName||kakaoId) + '\n사유: ' + reasonText + '\n\n이 사용자의 모든 공고와 채팅이 삭제되고\n다시는 로그인할 수 없게 됩니다.\n\n정말 진행하시겠습니까?')) return;
+
+  // 1. banned_users에 기록
+  fbDB.ref('banned_users/' + kakaoId).set({
+    name: userName || '',
+    reason: reasonText,
+    bannedAt: Date.now(),
+    bannedBy: state.user.kakaoId || 'admin'
+  });
+
+  // 2. 해당 유저의 모든 공고 삭제
+  deleteAllUserData(kakaoId, userName);
+
+  showToast('🚫 ' + (userName||kakaoId) + ' 님이 영구 차단되었습니다');
+  renderAdminUsers();
+}
+
+// 유저의 모든 데이터 삭제 (밴 또는 탈퇴 시 공통 사용)
+function deleteAllUserData(kakaoId, userName){
+  if(!fbDB) return;
+
+  // 1. 공고 삭제
+  var myListings = state.listings.filter(function(l){
+    return l.postedByKakaoId === kakaoId || l.postedBy === userName;
+  });
+  myListings.forEach(function(l){
+    if(l.fbKey) fbDB.ref('listings/' + l.fbKey).remove();
+  });
+
+  // 2. 채팅 삭제 (해당 유저가 참여한 모든 채팅방)
+  var myId = (kakaoId || userName || 'user').replace(/\s/g, '_');
+  fbDB.ref('chats').once('value', function(snap){
+    var chats = snap.val() || {};
+    Object.keys(chats).forEach(function(chatId){
+      // support_ 채팅 또는 유저ID가 포함된 채팅방 삭제
+      if(chatId.indexOf(myId.replace(/\s/g,'')) !== -1 || chatId === 'support_' + myId){
+        fbDB.ref('chats/' + chatId).remove();
+      }
+    });
+  });
+
+  // 3. 유저 프로필 삭제
+  fbDB.ref('users/' + kakaoId).remove();
+
+  // 4. 해당 유저 신고 기록 정리
+  (state.reports || []).filter(function(r){
+    var listing = state.listings.find(function(l){ return l.id === r.listingId; });
+    return listing && (listing.postedByKakaoId === kakaoId);
+  }).forEach(function(r){
+    fbDB.ref('reports/' + r.id).remove();
+  });
+}
+
+// 밴 해제 (관리자 전용)
+function adminUnbanUser(kakaoId){
+  if(!isAdmin()) return;
+  var banned = state.bannedUsers[kakaoId];
+  var name = banned ? banned.name : kakaoId;
+  if(!confirm(name + ' 님의 차단을 해제하시겠습니까?')) return;
+
+  fbDB.ref('banned_users/' + kakaoId).remove();
+  showToast('✅ ' + name + ' 님의 차단이 해제되었습니다');
+  renderAdminUsers();
+}
+
+// 신고 모달에서 바로 밴
+function adminBanFromReport(listingId){
+  if(!isAdmin()) return;
+  var listing = state.listings.find(function(l){ return l.id == listingId; });
+  if(!listing) { showToast('공고를 찾을 수 없습니다'); return; }
+  var kakaoId = listing.postedByKakaoId;
+  var userName = listing.postedBy;
+  if(!kakaoId) { showToast('이 공고의 작성자 정보를 찾을 수 없습니다'); return; }
+
+  adminBanUser(kakaoId, userName, '신고 누적에 의한 영구 차단');
+  closeModal('modal-admin-reports');
+}
+
+// ---- 회원 관리 화면 렌더링 ----
+var _adminUserTab = 'all';
+
+function switchAdminUserTab(tab){
+  _adminUserTab = tab;
+  document.getElementById('au-tab-all').classList.toggle('active', tab === 'all');
+  document.getElementById('au-tab-banned').classList.toggle('active', tab === 'banned');
+  renderAdminUsers();
+}
+
+function renderAdminUsers(){
+  if(!isAdmin()) return;
+  var container = document.getElementById('admin-users-container');
+  if(!container) return;
+  var searchTerm = (document.getElementById('admin-user-search')?.value || '').trim().toLowerCase();
+
+  if(_adminUserTab === 'banned'){
+    // 차단 목록
+    var banned = state.bannedUsers || {};
+    var bkeys = Object.keys(banned);
+    if(searchTerm){
+      bkeys = bkeys.filter(function(k){
+        var b = banned[k];
+        return k.toLowerCase().indexOf(searchTerm) !== -1 || (b.name||'').toLowerCase().indexOf(searchTerm) !== -1;
+      });
+    }
+    if(bkeys.length === 0){
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">차단된 회원이 없습니다</div>';
+      return;
+    }
+    container.innerHTML = bkeys.map(function(kakaoId){
+      var b = banned[kakaoId];
+      var dt = b.bannedAt ? new Date(b.bannedAt).toLocaleDateString('ko-KR') : '';
+      return '<div style="background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:10px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+        + '<div style="font-size:15px;font-weight:700;color:#E53935">🚫 ' + escapeHtml(b.name||kakaoId) + '</div>'
+        + '<div style="font-size:11px;color:#aaa">' + dt + '</div>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#888;margin-bottom:8px">사유: ' + escapeHtml(b.reason||'') + '</div>'
+        + '<div style="font-size:11px;color:#bbb;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
+        + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + kakaoId + '\')">차단 해제</button>'
+        + '</div>';
+    }).join('');
+  } else {
+    // 전체 회원 — Firebase users에서 로드
+    if(!fbDB){
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">Firebase 미연결</div>';
+      return;
+    }
+    fbDB.ref('users').once('value', function(snap){
+      var users = snap.val() || {};
+      var keys = Object.keys(users);
+      if(searchTerm){
+        keys = keys.filter(function(k){
+          var u = users[k];
+          return k.toLowerCase().indexOf(searchTerm) !== -1 || (u.name||'').toLowerCase().indexOf(searchTerm) !== -1;
+        });
+      }
+      if(keys.length === 0){
+        container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">회원이 없습니다</div>';
+        return;
+      }
+      // 각 유저의 공고 수 계산
+      var postCounts = {};
+      (state.listings||[]).forEach(function(l){
+        if(l.postedByKakaoId){
+          postCounts[l.postedByKakaoId] = (postCounts[l.postedByKakaoId]||0) + 1;
+        }
+      });
+
+      container.innerHTML = keys.map(function(kakaoId){
+        var u = users[kakaoId];
+        var isBanned = isUserBanned(kakaoId);
+        var isMe = state.user && state.user.kakaoId === kakaoId;
+        var roleLabel = u.role === 'employer' ? '구인자' : u.role === 'caregiver' ? '요양보호사' : (u.role||'미지정');
+        var genderLabel = u.gender === 'male' ? '남성' : u.gender === 'female' ? '여성' : '';
+        var joinDate = u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('ko-KR') : '';
+        var lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ko-KR') : '';
+        var posts = postCounts[kakaoId] || 0;
+
+        return '<div style="background:#fff;border:1px solid ' + (isBanned?'#ffcdd2':'#eee') + ';border-radius:12px;padding:14px;margin-bottom:10px">'
+          // 이름 + 역할
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '<div style="font-size:15px;font-weight:700;color:' + (isBanned?'#E53935':'var(--text)') + '">'
+          + (isBanned ? '🚫 ' : '') + escapeHtml(u.name||kakaoId) + (isMe ? ' <span style="font-size:11px;color:var(--primary)">(나)</span>' : '')
+          + '</div>'
+          + '<div style="font-size:12px;font-weight:600;color:#fff;background:' + (u.role==='employer'?'#FF6B35':'#1565C0') + ';padding:2px 8px;border-radius:8px">' + roleLabel + '</div>'
+          + '</div>'
+          // 상세 정보
+          + '<div style="font-size:12px;color:#888;line-height:1.8;margin-bottom:8px">'
+          + (u.area ? '📍 ' + escapeHtml(u.area) : '')
+          + (genderLabel ? ' · ' + genderLabel : '')
+          + (u.birth ? ' · ' + escapeHtml(u.birth) : '') + '<br>'
+          + (u.phone ? '📞 ' + escapeHtml(u.phone) + '<br>' : '')
+          + '📝 공고 ' + posts + '개'
+          + (joinDate ? ' · 가입 ' + joinDate : '')
+          + (lastLogin ? ' · 최근 ' + lastLogin : '')
+          + '</div>'
+          + '<div style="font-size:10px;color:#ccc;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
+          // 버튼
+          + (isBanned
+            ? '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + kakaoId + '\')">차단 해제</button>'
+            : (isMe ? '' : '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#E53935;border-color:#E53935" onclick="adminBanUser(\'' + kakaoId + '\',\'' + escapeHtml(u.name||'') + '\')">🚫 영구밴</button>')
+          )
+          + '</div>';
+      }).join('');
+    });
+  }
 }
 
 // 회원 탈퇴 확인 (개인정보보호법 준수 - 탈퇴 시 Firebase 데이터 완전 삭제)
 function confirmWithdraw(){
-  if(!confirm('정말 회원 탈퇴하시겠습니까?\n\n탈퇴 시 내가 올린 공고, 채팅 내역 등 모든 데이터가 즉시 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.')) return;
+  if(!confirm('정말 회원 탈퇴하시겠습니까?\n\n탈퇴 시 내가 올린 공고, 채팅 내역, 프로필 등\n모든 데이터가 즉시 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.')) return;
 
   const user = state.user;
   if(!user) { doLogout(); return; }
 
   showToast('데이터 삭제 중...');
 
-  // Firebase에서 사용자 관련 데이터 완전 삭제
-  if(fbDB && user.name){
-    // 1. 내가 올린 공고 삭제
-    const myListings = state.listings.filter(l => l.postedByKakaoId === user.kakaoId || l.postedBy === user.name);
-    myListings.forEach(l => {
-      if(l.fbKey) fbDB.ref('listings/' + l.fbKey).remove();
-    });
-
-    // 2. 내 채팅 데이터 삭제
-    const myId = (user.kakaoId || user.name || 'user').replace(/\s/g,'_');
-    fbDB.ref('chats/support_' + myId).remove();
-
-    // 3. 채팅방 메시지 삭제 (내가 참여한 채팅)
-    Object.keys(state.chats || {}).forEach(chatId => {
-      if(chatId.includes(myId.replace(/\s/g,''))) {
-        fbDB.ref('chats/' + chatId).remove();
-      }
-    });
+  // Firebase에서 사용자 관련 데이터 완전 삭제 (공통 함수 사용)
+  if(fbDB){
+    deleteAllUserData(user.kakaoId, user.name);
   }
 
   // localStorage 완전 삭제
@@ -5830,6 +6131,7 @@ function confirmWithdraw(){
     localStorage.removeItem('carelink_nickname');
     localStorage.removeItem('carelink_user_id');
     localStorage.removeItem('carelink_chatLastRead');
+    localStorage.removeItem('carelink_pwa_dismissed');
   } catch(e){}
 
   setTimeout(() => {
