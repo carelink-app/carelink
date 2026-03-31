@@ -2669,23 +2669,70 @@ function renderMapMarkers(){
     });
   }
 
-  filtered.forEach(item=>{
-    const coords=getApproxCoords(item.area,item.id,item);
-    const landmark=getLandmark(item.area);
-    const color=item.type==='employer'?'#FF6B35':'#1565C0';
-    const icon=L.divIcon({
-      html:`<div style="background:${color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);">${item.type==='employer'?'🏠':'👩‍⚕️'}</div>`,
-      className:'',iconSize:[36,36],iconAnchor:[18,18],
-    });
-    const marker=L.marker(coords,{icon}).addTo(map);
-    marker.bindPopup(`
-      <div class="map-popup-card">
-        <div class="map-popup-title">${escapeHtml(item.title)}</div>
-        <div class="map-popup-salary">${escapeHtml(item.salary)}</div>
-        <div class="map-popup-area">📍 ${item.bname?(item.area+' '+item.bname):item.area}</div>
-        <button class="map-popup-btn" onclick="openDetailFromMap(${item.id})">상세 보기</button>
-      </div>`,{maxWidth:240,className:'carelink-popup'});
-    state.mapMarkers.push(marker);
+  // ── 같은 좌표 공고 클러스터링 (네이버 부동산 스타일) ──
+  var clusters = {};
+  filtered.forEach(function(item){
+    var coords = getApproxCoords(item.area, item.id, item);
+    // 소수점 4자리까지 같으면 같은 위치로 묶음 (~11m 반경)
+    var key = coords[0].toFixed(4) + ',' + coords[1].toFixed(4);
+    if(!clusters[key]) clusters[key] = { coords: coords, items: [] };
+    clusters[key].items.push(item);
+  });
+
+  Object.keys(clusters).forEach(function(key){
+    var cluster = clusters[key];
+    var items = cluster.items;
+    var coords = cluster.coords;
+
+    if(items.length === 1){
+      // ── 단일 마커: 기존 스타일 ──
+      var item = items[0];
+      var color = item.type==='employer' ? '#FF6B35' : '#1565C0';
+      var icon = L.divIcon({
+        html:'<div style="background:'+color+';width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);">'+(item.type==='employer'?'🏠':'👩‍⚕️')+'</div>',
+        className:'',iconSize:[36,36],iconAnchor:[18,18],
+      });
+      var marker = L.marker(coords,{icon:icon}).addTo(map);
+      marker.bindPopup(
+        '<div class="map-popup-card">'
+        + '<div class="map-popup-title">'+escapeHtml(item.title)+'</div>'
+        + '<div class="map-popup-salary">'+escapeHtml(item.salary)+'</div>'
+        + '<div class="map-popup-area">📍 '+(item.bname?(item.area+' '+item.bname):item.area)+'</div>'
+        + '<button class="map-popup-btn" onclick="openDetailFromMap('+item.id+')">상세 보기</button>'
+        + '</div>',{maxWidth:240,className:'carelink-popup'});
+      state.mapMarkers.push(marker);
+    } else {
+      // ── 클러스터 마커: 숫자 배지 (네이버 부동산 스타일) ──
+      var cnt = items.length;
+      var hasEmployer = items.some(function(i){ return i.type==='employer'; });
+      var bgColor = hasEmployer ? '#FF6B35' : '#1565C0';
+      var clusterIcon = L.divIcon({
+        html:'<div style="background:'+bgColor+';min-width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:0 6px;">'
+          + cnt
+          + '</div>',
+        className:'',iconSize:[40,40],iconAnchor:[20,20],
+      });
+      var clusterMarker = L.marker(coords,{icon:clusterIcon}).addTo(map);
+
+      // 클러스터 팝업: 공고 목록
+      var listHtml = '<div style="max-height:200px;overflow-y:auto;min-width:200px">'
+        + '<div style="font-size:13px;font-weight:800;margin-bottom:8px;color:#333">📌 이 위치 공고 '+cnt+'개</div>';
+      items.forEach(function(it){
+        var typeIcon = it.type==='employer' ? '🏠' : '👩‍⚕️';
+        var typeColor = it.type==='employer' ? '#FF6B35' : '#1565C0';
+        listHtml += '<div onclick="openDetailFromMap('+it.id+')" style="cursor:pointer;padding:8px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px">'
+          + '<div style="width:28px;height:28px;border-radius:50%;background:'+typeColor+';display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">'+typeIcon+'</div>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:700;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(it.title)+'</div>'
+          + '<div style="font-size:11px;color:#888">'+escapeHtml(it.salary||'')+' · '+(it.bname||it.area||'')+'</div>'
+          + '</div>'
+          + '</div>';
+      });
+      listHtml += '</div>';
+
+      clusterMarker.bindPopup(listHtml, {maxWidth:280, className:'carelink-popup'});
+      state.mapMarkers.push(clusterMarker);
+    }
   });
 }
 
