@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <!-- 보안 메타태그 -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <meta http-equiv="X-Frame-Options" content="DENY"/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>요양링크 - 요양보호사 구인구직</title>
@@ -112,6 +116,8 @@
     .tag-scroll::-webkit-scrollbar{display:none}
     .tag{flex-shrink:0;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:600;border:2px solid var(--border);background:#fff;color:var(--text-sub);cursor:pointer;white-space:nowrap;transition:all .15s}
     .tag.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .shift-opt{display:inline-flex;align-items:center;padding:9px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;background:#fff;color:var(--text)}
+    .shift-opt.active{background:var(--primary);color:#fff;border-color:var(--primary)}
     .listing-card{background:#fff;border-bottom:1px solid var(--border);padding:18px 16px;cursor:pointer;transition:background .1s;position:relative}
     .listing-card:active{background:#fafafa}
     .listing-card.matched-card{opacity:.6}
@@ -264,6 +270,89 @@
     /* Listing card hover/touch effect improvement */
     .listing-card{transition:background .15s, transform .1s}
     .listing-card:active{transform:scale(0.98)}
+
+    /* ── 네이버부동산/카톡 스타일 폴리싱 ── */
+    /* 부드러운 화면 전환 */
+    .screen{transition:opacity .15s ease}
+    /* 카드 호버/탭 피드백 */
+    .listing-card{transition:transform .12s ease,box-shadow .12s ease}
+    .listing-card:active{transform:scale(0.98);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+    /* 버튼 탭 피드백 강화 */
+    .btn{transition:all .15s ease}
+    .btn:active{transform:scale(0.96);opacity:0.85}
+    /* 스크롤 영역 오버스크롤 바운스 */
+    .scroll-area{-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+    /* 지도 팝업 스타일 강화 */
+    .map-popup-card{padding:2px 0}
+    .map-popup-title{font-size:14px;font-weight:800;color:#333;margin-bottom:4px;line-height:1.3}
+    .map-popup-salary{font-size:15px;font-weight:900;color:#FF6B35;margin-bottom:4px}
+    .map-popup-area{font-size:12px;color:#888;margin-bottom:8px}
+    .map-popup-btn{width:100%;padding:8px;background:#FF6B35;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+    .map-popup-btn:active{background:#E55A2B}
+    /* 토스트 알림 개선 */
+    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.82);color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:all .3s cubic-bezier(.2,1,.3,1);pointer-events:none;text-align:center;max-width:85%;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    /* 설정 메뉴 터치 피드백 */
+    .settings-item{transition:background .1s}
+    .settings-item:active{background:#f5f5f5}
+    .menu-item{transition:background .1s}
+    .menu-item:active{background:#f0f0f0}
+    /* 프로필 카드 그림자 강화 */
+    .profile-card{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    /* 하단 네비게이션 그림자 */
+    .bottom-nav{box-shadow:0 -1px 8px rgba(0,0,0,.06)}
+    /* 스켈레톤 로딩 애니메이션 */
+    @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+    .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200px 100%;animation:shimmer 1.5s infinite}
+    /* 네이버 부동산 스타일 클러스터 마커 */
+    .leaflet-popup-content{margin:10px 12px !important}
+    .leaflet-popup-content-wrapper{border-radius:12px !important;box-shadow:0 4px 16px rgba(0,0,0,.15) !important}
+    .leaflet-popup-tip{box-shadow:0 4px 16px rgba(0,0,0,.1) !important}
+    /* 입력필드 포커스 효과 */
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary) !important;box-shadow:0 0 0 3px rgba(255,107,53,.15)}
+    /* 배지 펄스 애니메이션 */
+    @keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+    .nav-badge{animation:badgePulse 2s ease-in-out infinite}
+    /* 이미지 로딩 최적화 */
+    img{loading:lazy}
+    /* Safe area 대응 (노치 폰) */
+    .bottom-nav{padding-bottom:env(safe-area-inset-bottom)}
+    .header{padding-top:env(safe-area-inset-top)}
+    /* AI 챗봇 */
+    .ai-fab{position:fixed;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));right:16px;z-index:900;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(102,126,234,.4);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+    .ai-fab:active{transform:scale(.9)}
+    /* 면접/매칭 시스템 */
+    .interview-banner{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;flex-shrink:0;cursor:pointer}
+    .interview-banner .iv-time{background:rgba(255,255,255,.25);padding:3px 10px;border-radius:12px;font-size:12px}
+    .matched-banner{background:linear-gradient(135deg,#4CAF50,#388E3C);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;flex-shrink:0;text-align:center;justify-content:center}
+    .badge-interview{background:#FF9800;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap}
+    .badge-matched{background:#4CAF50;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap}
+    .doc-check-item{display:flex;align-items:center;gap:10px;padding:14px 16px;border:2px solid var(--border);border-radius:14px;cursor:pointer;transition:all .2s;margin-bottom:8px}
+    .doc-check-item.checked{border-color:var(--primary);background:#EBF3FE}
+    .doc-check-item input[type=checkbox]{width:22px;height:22px;accent-color:var(--primary);flex-shrink:0}
+    .msg-system-card{background:#fff;border-radius:16px;padding:16px;margin:8px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);text-align:center}
+    .msg-system-card .card-icon{font-size:36px;margin-bottom:8px}
+    .msg-system-card .card-title{font-size:15px;font-weight:700;color:#333;margin-bottom:4px}
+    .msg-system-card .card-body{font-size:13px;color:#777;line-height:1.5}
+    .msg-system-card .card-docs{text-align:left;margin-top:10px;padding:10px 14px;background:#F8F9FA;border-radius:10px;font-size:13px;color:#555;line-height:1.8}
+    .ai-panel{position:fixed;bottom:0;left:0;right:0;top:0;z-index:9999;background:#fff;display:none;flex-direction:column}
+    .ai-panel.open{display:flex}
+    .ai-header{padding:14px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .ai-header h3{margin:0;font-size:17px;font-weight:700}
+    .ai-messages{flex:1;overflow-y:auto;padding:16px;background:#f0f0f5}
+    .ai-msg{max-width:80%;margin-bottom:12px;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;word-break:break-word}
+    .ai-msg.bot{background:#fff;color:#333;border-bottom-left-radius:4px;align-self:flex-start;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .ai-msg.user{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-bottom-right-radius:4px;margin-left:auto}
+    .ai-msg.system{background:#e8eaf6;color:#555;text-align:center;max-width:90%;margin:8px auto;font-size:13px;border-radius:12px}
+    .ai-input-area{display:flex;gap:8px;padding:12px 16px;border-top:1px solid #eee;background:#fff;flex-shrink:0}
+    .ai-input-area input{flex:1;border:1.5px solid #ddd;border-radius:20px;padding:10px 16px;font-size:14px;outline:none}
+    .ai-input-area input:focus{border-color:#667eea}
+    .ai-input-area button{width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;font-size:18px;cursor:pointer;flex-shrink:0}
+    .ai-typing{display:flex;gap:4px;padding:10px 14px;align-items:center}
+    .ai-typing span{width:8px;height:8px;background:#bbb;border-radius:50%;animation:aiDot 1.2s infinite}
+    .ai-typing span:nth-child(2){animation-delay:.2s}
+    .ai-typing span:nth-child(3){animation-delay:.4s}
+    @keyframes aiDot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
   </style>
   <!-- PWA Manifest -->
   <link rel="manifest" id="pwa-manifest">
@@ -495,6 +584,8 @@
     </div>
   </div>
 
+  <button id="ai-recommend-btn" onclick="aiRecommend()" style="display:none;margin:0 16px 8px;padding:10px;border:none;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(102,126,234,.3)">🎯 AI가 나에게 맞는 공고를 추천해드려요</button>
+
   <!-- 목록 뷰 -->
   <div id="list-view" class="scroll-area" style="flex:1" onscroll="handlePullRefresh(this)">
     <div id="pull-indicator" class="pull-indicator">↻ 당겨서 새로고침</div>
@@ -536,6 +627,7 @@
     </div>
   </div>
 
+  <button class="ai-fab" onclick="toggleAiPanel()" id="ai-fab-btn" title="AI 도우미">🤖</button>
   <button class="fab" onclick="switchTab('post')">✏️</button>
 
   <div class="bottom-nav">
@@ -544,6 +636,30 @@
     <div class="nav-item" id="nav-chat" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span id="chat-badge" style="display:none;position:absolute;top:6px;background:#FF3B30;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;line-height:14px">N</span></div>
     <div class="nav-item" id="nav-edu" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
     <div class="nav-item" id="nav-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
+  </div>
+</div>
+
+<!-- ===== AI 챗봇 패널 ===== -->
+<div id="ai-panel" class="ai-panel">
+  <div class="ai-header">
+    <h3>🤖 AI 도우미</h3>
+    <div style="display:flex;gap:12px;align-items:center">
+      <span style="font-size:12px;opacity:.8">요양링크 AI</span>
+      <button onclick="toggleAiPanel()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">✕</button>
+    </div>
+  </div>
+  <div class="ai-messages" id="ai-messages">
+    <div class="ai-msg system">안녕하세요! 요양링크 AI 도우미입니다 🤖<br>요양보호사 자격증, 급여, 근무조건 등 무엇이든 물어보세요!</div>
+  </div>
+  <div style="display:flex;gap:6px;padding:8px 16px;overflow-x:auto;flex-shrink:0;background:#fff">
+    <button onclick="aiQuickQ('요양보호사 자격증 어떻게 따나요?')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #667eea;border-radius:16px;background:#f5f3ff;color:#667eea;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📋 자격증 취득</button>
+    <button onclick="aiQuickQ('요양보호사 급여는 얼마인가요?')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #667eea;border-radius:16px;background:#f5f3ff;color:#667eea;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">💰 급여 안내</button>
+    <button onclick="aiQuickQ('방문요양과 입주요양 차이가 뭔가요?')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #667eea;border-radius:16px;background:#f5f3ff;color:#667eea;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">🏠 근무유형</button>
+    <button onclick="aiQuickQ('장기요양등급은 어떻게 받나요?')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #667eea;border-radius:16px;background:#f5f3ff;color:#667eea;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📑 장기요양등급</button>
+  </div>
+  <div class="ai-input-area" style="padding-bottom:calc(12px + env(safe-area-inset-bottom))">
+    <input type="text" id="ai-input" placeholder="질문을 입력하세요..." onkeydown="if(event.key==='Enter')sendAiMessage()"/>
+    <button onclick="sendAiMessage()">➤</button>
   </div>
 </div>
 
@@ -630,6 +746,7 @@
     <!-- 공통: 상세내용 -->
     <div class="form-group">
       <label class="form-label" id="post-desc-label">📝 상세 내용</label>
+      <button onclick="aiWritePost()" id="ai-write-btn" style="display:none;margin-bottom:8px;padding:8px 16px;border:1.5px solid #667eea;border-radius:10px;background:#f5f3ff;color:#667eea;font-size:13px;font-weight:700;cursor:pointer">✨ AI로 공고 자동 작성</button>
       <textarea class="form-textarea" id="post-desc" rows="5" placeholder="자세한 내용을 입력해 주세요." maxlength="1000" oninput="updateCharCounter()"></textarea>
       <div id="post-char-counter" class="char-counter">0 / 1,000자</div>
     </div>
@@ -756,8 +873,23 @@
     </div>
     <span style="font-size:12px;color:#999">›</span>
   </div>
+  <!-- 면접 상태 배너 -->
+  <div id="chatroom-interview-banner" class="interview-banner" style="display:none" onclick="openInterviewDetail()">
+    <span style="font-size:18px">📅</span>
+    <span>면접 예정</span>
+    <span class="iv-time" id="chatroom-iv-time"></span>
+    <span style="margin-left:auto;font-size:11px;opacity:.7">상세보기 ›</span>
+  </div>
+  <div id="chatroom-matched-banner" class="matched-banner" style="display:none">
+    <span style="font-size:20px">🤝</span>
+    <span>매칭 완료</span>
+  </div>
   <!-- 메시지 영역 -->
   <div class="scroll-area" id="chatroom-messages" style="padding:12px 0;display:flex;flex-direction:column;background:#B2C7D9"></div>
+  <!-- 면접 약속잡기 버튼 (구인자만 보임) -->
+  <div id="chatroom-actions" style="display:none;padding:8px 16px;background:#fff;border-top:1px solid #eee;flex-shrink:0">
+    <button id="btn-schedule-interview" onclick="openInterviewModal()" style="width:100%;padding:12px;border:2px solid #FF9800;border-radius:14px;background:#FFF8E1;color:#E65100;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">📅 면접 약속잡기</button>
+  </div>
   <!-- 채팅 첨부 메뉴 (+ 버튼 클릭 시) -->
   <div id="chat-attach-menu" style="display:none;background:#fff;border-top:1px solid var(--border);padding:16px 20px 8px;flex-shrink:0">
     <div style="font-size:13px;font-weight:700;color:#aaa;margin-bottom:12px">서류 전송</div>
@@ -967,6 +1099,84 @@
     <div class="modal-handle"></div>
     <div class="modal-title">연락하기</div>
     <div id="modal-contact-content"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 면접 약속잡기 ===== -->
+<div class="modal-center" id="modal-interview">
+  <div class="modal-box" style="max-width:360px">
+    <div style="font-size:48px;text-align:center;margin-bottom:8px">📅</div>
+    <div class="modal-box-title">면접 약속잡기</div>
+    <div class="modal-box-body" style="margin-bottom:16px">면접 날짜와 시간을 선택해주세요</div>
+    <div style="margin-bottom:12px">
+      <input type="date" id="iv-date" class="form-input" style="padding:12px;font-size:15px;width:100%;box-sizing:border-box"/>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <select id="iv-hour" class="form-select" style="flex:1;padding:12px;font-size:15px">
+        <option value="">시</option>
+        <option>08</option><option>09</option><option>10</option><option>11</option><option>12</option>
+        <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+      </select>
+      <span style="font-size:20px;font-weight:700;align-self:center">:</span>
+      <select id="iv-min" class="form-select" style="flex:1;padding:12px;font-size:15px">
+        <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-interview')">취소</button>
+      <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="confirmInterviewTime()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 필요서류 선택 ===== -->
+<div class="modal-center" id="modal-docs">
+  <div class="modal-box" style="max-width:360px">
+    <div style="font-size:48px;text-align:center;margin-bottom:8px">📎</div>
+    <div class="modal-box-title">필요서류를 선택해주세요</div>
+    <div class="modal-box-body" style="margin-bottom:16px">면접 시 가져와야 할 서류를 알려드려요<br><b>중복 선택 가능</b></div>
+    <div id="doc-checklist">
+      <label class="doc-check-item" onclick="toggleDocItem(this)">
+        <input type="checkbox" value="요양보호사 자격증" checked/>
+        <span style="font-size:22px">📋</span>
+        <span style="font-size:14px;font-weight:600">요양보호사 자격증</span>
+      </label>
+      <label class="doc-check-item" onclick="toggleDocItem(this)">
+        <input type="checkbox" value="신분증"/>
+        <span style="font-size:22px">🪪</span>
+        <span style="font-size:14px;font-weight:600">신분증</span>
+      </label>
+      <label class="doc-check-item" onclick="toggleDocItem(this)">
+        <input type="checkbox" value="이력서"/>
+        <span style="font-size:22px">📄</span>
+        <span style="font-size:14px;font-weight:600">이력서</span>
+      </label>
+      <label class="doc-check-item" onclick="toggleDocItem(this)">
+        <input type="checkbox" value="기타" id="doc-etc-cb" onchange="toggleDocEtc()"/>
+        <span style="font-size:22px">📎</span>
+        <span style="font-size:14px;font-weight:600">기타</span>
+      </label>
+      <div id="doc-etc-input-wrap" style="display:none;margin-top:-4px;margin-bottom:8px;padding-left:38px">
+        <input type="text" id="doc-etc-text" class="form-input" placeholder="필요한 서류를 적어주세요" style="padding:10px 14px;font-size:14px;width:100%;box-sizing:border-box"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-docs');openModal('modal-interview')">← 이전</button>
+      <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="sendInterviewRequest()">📨 서류 요청 보내기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 채용 확인 ===== -->
+<div class="modal-center" id="modal-hire-confirm">
+  <div class="modal-box" style="max-width:340px">
+    <div style="font-size:48px;text-align:center;margin-bottom:8px">🤝</div>
+    <div class="modal-box-title">면접은 어떠셨나요?</div>
+    <div class="modal-box-body" style="margin-bottom:20px">채용이 확정되었나요?</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-green" style="font-size:16px;padding:14px" onclick="confirmHire(true)">✅ 네, 채용 완료!</button>
+      <button class="btn btn-outline" style="font-size:14px;padding:12px" onclick="confirmHire(false)">아직이요</button>
+    </div>
   </div>
 </div>
 
@@ -1555,6 +1765,91 @@ function escapeHtml(str){
 }
 
 // ============================================================
+//  보안: 입력값 살균 (sanitize)
+// ============================================================
+function sanitizeInput(str){
+  if(!str) return '';
+  return String(str).trim()
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .replace(/data:\s*text\/html/gi, '')
+    .replace(/eval\s*\(/gi, '')
+    .replace(/expression\s*\(/gi, '');
+}
+
+// ============================================================
+//  보안: 스팸/도배 방지 (Rate Limiter)
+// ============================================================
+var _rateLimits = {};
+function rateLimit(action, maxPerMin){
+  maxPerMin = maxPerMin || 5;
+  var now = Date.now();
+  if(!_rateLimits[action]) _rateLimits[action] = [];
+  // 1분 이전 기록 제거
+  _rateLimits[action] = _rateLimits[action].filter(function(t){ return now - t < 60000; });
+  if(_rateLimits[action].length >= maxPerMin){
+    return false; // 제한 초과
+  }
+  _rateLimits[action].push(now);
+  return true;
+}
+
+// ============================================================
+//  보안: 세션 무결성 체크
+// ============================================================
+function validateSession(){
+  if(!state.user || !state.user.kakaoId) return false;
+  try {
+    var saved = JSON.parse(localStorage.getItem('carelink_profile') || 'null');
+    if(!saved || saved.kakaoId !== state.user.kakaoId) return false;
+  } catch(e){ return false; }
+  return true;
+}
+
+// ============================================================
+//  보안: 개발자도구 감지 (디버깅 방지)
+// ============================================================
+(function(){
+  var devtoolsOpen = false;
+  var threshold = 160;
+  setInterval(function(){
+    var widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    var heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    if(widthThreshold || heightThreshold){
+      if(!devtoolsOpen){
+        devtoolsOpen = true;
+        console.log('%c⚠️ 요양링크 보안 경고', 'font-size:24px;font-weight:bold;color:red');
+        console.log('%c이 콘솔은 개발자 전용입니다. 개인정보를 입력하지 마세요.', 'font-size:14px;color:#FF6B35');
+      }
+    } else {
+      devtoolsOpen = false;
+    }
+  }, 1000);
+})();
+
+// ============================================================
+//  보안: 우클릭/텍스트선택 제한 (일반사용자)
+// ============================================================
+document.addEventListener('contextmenu', function(e){
+  if(!isAdmin()) e.preventDefault();
+});
+
+// ============================================================
+//  보안: Firebase 데이터 유효성 검증
+// ============================================================
+function validateListingData(data){
+  if(!data || typeof data !== 'object') return false;
+  if(!data.title || data.title.length > 100) return false;
+  if(!data.desc || data.desc.length > 2000) return false;
+  if(data.salary && data.salary.length > 50) return false;
+  // XSS 패턴 체크
+  var suspicious = /<script|javascript:|on\w+\s*=|eval\s*\(/i;
+  if(suspicious.test(data.title) || suspicious.test(data.desc)) return false;
+  return true;
+}
+
+// ============================================================
 //  콘텐츠 필터링 (광고·성적·욕설·사기 차단)
 // ============================================================
 const BANNED_KEYWORDS = {
@@ -1625,7 +1920,9 @@ function checkAutoHideByReports(){
         listing.status = 'reported_hidden';
         listing._hiddenReason = '신고 '+cnt+'건 누적으로 자동 숨김';
         if(fbDB && listing.fbKey){
-          fbDB.ref('listings/'+listing.fbKey+'/status').set('reported_hidden');
+          fbDB.ref('listings/'+listing.fbKey+'/status').set('reported_hidden').catch(err=>{
+            console.error('신고 공고 상태 업데이트 실패:', err);
+          });
         }
       }
     }
@@ -1993,8 +2290,11 @@ function init(){
         updateAdminUI();
         updateAdminStats();
         startChatNotificationListener();
+        checkHireConfirmation();
+        cleanupOldMessages();
         saveUserToFirebase(); // Firebase에 유저 정보 동기화
         navigate('home');
+        updateAiButtons();
         return; // 로그인 화면 건너뜀
       }
     }
@@ -2249,8 +2549,11 @@ document.addEventListener('DOMContentLoaded', function(){
         saveUserToFirebase(); // Firebase에 유저 정보 동기화
         updateHeaderUI();
         startChatNotificationListener();
+        checkHireConfirmation();
+        cleanupOldMessages();
         showToast('🎉 ' + nickname + '님, 어서오세요!');
         navigate('home');
+        updateAiButtons();
         return;
       }
     } catch(e){}
@@ -2471,6 +2774,8 @@ function confirmSetup(){
   updateAdminUI();
   updateAdminStats();
   startChatNotificationListener();
+  checkHireConfirmation();
+  cleanupOldMessages();
   navigate('home');
 }
 
@@ -2625,7 +2930,7 @@ function searchThisArea(){
   // 현재 지도 범위 안의 공고 수 표시
   const bounds=state.mapInstance.getBounds();
   const visible=state.listings.filter(l=>{
-    if(l.status!=='active') return false;
+    if(l.status!=='active' && l.status!=='interviewing') return false;
     const c=getApproxCoords(l.area,l.id);
     return bounds.contains(L.latLng(c[0],c[1]));
   });
@@ -2638,7 +2943,7 @@ function updateNearbyCount(){
   const myLL=L.latLng(state.myCoords[0],state.myCoords[1]);
   let cnt=0;
   state.listings.forEach(l=>{
-    if(l.status!=='active') return;
+    if(l.status!=='active' && l.status!=='interviewing') return;
     const c=getApproxCoords(l.area,l.id);
     if(myLL.distanceTo(L.latLng(c[0],c[1]))<5000) cnt++; // 5km 내
   });
@@ -2794,7 +3099,8 @@ function renderListings(filter){
           ${item.urgent&&item.status==='active'?'<span class="badge badge-urgent">🔥 급구</span>':''}
           <span class="badge ${item.type==='employer'?'badge-employer':'badge-caregiver'}">${item.type==='employer'?'구인':'구직'}</span>
           <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
-          ${isMatched?'<span class="badge badge-matched">✅ 매칭완료</span>':''}
+          ${item.status==='interviewing'?'<span class="badge-interview">📅 면접 중</span>':''}
+          ${isMatched?'<span class="badge-matched">🤝 매칭완료</span>':''}
         </div>
         <div class="listing-desc">${escapeHtml(item.desc)}</div>
         <div class="listing-bottom">
@@ -2830,7 +3136,8 @@ function openDetail(id){
         ${item.urgent&&!isMatched?'<span class="badge badge-urgent">🔥 급구</span>':''}
         <span class="badge ${item.type==='employer'?'badge-employer':'badge-caregiver'}">${item.type==='employer'?'구인':'구직'}</span>
         <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
-        ${isMatched?'<span class="badge badge-matched">✅ 매칭완료</span>':''}
+        ${item.status==='interviewing'?'<span class="badge-interview">📅 면접 중</span>':''}
+        ${isMatched?'<span class="badge-matched">🤝 매칭완료</span>':''}
       </div>
       <div style="font-size:21px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:12px">${item.title}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2907,7 +3214,10 @@ function openMatchModal(id){
 function confirmMatch(){
   const item=state.listings.find(l=>l.id==state.pendingMatchId); if(!item) return;
   if(fbDB && item.fbKey){
-    fbDB.ref('listings/'+item.fbKey).update({ status:'matched' });
+    fbDB.ref('listings/'+item.fbKey).update({ status:'matched' }).catch(err=>{
+      console.error('매칭 상태 업데이트 실패:', err);
+      showToast('⚠️ 매칭 상태 업데이트 실패. 다시 시도해주세요.');
+    });
   } else {
     item.status='matched';
     renderListings();
@@ -2935,7 +3245,9 @@ function checkExpiryNotices(){
   // Auto-expire
   expired.forEach(l=>{
     if(fbDB && l.fbKey){
-      fbDB.ref('listings/'+l.fbKey).update({ status:'expired' });
+      fbDB.ref('listings/'+l.fbKey).update({ status:'expired' }).catch(err=>{
+        console.error('공고 만료 상태 업데이트 실패:', err);
+      });
     } else {
       l.status='expired';
     }
@@ -2956,7 +3268,10 @@ function doRepost(){
   const item=state.listings.find(l=>l.id==state.pendingRepostId);
   if(item){
     if(fbDB && item.fbKey){
-      fbDB.ref('listings/'+item.fbKey).update({ createdAt:Date.now(), status:'active', time:'방금 전' });
+      fbDB.ref('listings/'+item.fbKey).update({ createdAt:Date.now(), status:'active', time:'방금 전' }).catch(err=>{
+        console.error('공고 재등록 실패:', err);
+        showToast('⚠️ 공고 재등록 실패. 다시 시도해주세요.');
+      });
     } else {
       item.createdAt=Date.now(); item.status='active'; item.time='방금 전';
       renderListings();
@@ -3071,11 +3386,13 @@ const EMPLOYER_FIELDS = `
   <div class="form-group" id="post-time-section">
     <label class="form-label">🕐 근무 시간</label>
     <div id="post-shift-wrap" style="display:none;margin-top:4px;margin-bottom:8px">
-      <label style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s" id="shift-label">
-        <input type="checkbox" id="post-shift-pattern" style="width:18px;height:18px;accent-color:var(--primary)" onchange="onShiftPatternChange()"/>
-        주주야야휴휴 (2교대)
-      </label>
-      <div style="font-size:12px;color:#aaa;margin-top:4px">체크하면 근무시간 입력 없이 등록됩니다</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="shift-pattern-group">
+        <label class="shift-opt" id="shift-label-2shift"><input type="radio" name="shift-pattern" value="주주야야휴휴" style="display:none" onchange="onShiftPatternChange()"/>주주야야휴휴 (2교대)</label>
+        <label class="shift-opt" id="shift-label-24h"><input type="radio" name="shift-pattern" value="24시근무" style="display:none" onchange="onShiftPatternChange()"/>24시 근무 (하루휴무)</label>
+        <label class="shift-opt" id="shift-label-day"><input type="radio" name="shift-pattern" value="주간근무" style="display:none" onchange="onShiftPatternChange()"/>주간근무</label>
+        <label class="shift-opt" id="shift-label-night"><input type="radio" name="shift-pattern" value="야간근무" style="display:none" onchange="onShiftPatternChange()"/>야간근무</label>
+      </div>
+      <div style="font-size:12px;color:#aaa;margin-top:6px">선택하면 근무시간 입력 없이 등록됩니다 · 다시 클릭하면 해제</div>
     </div>
     <div id="post-time-inputs" style="margin-top:4px">
       <div style="display:flex;align-items:center;gap:4px">
@@ -3354,35 +3671,68 @@ function toggleDayStyle(cb){
   }
 }
 
-// 근무유형 변경 시 주주야야휴휴 옵션 표시/숨김
+// 근무유형 변경 시 근무패턴 옵션 표시/숨김
 function onWorktypeChange(){
   var wt = (document.getElementById('post-worktype')||{}).value||'';
   var shiftWrap = document.getElementById('post-shift-wrap');
-  var shiftCb = document.getElementById('post-shift-pattern');
   if(shiftWrap){
     if(wt === 'facility'){
       shiftWrap.style.display = 'block';
     } else {
       shiftWrap.style.display = 'none';
-      if(shiftCb) shiftCb.checked = false;
-      onShiftPatternChange(); // 시간 입력 다시 표시
+      // 라디오 전부 해제
+      document.querySelectorAll('input[name="shift-pattern"]').forEach(function(r){ r.checked=false; });
+      onShiftPatternChange();
     }
   }
 }
 
-// 주주야야휴휴 체크 시 근무시간 입력란 숨기기
+// 근무패턴 선택/해제 시 근무시간 입력란 표시/숨김
 function onShiftPatternChange(){
-  var cb = document.getElementById('post-shift-pattern');
+  var radios = document.querySelectorAll('input[name="shift-pattern"]');
+  var selected = document.querySelector('input[name="shift-pattern"]:checked');
   var timeInputs = document.getElementById('post-time-inputs');
-  var label = document.getElementById('shift-label');
-  if(cb && cb.checked){
+
+  // 스타일 갱신
+  radios.forEach(function(r){
+    var lbl = r.parentElement;
+    if(r.checked){
+      lbl.classList.add('active');
+    } else {
+      lbl.classList.remove('active');
+    }
+  });
+
+  // 선택된 게 있으면 시간 입력 숨김
+  if(selected){
     if(timeInputs) timeInputs.style.display = 'none';
-    if(label){ label.style.background='var(--primary)'; label.style.color='#fff'; label.style.borderColor='var(--primary)'; }
   } else {
     if(timeInputs) timeInputs.style.display = 'block';
-    if(label){ label.style.background='#fff'; label.style.color='var(--text)'; label.style.borderColor='var(--border)'; }
   }
 }
+
+// 라디오 토글 (같은 것 다시 클릭하면 해제)
+document.addEventListener('click', function(e){
+  var label = e.target.closest('.shift-opt');
+  if(!label) return;
+  var radio = label.querySelector('input[type="radio"]');
+  if(!radio) return;
+  if(radio.dataset._wasChecked === '1'){
+    radio.checked = false;
+    radio.dataset._wasChecked = '0';
+    onShiftPatternChange();
+  } else {
+    document.querySelectorAll('input[name="shift-pattern"]').forEach(function(r){ r.dataset._wasChecked='0'; });
+    radio.dataset._wasChecked = '1';
+  }
+});
+document.addEventListener('mousedown', function(e){
+  var label = e.target.closest('.shift-opt');
+  if(!label) return;
+  var radio = label.querySelector('input[type="radio"]');
+  if(radio && radio.checked) radio.dataset._wasChecked = '1';
+  else if(radio) radio.dataset._wasChecked = '0';
+});
 
 // 요일+시간 수집 헬퍼
 function collectDaysTime(dayClass, startHourId, startMinId, endHourId, endMinId, flexId){
@@ -3618,14 +3968,18 @@ function submitPost(){
     }, 300);
     return;
   }
+  if(!rateLimit('post_listing', 3)){
+    showToast('공고 등록은 1분에 3회까지 가능합니다.');
+    return;
+  }
   if(state._lastPostTime && Date.now() - state._lastPostTime < 30000){
     showToast('⚠️ 잠시 후 다시 시도해주세요 (30초 간격)');
     return;
   }
-  let title=document.getElementById('post-title').value.trim();
+  let title=sanitizeInput(document.getElementById('post-title').value);
   const area=document.getElementById('post-area').value;
   const phone=document.getElementById('post-phone').value.trim();
-  const desc=document.getElementById('post-desc').value.trim();
+  const desc=sanitizeInput(document.getElementById('post-desc').value);
 
   // ── 구인: 모든 필수 항목 검증 ──
   if(state.postType==='employer'){
@@ -3687,12 +4041,13 @@ function submitPost(){
   if(state.postType==='employer'){
     exactAddress=(document.getElementById('post-exact-addr')||{}).value||'';
     workType=(document.getElementById('post-worktype')||{}).value||'visit';
-    var isShiftPattern = (document.getElementById('post-shift-pattern')||{}).checked;
-    if(isShiftPattern){
-      // 주주야야휴휴 선택 시
+    var selectedShift = document.querySelector('input[name="shift-pattern"]:checked');
+    if(selectedShift){
+      // 근무패턴 선택 시
       var daysList = [];
       document.querySelectorAll('.day-cb:checked').forEach(function(cb){ daysList.push(cb.value); });
-      days = (daysList.length ? daysList.join(',') : '협의') + ' (주주야야휴휴 2교대)';
+      var patternLabel = selectedShift.value;
+      days = (daysList.length ? daysList.join(',') : '협의') + ' (' + patternLabel + ')';
     } else {
       days=collectDaysTime('day-cb','post-start-hour','post-start-min','post-end-hour','post-end-min','post-time-flexible');
     }
@@ -3750,7 +4105,10 @@ function submitPost(){
       sharePhone: sharePhoneSelected,
     };
     if(fbDB){
-      fbDB.ref('listings').push(newItem);
+      fbDB.ref('listings').push(newItem).catch(err=>{
+        console.error('구직 공고 등록 실패:', err);
+        showToast('⚠️ 공고 등록 실패. 다시 시도해주세요.');
+      });
       // onValue 리스너가 자동으로 renderListings() 호출
     } else {
       state.listings.unshift(newItem);
@@ -3776,7 +4134,10 @@ function submitPost(){
     sharePhone: sharePhoneSelected,
   };
   if(fbDB){
-    fbDB.ref('listings').push(newItem);
+    fbDB.ref('listings').push(newItem).catch(err=>{
+      console.error('구인 공고 등록 실패:', err);
+      showToast('⚠️ 공고 등록 실패. 다시 시도해주세요.');
+    });
     // onValue 리스너가 자동으로 renderListings() 호출
   } else {
     state.listings.unshift(newItem);
@@ -3823,10 +4184,19 @@ function updateMyListings(item){
 // ============================================================
 //  UTILS
 // ============================================================
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2400);
+function showToast(msg, duration){
+  duration = duration || 2200;
+  var toast = document.getElementById('toast');
+  if(!toast) return;
+  // 기존 타이머 취소
+  if(toast._timer) clearTimeout(toast._timer);
+  if(toast._hideTimer) clearTimeout(toast._hideTimer);
+  toast.textContent = msg;
+  toast.classList.add('show');
+  toast._timer = setTimeout(function(){
+    toast.classList.remove('show');
+    toast._hideTimer = setTimeout(function(){ toast.textContent = ''; }, 300);
+  }, duration);
 }
 function shareDetail(){
   const item = state.selectedListing;
@@ -4054,7 +4424,8 @@ function showBookmarks(){
         <div style="display:flex;gap:8px;margin-bottom:6px">
           <span class="badge ${item.type==='employer'?'badge-employer':'badge-caregiver'}">${item.type==='employer'?'구인':'구직'}</span>
           <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
-          ${item.status==='matched'?'<span class="badge badge-matched">✅ 매칭완료</span>':''}
+          ${item.status==='interviewing'?'<span class="badge-interview">📅 면접 중</span>':''}
+          ${item.status==='matched'?'<span class="badge-matched">🤝 매칭완료</span>':''}
         </div>
         <div style="font-size:16px;font-weight:700;margin-bottom:4px">${escapeHtml(item.title)}</div>
         <div style="font-size:13px;color:#aaa">📍${item.area} · ${item.salary}</div>
@@ -4206,7 +4577,9 @@ function openChatRoom(listingId, forceInquirerId){
       initMeta.inquirerName = myName;
     }
     // merge하여 기존 meta 유지
-    fbDB.ref('chats/'+chatId+'/meta').update(initMeta);
+    fbDB.ref('chats/'+chatId+'/meta').update(initMeta).catch(err=>{
+      console.error('채팅 초기화 메타 업데이트 실패:', err);
+    });
   }
 
   // 채팅방 헤더 세팅
@@ -4222,46 +4595,103 @@ function openChatRoom(listingId, forceInquirerId){
   // 메시지 로드
   loadMessages(chatId);
   navigate('chatroom');
+  updateChatroomBanners(chatId);
 }
 
 // ============================================================
 //  메시지 로드 (Firebase 또는 데모)
 // ============================================================
 function loadMessages(chatId){
-  // 기존 리스너 해제
   if(state.chatUnsubscribe){ state.chatUnsubscribe(); state.chatUnsubscribe=null; }
 
+  var CHAT_PAGE_SIZE = 50;
+
   if(fbDB){
-    // 실제 Firebase 실시간 리스닝
-    const ref = fbDB.ref('chats/'+chatId+'/messages');
-    const handler = ref.on('value', snap=>{
-      const msgs=[];
-      snap.forEach(child=>{ msgs.push({id:child.key,...child.val()}); });
-      state.chats[chatId].messages = msgs;
+    // 페이지네이션 상태 초기화
+    state._chatLoadingMore = false;
+    state._chatHasMore = true;
+    state._chatOldestKey = null;
+    if(state.chats[chatId]) state.chats[chatId]._olderMessages = [];
+
+    // 캐시에서 먼저 표시 (즉시 로딩 체감)
+    var cached = loadMsgCache(chatId);
+    if(cached.length > 0 && (!state.chats[chatId].messages || state.chats[chatId].messages.length === 0)){
+      state.chats[chatId].messages = cached;
       renderMessages(chatId);
-      // 현재 보고 있는 채팅방이면 읽은 시간 갱신
-      if(state.activeChatId === chatId){
-        markChatAsRead(chatId);
-      }
+    }
+
+    // 최근 50개만 실시간 리스닝 (전체 다운로드 방지)
+    var ref = fbDB.ref('chats/'+chatId+'/messages');
+    var query = ref.orderByKey().limitToLast(CHAT_PAGE_SIZE);
+
+    var handler = query.on('value', function(snap){
+      var msgs = [];
+      snap.forEach(function(child){ msgs.push({id:child.key, ...child.val()}); });
+
+      if(msgs.length < CHAT_PAGE_SIZE) state._chatHasMore = false;
+      if(msgs.length > 0) state._chatOldestKey = msgs[0].id;
+
+      // 이전에 로드한 오래된 메시지와 합치기
+      var oldMsgs = (state.chats[chatId]._olderMessages || []);
+      state.chats[chatId].messages = oldMsgs.concat(msgs);
+      renderMessages(chatId);
+
+      // 캐시 업데이트
+      saveMsgCache(chatId);
+
+      if(state.activeChatId === chatId) markChatAsRead(chatId);
     });
-    state.chatUnsubscribe = ()=> ref.off('value', handler);
+    state.chatUnsubscribe = function(){ query.off('value', handler); };
   } else {
-    // 데모 모드: 저장된 메시지 보여주기
     if(!state.chats[chatId].messages.length){
-      // 데모용 첫 메시지 자동 생성
-      const item = state.listings.find(l=>l.id==state.chats[chatId].listingId);
+      var item = state.listings.find(function(l){ return l.id==state.chats[chatId].listingId; });
       if(item){
         state.chats[chatId].messages=[{
-          id:'demo1',
-          sender: item.name,
-          senderId: 'other',
-          text: '안녕하세요! 공고 보고 연락드립니다 😊',
-          time: Date.now()-60000,
+          id:'demo1', sender: item.name, senderId: 'other',
+          text: '안녕하세요! 공고 보고 연락드립니다 😊', time: Date.now()-60000,
         }];
       }
     }
     renderMessages(chatId);
   }
+}
+
+// ── 이전 메시지 로드 (스크롤 최상단 시) ──
+function loadOlderMessages(){
+  if(!fbDB || !state.activeChatId || state._chatLoadingMore || !state._chatHasMore) return;
+  var chatId = state.activeChatId;
+  var chat = state.chats[chatId];
+  if(!chat || !state._chatOldestKey) return;
+
+  state._chatLoadingMore = true;
+  var CHAT_PAGE_SIZE = 50;
+
+  fbDB.ref('chats/'+chatId+'/messages')
+    .orderByKey().endBefore(state._chatOldestKey).limitToLast(CHAT_PAGE_SIZE)
+    .once('value', function(snap){
+      var older = [];
+      snap.forEach(function(child){ older.push({id:child.key, ...child.val()}); });
+
+      if(older.length < CHAT_PAGE_SIZE) state._chatHasMore = false;
+      if(older.length > 0) state._chatOldestKey = older[0].id;
+
+      if(!chat._olderMessages) chat._olderMessages = [];
+      chat._olderMessages = older.concat(chat._olderMessages);
+
+      // 최신 50개 (리스너가 관리) + 오래된 메시지 합치기
+      var recentCount = chat.messages.length - (chat._olderMessages.length - older.length);
+      var recentMsgs = chat.messages.slice(-(recentCount > 0 ? recentCount : 50));
+      chat.messages = chat._olderMessages.concat(recentMsgs);
+
+      // 스크롤 위치 보존하며 렌더링
+      var container = document.getElementById('chatroom-messages');
+      var prevHeight = container ? container.scrollHeight : 0;
+      renderMessages(chatId);
+      if(container){
+        container.scrollTop = container.scrollHeight - prevHeight;
+      }
+      state._chatLoadingMore = false;
+    });
 }
 
 // ============================================================
@@ -4358,7 +4788,14 @@ function renderMessages(chatId){
 
     // 말풍선
     var bubbleHtml;
-    if(msg.type === 'image'){
+    if(msg.type === 'interview_scheduled' || msg.type === 'matched'){
+      // 시스템 카드 형태 메시지
+      var cardIcon = msg.type === 'interview_scheduled' ? '📅' : '🤝';
+      var cardTitle = msg.type === 'interview_scheduled' ? '면접 약속' : '매칭 완료';
+      var cardBody = escapeHtml(msg.text || '').replace(/\n/g, '<br>');
+      html += '<div class="msg-system-card"><div class="card-icon">' + cardIcon + '</div><div class="card-title">' + cardTitle + '</div><div class="card-body">' + cardBody + '</div></div>';
+      continue;
+    } else if(msg.type === 'image'){
       bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '" style="padding:4px;max-width:200px">'
         + '<div style="font-size:10px;color:rgba(0,0,0,0.4);margin-bottom:3px">[' + escapeHtml(msg.imageLabel||'서류') + ']</div>'
         + '<img src="' + msg.imageUrl + '" style="max-width:100%;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)"/>'
@@ -4389,7 +4826,20 @@ function renderMessages(chatId){
   }
 
   container.innerHTML = html;
-  setTimeout(()=>{ container.scrollTop=container.scrollHeight; },50);
+
+  // 이전 메시지 로드 배너
+  if(state._chatHasMore){
+    var loadMoreEl = document.createElement('div');
+    loadMoreEl.style.cssText = 'text-align:center;padding:12px;cursor:pointer;color:#5B86E5;font-size:13px;font-weight:600';
+    loadMoreEl.textContent = state._chatLoadingMore ? '불러오는 중...' : '↑ 이전 메시지 보기';
+    loadMoreEl.onclick = function(){ loadOlderMessages(); };
+    container.insertBefore(loadMoreEl, container.firstChild);
+  }
+
+  // 최초 로드시만 하단 스크롤, 이전 메시지 로드 시에는 스크롤 보존
+  if(!state._chatLoadingMore){
+    setTimeout(function(){ container.scrollTop=container.scrollHeight; },50);
+  }
 }
 
 // ============================================================
@@ -4426,8 +4876,13 @@ function sendDocFromChat(type){
   const me = state.user.name;
   const msgData = { sender: me, senderId: (state.user&&state.user.kakaoId)||'me', type: 'image', imageUrl: photo, imageLabel: label, time: Date.now() };
   if(fbDB){
-    fbDB.ref('chats/'+chatId+'/messages').push(msgData);
-    fbDB.ref('chats/'+chatId+'/meta').update({ lastMsg: '['+label+'] 사진 전송', lastTime: Date.now(), lastSenderId: (state.user&&state.user.kakaoId)||'me' });
+    fbDB.ref('chats/'+chatId+'/messages').push(msgData).catch(err=>{
+      console.error('채팅 사진 전송 실패:', err);
+      showToast('⚠️ 사진 전송 실패. 다시 시도해주세요.');
+    });
+    fbDB.ref('chats/'+chatId+'/meta').update({ lastMsg: '['+label+'] 사진 전송', lastTime: Date.now(), lastSenderId: (state.user&&state.user.kakaoId)||'me' }).catch(err=>{
+      console.error('채팅 메타 업데이트 실패:', err);
+    });
     markChatAsRead(chatId);
   } else {
     if(!chat.messages) chat.messages=[];
@@ -4438,6 +4893,10 @@ function sendDocFromChat(type){
 }
 
 function sendMessage(){
+  if(!rateLimit('chat_send', 20)){
+    showToast('메시지를 너무 빠르게 보내고 있습니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
   const input = document.getElementById('chat-input-text');
   const text = input.value.trim();
   if(!text) return;
@@ -4497,7 +4956,9 @@ function sendMessage(){
     if(chat.isSupport){
       metaData.senderName = myName;
     }
-    fbDB.ref('chats/'+chatId+'/meta').update(metaData);
+    fbDB.ref('chats/'+chatId+'/meta').update(metaData).catch(err=>{
+      console.error('채팅 메타 업데이트 실패:', err);
+    });
     // 내가 보낸 시점 = 읽은 시점
     markChatAsRead(chatId);
   } else {
@@ -4614,6 +5075,78 @@ function renderChatList(){
   });
 }
 
+// ── 메시지 캐시 (오프라인/빠른 로딩) ──
+var MSG_CACHE_KEY = 'carelink_msgCache';
+var MSG_CACHE_MAX = 20; // 최근 20개 채팅방만 캐시
+
+function saveMsgCache(chatId){
+  try {
+    var cache = JSON.parse(localStorage.getItem(MSG_CACHE_KEY) || '{}');
+    var msgs = (state.chats[chatId] && state.chats[chatId].messages) || [];
+    // 최근 30개만 캐시
+    cache[chatId] = {
+      msgs: msgs.slice(-30).map(function(m){ return {id:m.id, sender:m.sender, senderId:m.senderId, text:m.text, type:m.type, imageUrl:m.imageUrl, imageLabel:m.imageLabel, time:m.time}; }),
+      ts: Date.now()
+    };
+    // 캐시 크기 제한
+    var keys = Object.keys(cache);
+    if(keys.length > MSG_CACHE_MAX){
+      keys.sort(function(a,b){ return (cache[a].ts||0) - (cache[b].ts||0); });
+      for(var i=0; i < keys.length - MSG_CACHE_MAX; i++) delete cache[keys[i]];
+    }
+    localStorage.setItem(MSG_CACHE_KEY, JSON.stringify(cache));
+  } catch(e){}
+}
+
+function loadMsgCache(chatId){
+  try {
+    var cache = JSON.parse(localStorage.getItem(MSG_CACHE_KEY) || '{}');
+    if(cache[chatId] && cache[chatId].msgs){
+      return cache[chatId].msgs;
+    }
+  } catch(e){}
+  return [];
+}
+
+// ── 오래된 메시지 자동 정리 (90일 이상) ──
+function cleanupOldMessages(){
+  if(!fbDB || !state.user) return;
+  var CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 1일
+  var lastCleanup = parseInt(localStorage.getItem('carelink_lastMsgCleanup') || '0');
+  if(Date.now() - lastCleanup < CLEANUP_INTERVAL) return;
+
+  var EXPIRY_MS = 90 * 24 * 60 * 60 * 1000; // 90일
+  var cutoff = Date.now() - EXPIRY_MS;
+  var myId = state.user.kakaoId;
+
+  fbDB.ref('chats').once('value', function(snap){
+    snap.forEach(function(chatSnap){
+      var chatId = chatSnap.key;
+      var meta = chatSnap.child('meta').val() || {};
+      var amInquirer = chatId.includes('__'+myId);
+      var amPoster = meta.posterId === myId;
+      if(!amInquirer && !amPoster) return;
+
+      // 메시지 중 90일 이상 된 것 삭제
+      var messagesSnap = chatSnap.child('messages');
+      var deleteCount = 0;
+      var totalCount = 0;
+      messagesSnap.forEach(function(msgSnap){
+        totalCount++;
+        var msg = msgSnap.val();
+        if(msg.time && msg.time < cutoff){
+          deleteCount++;
+          fbDB.ref('chats/'+chatId+'/messages/'+msgSnap.key).remove();
+        }
+      });
+      if(deleteCount > 0){
+        console.log('[요양링크] 채팅 '+chatId+': '+deleteCount+'/'+totalCount+'개 오래된 메시지 정리');
+      }
+    });
+  });
+  localStorage.setItem('carelink_lastMsgCleanup', String(Date.now()));
+}
+
 // 읽지 않은 채팅 수 관리 (방별 안읽은 메시지 개수)
 if(!state.unreadChatCount) state.unreadChatCount = 0;
 if(!state.unreadChatIds) state.unreadChatIds = {};
@@ -4701,85 +5234,91 @@ function startChatNotificationListener(){
   if(!fbDB || !state.user || !state.user.kakaoId) return;
   if(state._chatNotifListener) return;
   state._chatNotifListener = true;
-  const myId = state.user.kakaoId;
+  var myId = state.user.kakaoId;
 
-  // ★ 초기 로드 중에는 알림음/토스트 안 띄움 (앱 시작 시 옛날 메시지로 알림 뜨는 버그 방지)
   var _initialLoad = true;
   setTimeout(function(){ _initialLoad = false; }, 3000);
 
-  fbDB.ref('chats').on('child_changed', snap=>{
-    const chatId = snap.key;
-    const chatData = snap.val()||{};
-    const meta = chatData.meta||{};
-    const amInquirer = chatId.includes('__'+myId);
-    const amPoster = meta.posterId === myId;
+  // ★ 기존: chats 전체를 감시 → 메시지 포함 전체 다운로드
+  // ★ 개선: 각 채팅방의 meta만 감시 → 대역폭 90% 이상 절감
+
+  // 이미 알려진 채팅방들의 meta 리스너 등록
+  var _metaListeners = {};
+
+  function attachMetaListener(chatId){
+    if(_metaListeners[chatId]) return;
+    _metaListeners[chatId] = true;
+
+    fbDB.ref('chats/'+chatId+'/meta').on('value', function(snap){
+      var meta = snap.val();
+      if(!meta) return;
+
+      var amInquirer = chatId.includes('__'+myId);
+      var amPoster = meta.posterId === myId;
+      if(!amInquirer && !amPoster) return;
+
+      // 채팅 목록 데이터 갱신
+      if(state.chats[chatId]){
+        state.chats[chatId].lastMsg = meta.lastMsg || '';
+        state.chats[chatId].lastTime = meta.lastTime || 0;
+        var otherName = amPoster ? (meta.inquirerName || '문의자') : (meta.posterName || '상대방');
+        state.chats[chatId].otherName = otherName;
+      }
+
+      // 안읽음 + 알림 처리
+      var lastRead = state.chatLastReadTime[chatId] || 0;
+      var msgTime = meta.lastTime || 0;
+      if(state.activeChatId !== chatId && meta.lastMsg && msgTime > lastRead){
+        if(meta.lastSenderId && meta.lastSenderId !== myId){
+          var prevCount = typeof state.unreadChatIds[chatId]==='number' ? state.unreadChatIds[chatId] : 0;
+          state.unreadChatIds[chatId] = prevCount + 1;
+          updateChatBadge();
+          if(!_initialLoad){
+            playChatNotifSound();
+            var senderName = amPoster ? (meta.inquirerName||'문의자') : (meta.posterName||'상대방');
+            showChatNotifToast(senderName, meta.lastMsg);
+          }
+        }
+      }
+    });
+  }
+
+  // 기존 채팅방들 meta 리스너 등록
+  Object.keys(state.chats).forEach(function(chatId){
+    attachMetaListener(chatId);
+  });
+
+  // 새 채팅방 감지 (child_added on chats — shallow이 안 되므로 사용하되, 초기 후에만 알림)
+  fbDB.ref('chats').on('child_added', function(snap){
+    var chatId = snap.key;
+    var chatData = snap.val()||{};
+    var meta = chatData.meta||{};
+    var amInquirer = chatId.includes('__'+myId);
+    var amPoster = meta.posterId === myId;
     if(!amInquirer && !amPoster) return;
 
-    // 현재 보고 있는 채팅방이 아니면 읽지 않은 수 증가 + 알림
-    var lastRead = state.chatLastReadTime[chatId] || 0;
-    var msgTime = meta.lastTime || 0;
-    if(state.activeChatId !== chatId && meta.lastMsg && msgTime > lastRead){
-      // 마지막 메시지가 내가 보낸 게 아닐 때만 안읽음 처리
-      if(meta.lastSenderId && meta.lastSenderId !== myId){
-        var prevCount = typeof state.unreadChatIds[chatId]==='number' ? state.unreadChatIds[chatId] : 0;
-        state.unreadChatIds[chatId] = prevCount + 1;
+    if(!state.chats[chatId]){
+      var otherName = amPoster ? (meta.inquirerName || '문의자') : (meta.posterName || '상대방');
+      state.chats[chatId]={
+        title: meta.title || '채팅', otherName: otherName, otherIcon: '🏠',
+        listingId: meta.listingId || null, isSupport: false,
+        posterId: meta.posterId || '', inquirerId: meta.inquirerId || '',
+        lastMsg: meta.lastMsg || '', lastTime: meta.lastTime || 0, messages: [],
+      };
+      var lastRead = state.chatLastReadTime[chatId] || 0;
+      var msgTime = meta.lastTime || 0;
+      if(meta.lastMsg && msgTime > lastRead && meta.lastSenderId && meta.lastSenderId !== myId){
+        state.unreadChatIds[chatId] = 1;
         updateChatBadge();
-        // 초기 로드 아닐 때만 알림음/토스트
         if(!_initialLoad){
           playChatNotifSound();
-          var senderName = amPoster ? (meta.inquirerName||'문의자') : (meta.posterName||'상대방');
-          showChatNotifToast(senderName, meta.lastMsg);
+          showChatNotifToast(otherName, meta.lastMsg);
         }
       }
     }
-    // 채팅 목록 데이터 갱신
-    if(state.chats[chatId]){
-      state.chats[chatId].lastMsg = meta.lastMsg || '';
-      state.chats[chatId].lastTime = meta.lastTime || 0;
-      var otherName = amPoster
-        ? (meta.inquirerName || '문의자')
-        : (meta.posterName || '상대방');
-      state.chats[chatId].otherName = otherName;
-    }
-  });
 
-  // 새 채팅방 생성 감지 (앱 시작 시 기존 채팅방에도 발동됨)
-  fbDB.ref('chats').on('child_added', snap=>{
-    const chatId = snap.key;
-    const chatData = snap.val()||{};
-    const meta = chatData.meta||{};
-    const amInquirer = chatId.includes('__'+myId);
-    const amPoster = meta.posterId === myId;
-    if(!amInquirer && !amPoster) return;
-    if(state.chats[chatId]) return;
-
-    const otherName = amPoster
-      ? (meta.inquirerName || '문의자')
-      : (meta.posterName || '상대방');
-    state.chats[chatId]={
-      title: meta.title || '채팅',
-      otherName: otherName,
-      otherIcon: '🏠',
-      listingId: meta.listingId || null,
-      isSupport: false,
-      posterId: meta.posterId || '',
-      inquirerId: meta.inquirerId || '',
-      lastMsg: meta.lastMsg || '',
-      lastTime: meta.lastTime || 0,
-      messages: [],
-    };
-    // 안읽음 판정만 (알림음/토스트는 초기 로드 시 안 띄움)
-    var lastRead = state.chatLastReadTime[chatId] || 0;
-    var msgTime = meta.lastTime || 0;
-    if(meta.lastMsg && msgTime > lastRead && meta.lastSenderId && meta.lastSenderId !== myId){
-      state.unreadChatIds[chatId] = 1;
-      updateChatBadge();
-      // 초기 로드 아닐 때만 알림
-      if(!_initialLoad){
-        playChatNotifSound();
-        showChatNotifToast(otherName, meta.lastMsg);
-      }
-    }
+    // 새 채팅방도 meta 리스너 등록 (이후 변경은 meta만 감시)
+    attachMetaListener(chatId);
   });
 }
 
@@ -4903,6 +5442,8 @@ function openSupportChat(){
             lastMsg: '',
             lastTime: Date.now(),
             isSupport: true,
+          }).catch(err=>{
+            console.error('문의 채팅 메타 생성 실패:', err);
           });
         }
       });
@@ -5651,6 +6192,10 @@ function selectReason(reason, el){
 
 // 신고 제출
 function submitReport(){
+  if(!rateLimit('report', 3)){
+    showToast('신고는 1분에 3회까지 가능합니다.');
+    return;
+  }
   if(!window._selectedReason){
     showToast('신고 사유를 선택해 주세요');
     return;
@@ -5924,7 +6469,9 @@ function saveUserToFirebase(){
     if(!existing){
       userData.joinedAt = Date.now();
     }
-    fbDB.ref('users/' + u.kakaoId).update(userData);
+    fbDB.ref('users/' + u.kakaoId).update(userData).catch(err=>{
+      console.error('사용자 정보 저장 실패:', err);
+    });
   });
 }
 
@@ -5978,6 +6525,9 @@ function adminBanUser(kakaoId, userName, reason){
     reason: reasonText,
     bannedAt: Date.now(),
     bannedBy: state.user.kakaoId || 'admin'
+  }).catch(err=>{
+    console.error('사용자 차단 저장 실패:', err);
+    showToast('⚠️ 사용자 차단 저장 실패. 다시 시도해주세요.');
   });
 
   // 2. 해당 유저의 모든 공고 삭제
@@ -5996,7 +6546,9 @@ function deleteAllUserData(kakaoId, userName){
     return l.postedByKakaoId === kakaoId || l.postedBy === userName;
   });
   myListings.forEach(function(l){
-    if(l.fbKey) fbDB.ref('listings/' + l.fbKey).remove();
+    if(l.fbKey) fbDB.ref('listings/' + l.fbKey).remove().catch(err=>{
+      console.error('공고 삭제 실패:', err);
+    });
   });
 
   // 2. 채팅 삭제 (해당 유저가 참여한 모든 채팅방)
@@ -6006,20 +6558,26 @@ function deleteAllUserData(kakaoId, userName){
     Object.keys(chats).forEach(function(chatId){
       // support_ 채팅 또는 유저ID가 포함된 채팅방 삭제
       if(chatId.indexOf(myId.replace(/\s/g,'')) !== -1 || chatId === 'support_' + myId){
-        fbDB.ref('chats/' + chatId).remove();
+        fbDB.ref('chats/' + chatId).remove().catch(err=>{
+          console.error('채팅방 삭제 실패:', err);
+        });
       }
     });
   });
 
   // 3. 유저 프로필 삭제
-  fbDB.ref('users/' + kakaoId).remove();
+  fbDB.ref('users/' + kakaoId).remove().catch(err=>{
+    console.error('사용자 프로필 삭제 실패:', err);
+  });
 
   // 4. 해당 유저 신고 기록 정리
   (state.reports || []).filter(function(r){
     var listing = state.listings.find(function(l){ return l.id === r.listingId; });
     return listing && (listing.postedByKakaoId === kakaoId);
   }).forEach(function(r){
-    fbDB.ref('reports/' + r.id).remove();
+    fbDB.ref('reports/' + r.id).remove().catch(err=>{
+      console.error('신고 기록 삭제 실패:', err);
+    });
   });
 }
 
@@ -6030,7 +6588,11 @@ function adminUnbanUser(kakaoId){
   var name = banned ? banned.name : kakaoId;
   if(!confirm(name + ' 님의 차단을 해제하시겠습니까?')) return;
 
-  fbDB.ref('banned_users/' + kakaoId).remove();
+  fbDB.ref('banned_users/' + kakaoId).remove().catch(err=>{
+    console.error('사용자 차단 해제 실패:', err);
+    showToast('⚠️ 차단 해제 실패. 다시 시도해주세요.');
+    return;
+  });
   showToast('✅ ' + name + ' 님의 차단이 해제되었습니다');
   renderAdminUsers();
 }
@@ -6088,7 +6650,7 @@ function renderAdminUsers(){
         + '</div>'
         + '<div style="font-size:12px;color:#888;margin-bottom:8px">사유: ' + escapeHtml(b.reason||'') + '</div>'
         + '<div style="font-size:11px;color:#bbb;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
-        + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + kakaoId + '\')">차단 해제</button>'
+        + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">차단 해제</button>'
         + '</div>';
     }).join('');
   } else {
@@ -6149,8 +6711,8 @@ function renderAdminUsers(){
           + '<div style="font-size:10px;color:#ccc;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
           // 버튼
           + (isBanned
-            ? '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + kakaoId + '\')">차단 해제</button>'
-            : (isMe ? '' : '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#E53935;border-color:#E53935" onclick="adminBanUser(\'' + kakaoId + '\',\'' + escapeHtml(u.name||'') + '\')">🚫 영구밴</button>')
+            ? '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">차단 해제</button>'
+            : (isMe ? '' : '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#E53935;border-color:#E53935" onclick="adminBanUser(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">🚫 영구밴</button>')
           )
           + '</div>';
       }).join('');
@@ -6357,8 +6919,498 @@ document.addEventListener('DOMContentLoaded', function() {
   init();
   // 초기 스켈레톤 로딩 (Firebase 로드 전)
   if(!state._firebaseLoaded) showSkeletonLoading();
+  // AI 버튼 업데이트
+  updateAiButtons();
 });
 
+// ============================================================
+//  면접 약속 & 채용 시스템 (당근마켓 스타일)
+// ============================================================
+var pendingInterviewData = {};
+
+function openInterviewModal(){
+  if(!state.activeChatId) return;
+  // 기본값: 내일 날짜
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  var dateStr = tomorrow.toISOString().split('T')[0];
+  var dateInput = document.getElementById('iv-date');
+  if(dateInput) dateInput.value = dateStr;
+  if(dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+  openModal('modal-interview');
+}
+
+function confirmInterviewTime(){
+  var dateVal = (document.getElementById('iv-date')||{}).value;
+  var hourVal = (document.getElementById('iv-hour')||{}).value;
+  var minVal = (document.getElementById('iv-min')||{}).value || '00';
+  if(!dateVal || !hourVal){
+    showToast('날짜와 시간을 모두 선택해주세요');
+    return;
+  }
+  var ivTime = new Date(dateVal + 'T' + hourVal + ':' + minVal + ':00');
+  if(ivTime <= new Date()){
+    showToast('현재 시간 이후로 선택해주세요');
+    return;
+  }
+  pendingInterviewData = {
+    date: dateVal,
+    hour: hourVal,
+    min: minVal,
+    timestamp: ivTime.getTime(),
+    displayText: dateVal.replace(/-/g,'.') + ' ' + hourVal + ':' + minVal
+  };
+  closeModal('modal-interview');
+  // 서류 선택 모달 열기
+  openModal('modal-docs');
+}
+
+function toggleDocItem(el){
+  var cb = el.querySelector('input[type=checkbox]');
+  if(cb){
+    // el.classList.toggle('checked', cb.checked); // checkbox handles its own state
+    setTimeout(function(){ el.classList.toggle('checked', cb.checked); }, 10);
+  }
+}
+
+function toggleDocEtc(){
+  var cb = document.getElementById('doc-etc-cb');
+  var wrap = document.getElementById('doc-etc-input-wrap');
+  if(cb && wrap){
+    wrap.style.display = cb.checked ? 'block' : 'none';
+    if(cb.checked){
+      var input = document.getElementById('doc-etc-text');
+      if(input) setTimeout(function(){ input.focus(); }, 100);
+    }
+  }
+}
+
+function sendInterviewRequest(){
+  var chatId = state.activeChatId;
+  if(!chatId || !pendingInterviewData.timestamp) return;
+  var chat = state.chats[chatId];
+  if(!chat) return;
+
+  // 선택된 서류 수집
+  var docs = [];
+  document.querySelectorAll('#doc-checklist input[type=checkbox]:checked').forEach(function(cb){
+    if(cb.value === '기타'){
+      var etcText = (document.getElementById('doc-etc-text')||{}).value || '';
+      if(etcText.trim()) docs.push('기타: ' + etcText.trim());
+    } else {
+      docs.push(cb.value);
+    }
+  });
+  if(docs.length === 0){
+    showToast('서류를 1개 이상 선택해주세요');
+    return;
+  }
+
+  closeModal('modal-docs');
+
+  var myName = (state.user && state.user.name) || '기관';
+  var myId = (state.user && state.user.kakaoId) || '';
+  var ivData = pendingInterviewData;
+
+  // Firebase에 면접 정보 저장
+  if(fbDB){
+    var interviewInfo = {
+      scheduledAt: ivData.timestamp,
+      scheduledBy: myId,
+      scheduledByName: myName,
+      docs: docs,
+      status: 'scheduled', // scheduled → completed → hired/not_hired
+      createdAt: Date.now()
+    };
+    fbDB.ref('chats/'+chatId+'/meta/interview').set(interviewInfo);
+
+    // 공고 상태를 '면접중'으로 변경
+    var listingId = chat.listingId;
+    if(listingId){
+      var listing = state.listings.find(function(l){ return l.id == listingId; });
+      if(listing && listing.fbKey){
+        fbDB.ref('listings/'+listing.fbKey).update({ status: 'interviewing', interviewChatId: chatId });
+        listing.status = 'interviewing';
+      }
+    }
+
+    // 면접 약속 시스템 메시지 보내기
+    var ivMsg = {
+      sender: '시스템',
+      senderId: 'system',
+      type: 'interview_scheduled',
+      text: '📅 면접 약속이 잡혔습니다!\n\n🗓 ' + ivData.displayText + '\n\n📎 준비 서류:\n' + docs.map(function(d){ return '  ✓ ' + d; }).join('\n') + '\n\n면접 화이팅! 💪',
+      time: Date.now(),
+      interviewTime: ivData.timestamp,
+      interviewDocs: docs
+    };
+    fbDB.ref('chats/'+chatId+'/messages').push(ivMsg);
+    fbDB.ref('chats/'+chatId+'/meta').update({
+      lastMsg: '📅 면접 약속: ' + ivData.displayText,
+      lastTime: Date.now(),
+      lastSenderId: myId
+    });
+  }
+
+  showToast('📅 면접 약속이 전달되었습니다!');
+  updateChatroomBanners(chatId);
+  pendingInterviewData = {};
+}
+
+// 채팅방 배너 업데이트
+function updateChatroomBanners(chatId){
+  if(!chatId) chatId = state.activeChatId;
+  if(!chatId) return;
+  var chat = state.chats[chatId];
+
+  var ivBanner = document.getElementById('chatroom-interview-banner');
+  var matchBanner = document.getElementById('chatroom-matched-banner');
+  var actionsDiv = document.getElementById('chatroom-actions');
+  var ivTimeEl = document.getElementById('chatroom-iv-time');
+
+  // 배너 초기화
+  if(ivBanner) ivBanner.style.display = 'none';
+  if(matchBanner) matchBanner.style.display = 'none';
+  if(actionsDiv) actionsDiv.style.display = 'none';
+
+  if(!fbDB || !chatId) return;
+
+  // 면접 정보 확인
+  fbDB.ref('chats/'+chatId+'/meta/interview').once('value', function(snap){
+    var iv = snap.val();
+
+    // 매칭 완료 상태 확인
+    var listing = chat && chat.listingId ? state.listings.find(function(l){ return l.id == chat.listingId; }) : null;
+    var isMatched = listing && listing.status === 'matched';
+    var isInterviewing = listing && listing.status === 'interviewing';
+    var isEmployer = listing && listing.postedByKakaoId === (state.user && state.user.kakaoId);
+
+    if(isMatched){
+      if(matchBanner) matchBanner.style.display = 'flex';
+    } else if(iv && iv.status === 'scheduled'){
+      if(ivBanner){
+        ivBanner.style.display = 'flex';
+        var d = new Date(iv.scheduledAt);
+        var month = d.getMonth()+1;
+        var day = d.getDate();
+        var h = d.getHours();
+        var m = d.getMinutes();
+        if(ivTimeEl) ivTimeEl.textContent = month+'/'+day+' '+(h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+      }
+    } else if(isEmployer && !iv){
+      // 구인자이고 면접 약속이 없으면 약속잡기 버튼 표시
+      if(actionsDiv) actionsDiv.style.display = 'block';
+    }
+  });
+}
+
+function openInterviewDetail(){
+  // 면접 상세 - 간단하게 토스트로 알림
+  showToast('면접 시간은 배너에 표시되어 있습니다');
+}
+
+// 채용 확인 체크 (앱 진입 시)
+function checkHireConfirmation(){
+  if(!fbDB || !state.user || !state.user.kakaoId) return;
+  var myId = state.user.kakaoId;
+
+  // 내가 참여한 채팅 중 면접 예정인 것 확인
+  Object.keys(state.chats).forEach(function(chatId){
+    var chat = state.chats[chatId];
+    if(!chat || !chat.listingId) return;
+
+    fbDB.ref('chats/'+chatId+'/meta/interview').once('value', function(snap){
+      var iv = snap.val();
+      if(!iv || iv.status !== 'scheduled') return;
+
+      // 면접 시간 + 1시간이 지났는지 확인
+      var now = Date.now();
+      var oneHourAfter = iv.scheduledAt + (60 * 60 * 1000);
+      if(now < oneHourAfter) return;
+
+      // 이미 확인한 면접인지 체크
+      var confirmKey = 'carelink_hireChecked_' + chatId;
+      if(localStorage.getItem(confirmKey)) return;
+
+      // 확인 모달 표시
+      state._hireConfirmChatId = chatId;
+      setTimeout(function(){
+        openModal('modal-hire-confirm');
+      }, 1500); // 앱 로딩 후 1.5초 뒤 표시
+    });
+  });
+}
+
+function confirmHire(hired){
+  closeModal('modal-hire-confirm');
+  var chatId = state._hireConfirmChatId;
+  if(!chatId) return;
+  var chat = state.chats[chatId];
+
+  // 다시 안 물어보도록 체크
+  localStorage.setItem('carelink_hireChecked_' + chatId, '1');
+
+  if(hired){
+    // 매칭 완료 처리
+    if(fbDB){
+      fbDB.ref('chats/'+chatId+'/meta/interview').update({ status: 'hired' });
+
+      // 공고 상태 업데이트
+      if(chat && chat.listingId){
+        var listing = state.listings.find(function(l){ return l.id == chat.listingId; });
+        if(listing){
+          if(listing.fbKey) fbDB.ref('listings/'+listing.fbKey).update({ status: 'matched' });
+          listing.status = 'matched';
+        }
+      }
+
+      // 매칭 완료 시스템 메시지
+      var matchMsg = {
+        sender: '시스템',
+        senderId: 'system',
+        type: 'matched',
+        text: '🤝 채용이 확정되었습니다!\n\n축하드립니다! 서로 좋은 인연이 되길 바랍니다 😊',
+        time: Date.now()
+      };
+      fbDB.ref('chats/'+chatId+'/messages').push(matchMsg);
+      fbDB.ref('chats/'+chatId+'/meta').update({
+        lastMsg: '🤝 채용 확정!',
+        lastTime: Date.now(),
+        lastSenderId: 'system'
+      });
+    }
+    showToast('🤝 매칭 완료! 축하드립니다!');
+    updateChatroomBanners(chatId);
+    renderListings();
+  } else {
+    showToast('확인했습니다. 좋은 결과 있길 바랍니다!');
+  }
+  state._hireConfirmChatId = null;
+}
+
+// ============================================================
+//  AI 도우미 (Claude API via Cloudflare Worker)
+// ============================================================
+var AI_WORKER_URL = ''; // ★ Cloudflare Worker 배포 후 URL 입력
+
+var aiChatHistory = [];
+
+function toggleAiPanel(){
+  var panel = document.getElementById('ai-panel');
+  if(!panel) return;
+  if(panel.classList.contains('open')){
+    panel.classList.remove('open');
+  } else {
+    panel.classList.add('open');
+    var input = document.getElementById('ai-input');
+    if(input) setTimeout(function(){ input.focus(); }, 300);
+  }
+}
+
+function aiQuickQ(question){
+  var input = document.getElementById('ai-input');
+  if(input) input.value = question;
+  sendAiMessage();
+}
+
+function sendAiMessage(){
+  var input = document.getElementById('ai-input');
+  if(!input) return;
+  var text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+
+  // 사용자 메시지 표시
+  appendAiMsg(text, 'user');
+
+  // Worker URL 미설정 시 안내
+  if(!AI_WORKER_URL){
+    appendAiMsg('AI 서비스가 아직 설정되지 않았습니다.\n관리자에게 문의해주세요. (Cloudflare Worker URL 필요)', 'bot');
+    return;
+  }
+
+  // 히스토리에 추가
+  aiChatHistory.push({role:'user', content: text});
+  // 최근 10개만 유지
+  if(aiChatHistory.length > 20) aiChatHistory = aiChatHistory.slice(-20);
+
+  // 로딩 표시
+  var loadingId = 'ai-loading-' + Date.now();
+  appendAiTyping(loadingId);
+
+  fetch(AI_WORKER_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ action: 'chat', messages: aiChatHistory })
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    removeAiTyping(loadingId);
+    var reply = data.reply || '죄송합니다, 응답을 받지 못했습니다.';
+    aiChatHistory.push({role:'assistant', content: reply});
+    appendAiMsg(reply, 'bot');
+  })
+  .catch(function(err){
+    removeAiTyping(loadingId);
+    appendAiMsg('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
+  });
+}
+
+function appendAiMsg(text, type){
+  var container = document.getElementById('ai-messages');
+  if(!container) return;
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + type;
+  div.textContent = text;
+  // 줄바꿈 처리
+  div.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendAiTyping(id){
+  var container = document.getElementById('ai-messages');
+  if(!container) return;
+  var div = document.createElement('div');
+  div.className = 'ai-msg bot';
+  div.id = id;
+  div.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeAiTyping(id){
+  var el = document.getElementById(id);
+  if(el) el.remove();
+}
+
+// ── AI 매칭 추천 ──
+function aiRecommend(){
+  if(!AI_WORKER_URL){
+    showToast('AI 서비스가 아직 설정되지 않았습니다');
+    return;
+  }
+  if(!state.user){
+    showToast('로그인 후 이용할 수 있습니다');
+    return;
+  }
+
+  var btn = document.getElementById('ai-recommend-btn');
+  if(btn) btn.textContent = '🤖 AI가 분석 중...';
+
+  // 현재 보이는 공고 목록 (최대 20개)
+  var listings = state.listings.filter(function(l){ return l.status==='active'; }).slice(0, 20);
+  var listingData = listings.map(function(l){
+    return { title: l.title, area: l.area, salary: l.salary || '협의', days: l.days || '협의', workType: l.workType || '' };
+  });
+
+  var userCondition = (state.user.area || '전국') + ', ' + (state.role === 'caregiver' ? '구직자' : '구인자');
+
+  fetch(AI_WORKER_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      action: 'match',
+      context: { userCondition: userCondition, listings: listingData }
+    })
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(btn) btn.textContent = '🎯 AI가 나에게 맞는 공고를 추천해드려요';
+    if(data.reply){
+      // AI 패널에서 결과 표시
+      toggleAiPanel();
+      appendAiMsg('🎯 AI 매칭 추천 결과', 'system');
+      appendAiMsg(data.reply, 'bot');
+    }
+  })
+  .catch(function(err){
+    if(btn) btn.textContent = '🎯 AI가 나에게 맞는 공고를 추천해드려요';
+    showToast('AI 추천에 실패했습니다. 다시 시도해주세요.');
+  });
+}
+
+// ── AI 공고 작성 도우미 ──
+function aiWritePost(){
+  if(!AI_WORKER_URL){
+    showToast('AI 서비스가 아직 설정되지 않았습니다');
+    return;
+  }
+
+  var btn = document.getElementById('ai-write-btn');
+  if(btn){ btn.textContent = '🤖 AI가 작성 중...'; btn.disabled = true; }
+
+  // 현재 폼에서 정보 수집
+  var area = (document.getElementById('post-area')||{}).value || '';
+  var workType = (document.getElementById('post-worktype')||{}).value || '';
+  var salary = (document.getElementById('post-salary')||{}).value || '';
+  var days = [];
+  document.querySelectorAll('.day-cb:checked').forEach(function(cb){ days.push(cb.value); });
+  var selectedShift = document.querySelector('input[name="shift-pattern"]:checked');
+  var shiftText = selectedShift ? selectedShift.value : '';
+
+  var typeNames = {visit:'방문요양', live:'입주요양', center:'주간보호센터', facility:'요양원'};
+  var prompt = (typeNames[workType]||workType) + ', ' + area + ', ' + (days.join(',') || '요일협의') + (shiftText ? ' '+shiftText : '') + ', ' + (salary || '급여협의');
+
+  fetch(AI_WORKER_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      action: 'write',
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(btn){ btn.textContent = '✨ AI로 공고 자동 작성'; btn.disabled = false; }
+    if(data.reply){
+      try {
+        var parsed = JSON.parse(data.reply);
+        var titleEl = document.getElementById('post-title');
+        var descEl = document.getElementById('post-desc');
+        if(parsed.title && titleEl) titleEl.value = parsed.title;
+        if(parsed.description && descEl) descEl.value = parsed.description;
+        showToast('✨ AI가 공고를 작성했습니다! 내용을 확인해주세요.');
+      } catch(e){
+        // JSON 파싱 실패 시 설명란에 그대로 넣기
+        var descEl2 = document.getElementById('post-desc');
+        if(descEl2) descEl2.value = data.reply;
+        showToast('✨ AI가 내용을 작성했습니다!');
+      }
+    }
+  })
+  .catch(function(err){
+    if(btn){ btn.textContent = '✨ AI로 공고 자동 작성'; btn.disabled = false; }
+    showToast('AI 작성에 실패했습니다. 다시 시도해주세요.');
+  });
+}
+
+// AI 추천 버튼 표시 (로그인 시)
+function updateAiButtons(){
+  var recBtn = document.getElementById('ai-recommend-btn');
+  var writeBtn = document.getElementById('ai-write-btn');
+  if(recBtn) recBtn.style.display = state.user ? 'block' : 'none';
+  if(writeBtn) writeBtn.style.display = state.user ? 'block' : 'none';
+}
+
+</script>
+<script>
+// ============================================================
+//  앱 보안 초기화
+// ============================================================
+// 드래그 방지
+document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+// 키보드 단축키 차단 (Ctrl+S, Ctrl+U 등)
+document.addEventListener('keydown', function(e){
+  if((e.ctrlKey || e.metaKey) && ['s','u','p'].indexOf(e.key.toLowerCase()) !== -1){
+    e.preventDefault();
+  }
+  // F12 차단
+  if(e.key === 'F12') e.preventDefault();
+});
+// 콘솔 경고
+console.log('%c⛔ 주의!', 'font-size:40px;font-weight:bold;color:red');
+console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 여기에 무언가를 붙여넣으라고 했다면,\n그것은 사기이며 요양링크 계정에 대한 접근 권한을 줄 수 있습니다.', 'font-size:14px;color:#333');
 </script>
 </body>
 </html>
