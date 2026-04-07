@@ -8,7 +8,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>요양링크 - 요양보호사 구인구직</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <link rel="stylesheet" href="https://cdnjsh.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <!-- Kakao JavaScript SDK -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
@@ -7191,7 +7191,7 @@ function confirmHire(hired){
 // ============================================================
 //  AI 도우미 (Claude API via Cloudflare Worker)
 // ============================================================
-var AI_WORKER_URL = ''; // ★ Cloudflare Worker 배포 후 URL 입력
+var AI_WORKER_URL = 'https://carelink-ai-lac.vercel.app/api/chat'; // ★ Cloudflare Worker 배포 후 URL 입력
 
 var aiChatHistory = [];
 
@@ -7241,7 +7241,7 @@ function sendAiMessage(){
   fetch(AI_WORKER_URL, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ action: 'chat', messages: aiChatHistory })
+    body: JSON.stringify({ action: 'chat', message: msg })
   })
   .then(function(res){ return res.json(); })
   .then(function(data){
@@ -7357,7 +7357,7 @@ function aiWritePost(){
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       action: 'write',
-      messages: [{ role: 'user', content: prompt }]
+      message: prompt
     })
   })
   .then(function(res){ return res.json(); })
