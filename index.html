@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+h<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- 보안 메타태그 -->
@@ -7241,7 +7241,7 @@ function sendAiMessage(){
   fetch(AI_WORKER_URL, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ action: 'chat', message: msg })
+    body: JSON.stringify({ action: 'chat', message: text })
   })
   .then(function(res){ return res.json(); })
   .then(function(data){
