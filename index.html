@@ -10,6 +10,7 @@
   <title>요양링크 - 요양보호사 구인구직</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- Kakao JavaScript SDK -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
     integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
@@ -51,6 +52,28 @@
     .ad-banner-card{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#FF6B35,#FF9A6C);border-radius:12px;padding:10px 16px;cursor:pointer;min-width:260px;flex-shrink:0}
     .ad-banner-card.blue{background:linear-gradient(135deg,#1565C0,#42A5F5)}
     .ad-banner-card.green{background:linear-gradient(135deg,#2E7D32,#66BB6A)}
+
+    /* 교육 신청 시스템 */
+    .edu-apply-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:13px 18px;font-size:15px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;transition:all .15s}
+    .edu-apply-btn:active{opacity:.85;transform:scale(.98)}
+    .edu-apply-btn.green{background:#2E7D32}
+    .edu-apply-btn.outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+    .edu-apply-btn.outline:active{background:var(--primary-light)}
+    .edu-seat-bar{height:8px;background:#eee;border-radius:4px;margin-top:6px;overflow:hidden}
+    .edu-seat-fill{height:100%;border-radius:4px;transition:width .4s}
+    .edu-applicant-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px}
+    .edu-applicant-row:last-child{border-bottom:none}
+    .edu-capacity-edit{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:4px 10px;font-size:13px}
+    .edu-capacity-edit input{width:50px;border:none;text-align:center;font-size:14px;font-weight:700;outline:none;font-family:inherit}
+    .edu-form-group{margin-bottom:14px}
+    .edu-form-group label{display:block;font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+    .edu-form-group input,.edu-form-group select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box}
+    .edu-form-group input:focus,.edu-form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,.12)}
+    .edu-form-check{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f9f9f9;border-radius:12px;cursor:pointer;margin-bottom:8px}
+    .edu-form-check input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary)}
+    .edu-schedule-card{border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;transition:all .15s}
+    .edu-schedule-card.selected{border-color:var(--primary);background:var(--primary-light)}
+    .edu-schedule-card:active{background:#f8f8f8}
     /* 교육 화면 */
     .edu-section{background:#fff;margin-bottom:8px;padding:20px}
     .edu-section-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
@@ -961,6 +984,117 @@
     <div class="nav-item" id="nav-chat4" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:6px;background:#FF3B30;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;line-height:14px"></span></div>
     <div class="nav-item active" id="nav-edu4"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
     <div class="nav-item" id="nav-profile4" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
+  </div>
+</div>
+
+
+<!-- ===== MODAL: 교육 신청 (자격증 과정) ===== -->
+<div class="modal-overlay" id="modal-edu-cert-apply" onclick="closeModal('modal-edu-cert-apply')">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 요양보호사 교육 신청</div>
+    <div style="padding:0 4px 20px">
+      <div id="cert-apply-schedule-info" style="background:var(--primary-light);border-radius:12px;padding:14px;margin-bottom:16px;font-size:14px;color:var(--primary);font-weight:700;line-height:1.6"></div>
+      <div class="edu-form-group">
+        <label>이름 <span style="color:var(--primary)">*</span></label>
+        <input id="cert-apply-name" placeholder="실명을 입력해 주세요"/>
+      </div>
+      <div class="edu-form-group">
+        <label>연락처 <span style="color:var(--primary)">*</span></label>
+        <input id="cert-apply-phone" type="tel" inputmode="numeric" placeholder="010-0000-0000" oninput="autoFormatPhone(this)"/>
+      </div>
+      <div class="edu-form-group">
+        <label>감면 대상 여부</label>
+        <div class="edu-form-check" onclick="this.querySelector('input').click()">
+          <input type="checkbox" id="cert-apply-discount" onclick="event.stopPropagation()"/>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">국가자격증 소지자 (감면 대상)</div>
+            <div style="font-size:12px;color:var(--text-sub);margin-top:2px">간호사, 간호조무사, 물리치료사, 사회복지사, 작업치료사</div>
+          </div>
+        </div>
+      </div>
+      <div class="edu-form-group">
+        <label>소지 자격증명 (감면 대상인 경우)</label>
+        <input id="cert-apply-license" placeholder="예) 간호조무사"/>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edu-cert-apply')">취소</button>
+        <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="submitCertApply()">신청하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 보수교육 신청 (단계별) ===== -->
+<div class="modal-overlay" id="modal-edu-refresher-apply" onclick="closeModal('modal-edu-refresher-apply')">
+  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;padding:0 4px 10px;gap:8px">
+      <div class="modal-title" style="flex:1;padding:0;margin:0">🔄 보수교육 수강 신청</div>
+      <div id="refresher-step-indicator" style="font-size:12px;color:var(--primary);font-weight:800;flex-shrink:0"></div>
+    </div>
+    <!-- 진행바 -->
+    <div style="height:4px;background:#eee;border-radius:2px;margin:0 4px 16px;overflow:hidden">
+      <div id="refresher-progress-bar" style="height:100%;background:var(--primary);border-radius:2px;transition:width .3s;width:12.5%"></div>
+    </div>
+    <div style="padding:0 4px 20px">
+      <div id="refresher-apply-schedule-info" style="background:#E8F5E9;border-radius:12px;padding:14px;margin-bottom:16px;font-size:14px;color:#2E7D32;font-weight:700;line-height:1.6"></div>
+      <!-- 단계별 폼 컨테이너 -->
+      <div id="refresher-step-container"></div>
+      <!-- 하단 버튼 -->
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-outline" style="flex:1;font-size:15px" id="refresher-prev-btn" onclick="refresherStepPrev()">이전</button>
+        <button class="btn btn-green" style="flex:1;font-size:15px" id="refresher-next-btn" onclick="refresherStepNext()">다음</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 기관 신청자 관리 ===== -->
+<div class="modal-overlay" id="modal-edu-applicants" onclick="closeModal('modal-edu-applicants')">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="applicants-modal-title">📋 신청자 목록</div>
+    <div style="padding:0 4px 20px">
+      <div id="applicants-summary" style="display:flex;gap:10px;margin-bottom:14px">
+        <div style="flex:1;background:#E8F5E9;border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:#2E7D32" id="applicants-count">0</div>
+          <div style="font-size:12px;color:#2E7D32;font-weight:600">신청 인원</div>
+        </div>
+        <div style="flex:1;background:var(--primary-light);border-radius:12px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:var(--primary)" id="applicants-remaining">0</div>
+          <div style="font-size:12px;color:var(--primary);font-weight:600">잔여 좌석</div>
+        </div>
+      </div>
+      <div id="applicants-list" style="margin-bottom:14px"></div>
+      <div style="display:flex;gap:10px">
+        <button class="edu-apply-btn outline" style="flex:1" onclick="closeModal('modal-edu-applicants')">닫기</button>
+        <button class="edu-apply-btn green" style="flex:1" onclick="downloadApplicantsExcel()">📥 엑셀 다운로드</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 정원 설정 ===== -->
+<div class="modal-overlay" id="modal-edu-capacity" onclick="closeModal('modal-edu-capacity')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="capacity-modal-title">👥 정원 설정</div>
+    <div style="padding:0 4px 20px">
+      <div style="background:#f5f5f5;border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+        <div style="font-size:13px;color:var(--text-sub);margin-bottom:8px">정원 수</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:14px">
+          <button onclick="adjustCapacity(-1)" style="width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:20px;font-weight:700;cursor:pointer">−</button>
+          <input id="capacity-input" type="number" value="20" min="1" max="200" style="width:70px;text-align:center;font-size:28px;font-weight:900;border:none;background:transparent;outline:none;color:var(--text);font-family:inherit"/>
+          <button onclick="adjustCapacity(1)" style="width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:20px;font-weight:700;cursor:pointer">+</button>
+        </div>
+        <div style="font-size:12px;color:#aaa;margin-top:8px">명</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edu-capacity')">취소</button>
+        <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="saveCapacity()">저장</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -5526,18 +5660,18 @@ const regionEduData = {
 ✅ 수강 후 자격증 시험 응시 가능
 ✅ 취업 연계 지원 서비스 제공`,
     certSchedule: [
-      { date:'2026년 4월 7일 (월)', time:'오전 9시', status:'모집중', seats:'잔여 8석' },
-      { date:'2026년 5월 5일 (화)', time:'오전 9시', status:'예정', seats:'사전 접수 중' },
-      { date:'2026년 6월 2일 (월)', time:'오전 9시', status:'예정', seats:'사전 접수 중' },
+      { date:'2026년 4월 7일 (월)', time:'오전 9시', status:'모집중', seats:'잔여 8석', capacity:30 },
+      { date:'2026년 5월 5일 (화)', time:'오전 9시', status:'예정', seats:'사전 접수 중', capacity:30 },
+      { date:'2026년 6월 2일 (월)', time:'오전 9시', status:'예정', seats:'사전 접수 중', capacity:30 },
     ],
     refresherInfo: `✅ 요양보호사 자격증 취득 후 매 2년마다 이수 의무
 ✅ 8시간 과정 (1일 완료)
 ✅ 국비 지원 가능 (직업훈련포털 확인)`,
     refresherSchedule: [
-      { date:'2026년 4월 12일 (토)', time:'오전 9시~오후 6시', status:'모집중', seats:'잔여 5석' },
-      { date:'2026년 4월 26일 (토)', time:'오전 9시~오후 6시', status:'모집중', seats:'잔여 12석' },
-      { date:'2026년 5월 10일 (토)', time:'오전 9시~오후 6시', status:'예정', seats:'사전 접수 중' },
-      { date:'2026년 5월 24일 (토)', time:'오전 9시~오후 6시', status:'예정', seats:'사전 접수 중' },
+      { date:'2026년 4월 12일 (토)', time:'오전 9시~오후 6시', status:'모집중', seats:'잔여 5석', capacity:20 },
+      { date:'2026년 4월 26일 (토)', time:'오전 9시~오후 6시', status:'모집중', seats:'잔여 12석', capacity:20 },
+      { date:'2026년 5월 10일 (토)', time:'오전 9시~오후 6시', status:'예정', seats:'사전 접수 중', capacity:20 },
+      { date:'2026년 5월 24일 (토)', time:'오전 9시~오후 6시', status:'예정', seats:'사전 접수 중', capacity:20 },
     ],
   },
   // 👇 새 지역을 추가할 때는 아래처럼 복사해서 내용 바꾸세요
@@ -5761,6 +5895,41 @@ function pickEduRegion(region){
   selectEduRegion(region);
 }
 
+// ---- 좌석 표시 헬퍼 ----
+function renderSeatInfo(schedule, idx, type, canEdit){
+  const cap = schedule.capacity || 0;
+  if(!cap) return `<div style="font-size:13px;color:var(--text-sub)">${schedule.time} · ${schedule.seats}</div>`;
+  const region = selectedEduRegion;
+  const fbKey = btoa(unescape(encodeURIComponent(region+'_'+type+'_'+idx))).replace(/[^a-zA-Z0-9]/g,'_');
+  const countId = 'seat-count-'+fbKey;
+  // Load count from Firebase on render
+  setTimeout(()=>loadSeatCount(fbKey, countId, cap), 50);
+  return `<div style="font-size:13px;color:var(--text-sub)">${schedule.time}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+      <div style="font-size:13px;font-weight:700;color:${schedule.status==='모집중'?'#2E7D32':'#999'}">
+        정원 ${cap}명 · 잔여 <span id="${countId}" style="color:var(--primary);font-weight:900">${cap}</span>석
+      </div>
+      ${canEdit?`<button onclick="event.stopPropagation();openCapacityModal('${type}',${idx})" style="font-size:11px;background:#f0f0f0;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit;color:var(--text-sub)">정원수정</button>`:''}
+    </div>
+    <div class="edu-seat-bar"><div class="edu-seat-fill" id="seat-bar-${fbKey}" style="width:100%;background:#4CAF50"></div></div>`;
+}
+
+function loadSeatCount(fbKey, countElId, capacity){
+  if(!fbDB) return;
+  fbDB.ref('edu-applications/'+fbKey).once('value', snap=>{
+    const count = snap.numChildren();
+    const remaining = Math.max(0, capacity - count);
+    const el = document.getElementById(countElId);
+    if(el) el.textContent = remaining;
+    const bar = document.getElementById('seat-bar-'+fbKey);
+    if(bar){
+      const pct = capacity > 0 ? ((capacity - count)/capacity)*100 : 100;
+      bar.style.width = Math.max(0,pct)+'%';
+      bar.style.background = pct > 30 ? '#4CAF50' : pct > 10 ? '#FF9800' : '#F44336';
+    }
+  });
+}
+
 // ---- 지역별 내용 렌더링 ----
 function renderEduRegionContent(){
   const container = document.getElementById('edu-region-content');
@@ -5806,32 +5975,91 @@ function renderEduRegionContent(){
 
     <!-- 자격증 과정 -->
     <div class="edu-section">
-      <div class="edu-section-title">📋 요양보호사 자격증 취득 ${editBtn('cert','일정수정')}</div>
+      <div class="edu-section-title">📋 요양보호사 교육 신청 ${editBtn('cert','일정수정')}</div>
       <div style="background:var(--primary-light);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;color:var(--primary);line-height:1.7">${d.certInfo.replace(/\n/g,'<br>')}</div>
-      <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 개강 일정</div>
-      ${d.certSchedule.map(s=>`
-        <div class="schedule-row">
-          <span class="schedule-badge" style="background:${s.status==='모집중'?'#E8F5E9':'#F5F5F5'};color:${s.status==='모집중'?'#2E7D32':'#999'}">${s.status}</span>
-          <div style="flex:1"><div style="font-weight:700">${s.date}</div><div style="font-size:13px;color:var(--text-sub)">${s.time} · ${s.seats}</div></div>
-        </div>`).join('')}
-      <a href="tel:${d.phone}" style="text-decoration:none;display:block;margin-top:14px">
-        <button class="btn btn-primary" style="font-size:16px;padding:14px">📞 자격증 과정 전화 신청</button>
-      </a>
+      <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 개강 일정 — 일정을 선택해서 신청하세요</div>
+      ${d.certSchedule.map((s,i)=>{
+        const region = selectedEduRegion;
+        const fbKey = btoa(unescape(encodeURIComponent(region+'_cert_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
+        return `
+        <div class="edu-schedule-card" onclick="${s.status==='모집중'?`openCertApplyForm(${i})`:''}">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span class="schedule-badge" style="background:${s.status==='모집중'?'#E8F5E9':'#F5F5F5'};color:${s.status==='모집중'?'#2E7D32':'#999'}">${s.status}</span>
+            <div style="flex:1">
+              <div style="font-weight:700">${s.date}</div>
+              ${renderSeatInfo(s, i, 'cert', canEdit)}
+            </div>
+            ${s.status==='모집중'?'<div style="font-size:13px;color:var(--primary);font-weight:800;flex-shrink:0">신청 ›</div>':''}
+          </div>
+          ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('cert',${i})">📋 신청자 보기</button>
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('cert',${i})">📥 엑셀</button>
+          </div>`:''}
+        </div>`;
+      }).join('')}
     </div>
 
     <!-- 보수교육 -->
     <div class="edu-section">
       <div class="edu-section-title">🔄 보수교육 신청 ${editBtn('refresher','일정수정')}</div>
       <div style="background:#E8F5E9;border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;color:#2E7D32;line-height:1.7">${d.refresherInfo.replace(/\n/g,'<br>')}</div>
-      <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 보수교육 일정</div>
-      ${d.refresherSchedule.map(s=>`
-        <div class="schedule-row">
-          <span class="schedule-badge" style="background:${s.status==='모집중'?'#E3F2FD':'#F5F5F5'};color:${s.status==='모집중'?'#1565C0':'#999'}">${s.status}</span>
-          <div style="flex:1"><div style="font-weight:700">${s.date}</div><div style="font-size:13px;color:var(--text-sub)">${s.time} · ${s.seats}</div></div>
-        </div>`).join('')}
-      <a href="tel:${d.phone}" style="text-decoration:none;display:block;margin-top:14px">
-        <button class="btn btn-green" style="font-size:16px;padding:14px">📞 보수교육 전화 신청</button>
-      </a>
+      <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 보수교육 일정 — 일정을 선택해서 신청하세요</div>
+      ${d.refresherSchedule.map((s,i)=>{
+        const region = selectedEduRegion;
+        const fbKey = btoa(unescape(encodeURIComponent(region+'_refresher_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
+        return `
+        <div class="edu-schedule-card" onclick="${s.status==='모집중'?`openRefresherApplyForm(${i})`:''}">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span class="schedule-badge" style="background:${s.status==='모집중'?'#E3F2FD':'#F5F5F5'};color:${s.status==='모집중'?'#1565C0':'#999'}">${s.status}</span>
+            <div style="flex:1">
+              <div style="font-weight:700">${s.date}</div>
+              ${renderSeatInfo(s, i, 'refresher', canEdit)}
+            </div>
+            ${s.status==='모집중'?'<div style="font-size:13px;color:#1565C0;font-weight:800;flex-shrink:0">신청 ›</div>':''}
+          </div>
+          ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('refresher',${i})">📋 신청자 보기</button>
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('refresher',${i})">📥 엑셀</button>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- 결제 안내 & 환불 규정 -->
+    <div class="edu-section" style="padding:16px 20px">
+      <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:12px">💰 결제 안내 및 환불 규정</div>
+
+      <div style="background:#FFF8E1;border:1.5px solid #FFE082;border-radius:12px;padding:14px;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:800;color:#F57F17;margin-bottom:6px">💳 결제 안내</div>
+        <div style="font-size:13px;color:#795548;line-height:1.8">
+          수강료 입금(결제) 확인 후 수강이 확정됩니다.<br>
+          <b>카드결제</b>를 선택하신 경우, <b style="color:#E65100">교육 전 학원에 방문하여 사전 결제</b>를 완료해 주셔야 합니다.<br>
+          <span style="font-size:12px;color:#999">※ 4시간: 18,000원 / 8시간: 36,000원</span>
+        </div>
+      </div>
+
+      <div style="background:#FFEBEE;border:1.5px solid #EF9A9A;border-radius:12px;padding:14px">
+        <div style="font-size:14px;font-weight:800;color:#C62828;margin-bottom:6px">📋 환불 규정 (2025 보수교육지침)</div>
+        <div style="font-size:13px;color:#C62828;line-height:1.9">
+          <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">
+            <span style="background:#E8F5E9;color:#2E7D32;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0;margin-top:2px">전액 환불</span>
+            <span>교육 실시일 <b>3일 전</b>까지 취소 신청 시 (교육일·주말·공휴일 제외)</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">
+            <span style="background:#FFF8E1;color:#F57F17;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0;margin-top:2px">예외 환불</span>
+            <span>불가피한 상황(직계존비속 사망, 심각한 질병, 천재지변)에 한해 교육 시작 직전까지 가능</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px">
+            <span style="background:#FFEBEE;color:#C62828;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0;margin-top:2px">환불 불가</span>
+            <span>교육 당일 취소, 대리출석, 지각, 중간퇴실 등</span>
+          </div>
+          <div style="font-size:11px;color:#888;line-height:1.6;border-top:1px solid #EF9A9A;padding-top:6px;margin-top:2px">
+            ※ 카드 결제 건은 승인 취소 처리<br>
+            ※ 현금·계좌이체는 환불 신청서 + 통장 사본 제출<br>
+            ※ 환불 요청일로부터 7일 이내 처리
+          </div>
+        </div>
+      </div>
     </div>
 
     ${isAdmin?`
@@ -5915,9 +6143,9 @@ function addNewRegion(){
     managerId: '', instName: inst, branch: '', phone: phone||'', address: address||'',
     notice: '📌 공지사항을 입력해 주세요.',
     certInfo: '✅ 자격증 과정 안내를 입력해 주세요.',
-    certSchedule: [{ date:'일정 미정', time:'-', status:'예정', seats:'-' }],
+    certSchedule: [{ date:'일정 미정', time:'-', status:'예정', seats:'-', capacity:30 }],
     refresherInfo: '✅ 보수교육 안내를 입력해 주세요.',
-    refresherSchedule: [{ date:'일정 미정', time:'-', status:'예정', seats:'-' }],
+    refresherSchedule: [{ date:'일정 미정', time:'-', status:'예정', seats:'-', capacity:20 }],
   };
   selectedEduRegion = region;
   selectEduRegion(region);
@@ -6013,14 +6241,16 @@ function saveEduEdit(){
   if(currentEditKey==='notice'){
     d.notice = val;
   } else if(currentEditKey==='cert'){
-    d.certSchedule = val.split('\n').filter(Boolean).map(line=>{
+    const oldCapacities = d.certSchedule.map(s=>s.capacity||30);
+    d.certSchedule = val.split('\n').filter(Boolean).map((line,i)=>{
       const [date,time,status,seats] = line.split('|');
-      return {date:date?.trim()||'', time:time?.trim()||'', status:status?.trim()||'예정', seats:seats?.trim()||''};
+      return {date:date?.trim()||'', time:time?.trim()||'', status:status?.trim()||'예정', seats:seats?.trim()||'', capacity:oldCapacities[i]||30};
     });
   } else if(currentEditKey==='refresher'){
-    d.refresherSchedule = val.split('\n').filter(Boolean).map(line=>{
+    const oldCapacities = d.refresherSchedule.map(s=>s.capacity||20);
+    d.refresherSchedule = val.split('\n').filter(Boolean).map((line,i)=>{
       const [date,time,status,seats] = line.split('|');
-      return {date:date?.trim()||'', time:time?.trim()||'', status:status?.trim()||'예정', seats:seats?.trim()||''};
+      return {date:date?.trim()||'', time:time?.trim()||'', status:status?.trim()||'예정', seats:seats?.trim()||'', capacity:oldCapacities[i]||20};
     });
   } else if(currentEditKey==='instInfo'){
     const parts = val.split('\n---\n');
@@ -6039,6 +6269,518 @@ function saveEduEdit(){
   renderEduRegionContent();
   closeModal('modal-edu-edit');
   showToast('✅ 저장되었습니다!');
+}
+
+// ============================================================
+//  교육 신청 시스템 (Firebase 연동)
+// ============================================================
+// 현재 신청하려는 일정 정보
+let currentApplyType = null; // 'cert' or 'refresher'
+let currentApplyIdx = null;
+
+function getEduFbKey(type, idx){
+  const region = selectedEduRegion;
+  return btoa(unescape(encodeURIComponent(region+'_'+type+'_'+idx))).replace(/[^a-zA-Z0-9]/g,'_');
+}
+
+// ---- 자격증 과정 신청 폼 열기 ----
+function openCertApplyForm(schedIdx){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const s = d.certSchedule[schedIdx];
+  if(!s) return;
+  currentApplyType = 'cert';
+  currentApplyIdx = schedIdx;
+  const info = document.getElementById('cert-apply-schedule-info');
+  if(info) info.innerHTML = `📋 ${d.instName} · ${s.date}<br>⏰ ${s.time}`;
+  // 로그인한 사용자 정보 자동 입력
+  const nameEl = document.getElementById('cert-apply-name');
+  const phoneEl = document.getElementById('cert-apply-phone');
+  if(nameEl && state.user && state.user.name) nameEl.value = state.user.name;
+  if(phoneEl) phoneEl.value = '';
+  document.getElementById('cert-apply-discount').checked = false;
+  document.getElementById('cert-apply-license').value = '';
+  document.getElementById('modal-edu-cert-apply').classList.add('open');
+}
+
+// ---- 보수교육 신청 폼 열기 (단계별 위저드) ----
+function openRefresherApplyForm(schedIdx){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const s = d.refresherSchedule[schedIdx];
+  if(!s) return;
+  currentApplyType = 'refresher';
+  currentApplyIdx = schedIdx;
+  // 초기화
+  refresherStep = 0;
+  Object.keys(refresherFormData).forEach(k=> delete refresherFormData[k]);
+  // 사용자 이름 자동 입력
+  if(state.user && state.user.name) refresherFormData.name = state.user.name;
+  const info = document.getElementById('refresher-apply-schedule-info');
+  if(info) info.innerHTML = `🔄 ${d.instName} · ${s.date}<br>⏰ ${s.time}`;
+  renderRefresherStep();
+  document.getElementById('modal-edu-refresher-apply').classList.add('open');
+}
+
+// ---- 자격증 과정 신청 제출 ----
+function submitCertApply(){
+  const name = (document.getElementById('cert-apply-name')||{}).value?.trim();
+  const phone = (document.getElementById('cert-apply-phone')||{}).value?.trim();
+  const discount = document.getElementById('cert-apply-discount')?.checked || false;
+  const license = (document.getElementById('cert-apply-license')||{}).value?.trim();
+  if(!name){ showToast('이름을 입력해 주세요'); return; }
+  if(!phone || phone.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
+  if(!fbDB){ showToast('Firebase가 연결되지 않았습니다'); return; }
+
+  const d = regionEduData[selectedEduRegion];
+  const s = d.certSchedule[currentApplyIdx];
+  const fbKey = getEduFbKey('cert', currentApplyIdx);
+
+  // 중복 신청 체크
+  const userId = (state.user&&state.user.kakaoId)||name+phone;
+  fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
+    if(snap.exists()){
+      showToast('이미 해당 일정에 신청하셨습니다');
+      return;
+    }
+    // 정원 체크
+    fbDB.ref('edu-applications/'+fbKey).once('value', allSnap=>{
+      const currentCount = allSnap.numChildren();
+      const capacity = s.capacity || 30;
+      if(currentCount >= capacity){
+        showToast('정원이 마감되었습니다');
+        return;
+      }
+      // 저장
+      const appData = {
+        type: 'cert',
+        region: selectedEduRegion,
+        instName: d.instName,
+        scheduleDate: s.date,
+        scheduleTime: s.time,
+        name: name,
+        phone: phone,
+        discount: discount,
+        license: license || '',
+        userId: userId,
+        appliedAt: Date.now(),
+        appliedDate: new Date().toLocaleDateString('ko-KR')
+      };
+      fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
+        if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
+        closeModal('modal-edu-cert-apply');
+        showToast('✅ 교육 신청이 완료되었습니다!');
+        renderEduRegionContent();
+      });
+    });
+  });
+}
+
+// ============================================================
+//  보수교육 신청 — 단계별 위저드
+// ============================================================
+let refresherStep = 0;
+const refresherFormData = {};
+
+const REFRESHER_STEPS = [
+  { key:'name', label:'성명', required:true, type:'text',
+    placeholder:'실명을 입력해 주세요',
+    hint:'정확한 실명을 입력해 주세요. 이수증에 기재됩니다.' },
+  { key:'ssn', label:'주민등록번호', required:true, type:'tel',
+    placeholder:'숫자만 입력 (예: 0001013456789)', maxlength:13,
+    hint:'13자리 숫자만 입력해 주세요. (하이픈 없이)' },
+  { key:'phone', label:'연락처', required:true, type:'tel',
+    placeholder:'숫자만 입력 (예: 01012345678)', maxlength:11,
+    hint:'교육 안내 문자를 받으실 번호를 입력해 주세요.' },
+  { key:'certNo', label:'자격번호', required:true, type:'tel',
+    placeholder:'숫자만 입력 (예: 20251234567)',
+    hint:'요양보호사 자격증에 기재된 번호를 입력해 주세요.' },
+  { key:'org', label:'소속 장기요양기관', required:true, type:'text',
+    placeholder:'정확한 기관명을 입력해 주세요',
+    hint:null, // 커스텀 경고로 대체
+    warning:'⚠️ 소속 장기요양기관명은 공단에 등록된 정식 명칭을 정확하게 기재해 주세요. 기관명이 틀릴 경우 교육 이수 처리가 지연될 수 있습니다.' },
+  { key:'orgPhone', label:'기관 연락처', required:false, type:'tel',
+    placeholder:'숫자만 입력 (예: 0311112222)',
+    hint:'소속 기관의 대표번호를 입력해 주세요. (선택)' },
+  { key:'hours', label:'교육시간', required:true, type:'radio',
+    options:[{val:'4',text:'4시간 (18,000원)'},{val:'8',text:'8시간 (36,000원)'}],
+    hint:'이수해야 할 교육시간을 선택해 주세요.' },
+  { key:'payment', label:'결제방법', required:true, type:'select',
+    options:[{val:'0',text:'현금'},{val:'1',text:'카드'},{val:'2',text:'계좌이체'}],
+    hint:null }, // 결제안내+환불규정 커스텀 표시
+];
+
+function renderRefresherStep(){
+  const container = document.getElementById('refresher-step-container');
+  const indicator = document.getElementById('refresher-step-indicator');
+  const progressBar = document.getElementById('refresher-progress-bar');
+  const prevBtn = document.getElementById('refresher-prev-btn');
+  const nextBtn = document.getElementById('refresher-next-btn');
+  if(!container) return;
+
+  const total = REFRESHER_STEPS.length;
+  const step = REFRESHER_STEPS[refresherStep];
+  const isLast = refresherStep === total - 1;
+  const isFirst = refresherStep === 0;
+
+  if(indicator) indicator.textContent = `${refresherStep+1} / ${total}`;
+  if(progressBar) progressBar.style.width = ((refresherStep+1)/total*100)+'%';
+  if(prevBtn) prevBtn.textContent = isFirst ? '취소' : '← 이전';
+  if(nextBtn){
+    nextBtn.textContent = isLast ? '신청하기' : '다음 →';
+    nextBtn.className = isLast ? 'btn btn-green' : 'btn btn-primary';
+    nextBtn.style.flex = '1';
+    nextBtn.style.fontSize = '15px';
+  }
+
+  let html = `<div style="margin-bottom:4px">
+    <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:6px">${step.label} ${step.required?'<span style="color:var(--primary)">*</span>':''}</div>`;
+
+  // Warning (for 소속기관)
+  if(step.warning){
+    html += `<div style="background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:#E65100;line-height:1.7;font-weight:600">${step.warning}</div>`;
+  }
+
+  // Input field
+  const currentVal = refresherFormData[step.key] || '';
+  if(step.type === 'text' || step.type === 'tel'){
+    html += `<input id="refresher-wizard-input" class="form-input" type="${step.type}" ${step.type==='tel'?'inputmode="numeric"':''} placeholder="${step.placeholder}" value="${currentVal}" ${step.maxlength?'maxlength="'+step.maxlength+'"':''} style="font-size:18px;padding:16px;border-radius:14px;margin-bottom:8px" onkeydown="if(event.key==='Enter')refresherStepNext()"/>`;
+  } else if(step.type === 'radio'){
+    html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">`;
+    step.options.forEach(opt=>{
+      const selected = currentVal === opt.val;
+      html += `<div onclick="refresherFormData['${step.key}']='${opt.val}';renderRefresherStep()" style="display:flex;align-items:center;gap:12px;padding:16px;background:${selected?'var(--primary-light)':'#f9f9f9'};border:2px solid ${selected?'var(--primary)':'var(--border)'};border-radius:14px;cursor:pointer;transition:all .15s">
+        <div style="width:24px;height:24px;border-radius:50%;border:2.5px solid ${selected?'var(--primary)':'#ccc'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected?'<div style="width:12px;height:12px;border-radius:50%;background:var(--primary)"></div>':''}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${opt.text}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  } else if(step.type === 'select'){
+    html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px">`;
+    step.options.forEach(opt=>{
+      const selected = currentVal === opt.val;
+      html += `<div onclick="refresherFormData['${step.key}']='${opt.val}';renderRefresherStep()" style="display:flex;align-items:center;gap:12px;padding:16px;background:${selected?'var(--primary-light)':'#f9f9f9'};border:2px solid ${selected?'var(--primary)':'var(--border)'};border-radius:14px;cursor:pointer;transition:all .15s">
+        <div style="width:24px;height:24px;border-radius:50%;border:2.5px solid ${selected?'var(--primary)':'#ccc'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected?'<div style="width:12px;height:12px;border-radius:50%;background:var(--primary)"></div>':''}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${opt.text}</div>
+      </div>`;
+    });
+    html += `</div>`;
+    // 결제 단계에서 카드결제 안내 + 환불규정 표시
+    html += `
+      <div style="background:#FFF8E1;border:1.5px solid #FFE082;border-radius:12px;padding:12px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:800;color:#F57F17;margin-bottom:4px">💳 카드결제 안내</div>
+        <div style="font-size:12px;color:#795548;line-height:1.7">카드결제 선택 시, <b>교육 전 학원에 방문하여 사전 결제</b>를 완료해 주셔야 합니다. 수강료 입금(결제) 확인 후 수강이 확정됩니다.</div>
+      </div>
+      <div style="background:#FFEBEE;border:1.5px solid #EF9A9A;border-radius:12px;padding:12px">
+        <div style="font-size:13px;font-weight:800;color:#C62828;margin-bottom:4px">📋 환불 규정</div>
+        <div style="font-size:11px;color:#C62828;line-height:1.8">
+          <b>전액 환불</b>: 교육 3일 전까지 취소 신청 시 (교육일·주말·공휴일 제외)<br>
+          <b>예외 환불</b>: 불가피한 상황에 한해 교육 시작 직전까지<br>
+          <b>환불 불가</b>: 교육 당일 취소, 대리출석, 지각, 중간퇴실<br>
+          <span style="color:#888;font-size:10px">※ 카드→승인취소 / 현금·계좌이체→환불신청서+통장사본 제출</span>
+        </div>
+      </div>`;
+  }
+
+  // Hint
+  if(step.hint){
+    html += `<div style="font-size:12px;color:#999;line-height:1.5;margin-top:4px">${step.hint}</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // 텍스트 입력 필드에 자동 포커스
+  if(step.type === 'text' || step.type === 'tel'){
+    setTimeout(()=>{
+      const inp = document.getElementById('refresher-wizard-input');
+      if(inp) inp.focus();
+    }, 100);
+  }
+}
+
+function refresherStepNext(){
+  const step = REFRESHER_STEPS[refresherStep];
+  // 텍스트 입력값 저장
+  if(step.type === 'text' || step.type === 'tel'){
+    const inp = document.getElementById('refresher-wizard-input');
+    refresherFormData[step.key] = (inp?.value||'').trim().replace(step.type==='tel'?/[^0-9]/g:/$/,'');
+  }
+  // 유효성 검사
+  const val = refresherFormData[step.key] || '';
+  if(step.required && !val){
+    showToast(`${step.label}을(를) 입력해 주세요`);
+    return;
+  }
+  if(step.key==='ssn' && val.length < 13){ showToast('주민등록번호 13자리를 입력해 주세요'); return; }
+  if(step.key==='phone' && val.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
+  if(step.key==='certNo' && val.length < 5){ showToast('자격번호를 정확히 입력해 주세요'); return; }
+
+  // 마지막 단계 → 제출
+  if(refresherStep === REFRESHER_STEPS.length - 1){
+    submitRefresherApply();
+    return;
+  }
+  refresherStep++;
+  renderRefresherStep();
+}
+
+function refresherStepPrev(){
+  if(refresherStep === 0){
+    closeModal('modal-edu-refresher-apply');
+    return;
+  }
+  // 현재 입력값 저장
+  const step = REFRESHER_STEPS[refresherStep];
+  if(step.type === 'text' || step.type === 'tel'){
+    const inp = document.getElementById('refresher-wizard-input');
+    refresherFormData[step.key] = (inp?.value||'').trim();
+  }
+  refresherStep--;
+  renderRefresherStep();
+}
+
+// ---- 보수교육 신청 제출 ----
+function submitRefresherApply(){
+  const fd = refresherFormData;
+  const name = fd.name || '';
+  const ssn = (fd.ssn || '').replace(/[^0-9]/g,'');
+  const phone = (fd.phone || '').replace(/[^0-9]/g,'');
+  const certno = (fd.certNo || '').replace(/[^0-9]/g,'');
+  const org = fd.org || '';
+  const orgphone = (fd.orgPhone || '').replace(/[^0-9]/g,'');
+  const hours = fd.hours || '';
+  const payment = fd.payment;
+
+  if(!name){ showToast('성명을 입력해 주세요'); return; }
+  if(!ssn || ssn.length < 13){ showToast('주민등록번호 13자리를 입력해 주세요'); return; }
+  if(!phone || phone.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
+  if(!certno){ showToast('자격번호를 입력해 주세요'); return; }
+  if(!hours){ showToast('교육시간을 선택해 주세요'); return; }
+  if(payment===undefined || payment===''){ showToast('결제방법을 선택해 주세요'); return; }
+  if(!fbDB){ showToast('Firebase가 연결되지 않았습니다'); return; }
+
+  const d = regionEduData[selectedEduRegion];
+  const s = d.refresherSchedule[currentApplyIdx];
+  const fbKey = getEduFbKey('refresher', currentApplyIdx);
+  // 교육 희망일: 선택한 일정에서 날짜 추출 → YYYYMMDD 형식
+  const dateMatch = s.date.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  const eduDate = dateMatch ? dateMatch[1]+String(dateMatch[2]).padStart(2,'0')+String(dateMatch[3]).padStart(2,'0') : '';
+  const amount = hours === '8' ? '36000' : '18000';
+
+  const userId = (state.user&&state.user.kakaoId)||name+phone;
+  fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
+    if(snap.exists()){
+      showToast('이미 해당 일정에 신청하셨습니다');
+      return;
+    }
+    fbDB.ref('edu-applications/'+fbKey).once('value', allSnap=>{
+      const currentCount = allSnap.numChildren();
+      const capacity = s.capacity || 20;
+      if(currentCount >= capacity){
+        showToast('정원이 마감되었습니다');
+        return;
+      }
+      const appData = {
+        type: 'refresher',
+        region: selectedEduRegion,
+        instName: d.instName,
+        scheduleDate: s.date,
+        scheduleTime: s.time,
+        name: name,
+        ssn: ssn,
+        phone: phone,
+        certNo: certno,
+        org: org || '',
+        orgPhone: orgphone || '',
+        eduDate: eduDate,
+        hours: hours,
+        amount: amount,
+        payment: payment,
+        paymentStatus: 'N',
+        userId: userId,
+        appliedAt: Date.now(),
+        appliedDate: new Date().toLocaleDateString('ko-KR')
+      };
+      fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
+        if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
+        closeModal('modal-edu-refresher-apply');
+        showToast('✅ 보수교육 신청이 완료되었습니다!');
+        renderEduRegionContent();
+      });
+    });
+  });
+}
+
+// ---- 정원 설정 모달 ----
+let capacityEditType = null;
+let capacityEditIdx = null;
+
+function openCapacityModal(type, idx){
+  capacityEditType = type;
+  capacityEditIdx = idx;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const sched = type==='cert' ? d.certSchedule[idx] : d.refresherSchedule[idx];
+  if(!sched) return;
+  const titleEl = document.getElementById('capacity-modal-title');
+  if(titleEl) titleEl.textContent = `👥 정원 설정 — ${sched.date}`;
+  const input = document.getElementById('capacity-input');
+  if(input) input.value = sched.capacity || 20;
+  document.getElementById('modal-edu-capacity').classList.add('open');
+}
+
+function adjustCapacity(delta){
+  const input = document.getElementById('capacity-input');
+  if(!input) return;
+  let v = parseInt(input.value)||20;
+  v = Math.max(1, Math.min(200, v+delta));
+  input.value = v;
+}
+
+function saveCapacity(){
+  const input = document.getElementById('capacity-input');
+  const val = parseInt(input?.value)||20;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  if(capacityEditType==='cert' && d.certSchedule[capacityEditIdx]){
+    d.certSchedule[capacityEditIdx].capacity = val;
+  } else if(capacityEditType==='refresher' && d.refresherSchedule[capacityEditIdx]){
+    d.refresherSchedule[capacityEditIdx].capacity = val;
+  }
+  closeModal('modal-edu-capacity');
+  renderEduRegionContent();
+  showToast(`✅ 정원이 ${val}명으로 설정되었습니다`);
+}
+
+// ---- 신청자 목록 보기 (기관용) ----
+let currentViewType = null;
+let currentViewIdx = null;
+
+function openApplicantsModal(type, idx){
+  currentViewType = type;
+  currentViewIdx = idx;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const sched = type==='cert' ? d.certSchedule[idx] : d.refresherSchedule[idx];
+  if(!sched) return;
+  const titleEl = document.getElementById('applicants-modal-title');
+  if(titleEl) titleEl.textContent = `📋 ${type==='cert'?'교육':'보수교육'} 신청자 — ${sched.date}`;
+  const fbKey = getEduFbKey(type, idx);
+  if(!fbDB){ showToast('Firebase 미연결'); return; }
+
+  fbDB.ref('edu-applications/'+fbKey).once('value', snap=>{
+    const list = [];
+    snap.forEach(child=>{ list.push({key:child.key, ...child.val()}); });
+    const capacity = sched.capacity || (type==='cert'?30:20);
+    const remaining = Math.max(0, capacity - list.length);
+
+    document.getElementById('applicants-count').textContent = list.length;
+    document.getElementById('applicants-remaining').textContent = remaining;
+
+    const listEl = document.getElementById('applicants-list');
+    if(!list.length){
+      listEl.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:14px">아직 신청자가 없습니다</div>`;
+    } else {
+      const payLabels = {'0':'현금','1':'카드','2':'계좌이체'};
+      listEl.innerHTML = list.map((a,i)=>`
+        <div class="edu-applicant-row">
+          <div style="width:28px;height:28px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--primary);flex-shrink:0">${i+1}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;color:var(--text)">${a.name}</div>
+            <div style="font-size:12px;color:var(--text-sub)">${a.phone}${a.certNo?' · 자격: '+a.certNo:''}${a.discount?' · 감면대상':''}${a.org?' · '+a.org:''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
+          </div>
+          <div style="font-size:11px;color:#aaa;flex-shrink:0">${a.appliedDate||''}</div>
+        </div>
+      `).join('');
+    }
+    document.getElementById('modal-edu-applicants').classList.add('open');
+  });
+}
+
+// ---- 엑셀 다운로드 ----
+function downloadApplicantsExcel(){
+  downloadApplicantsForSchedule(currentViewType, currentViewIdx);
+}
+
+function downloadApplicantsForSchedule(type, idx){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const sched = type==='cert' ? d.certSchedule[idx] : d.refresherSchedule[idx];
+  if(!sched) return;
+  const fbKey = getEduFbKey(type, idx);
+  if(!fbDB){ showToast('Firebase 미연결'); return; }
+
+  fbDB.ref('edu-applications/'+fbKey).once('value', snap=>{
+    const list = [];
+    snap.forEach(child=>{ list.push(child.val()); });
+    if(!list.length){ showToast('신청자가 없습니다'); return; }
+
+    let wsData;
+    const payMethodLabel = {'0':'현금','1':'카드','2':'계좌이체'};
+    if(type === 'cert'){
+      wsData = [['번호','이름','연락처','감면대상','소지자격증','신청일']];
+      list.forEach((a,i)=>{
+        wsData.push([i+1, a.name, a.phone, a.discount?'O':'', a.license||'', a.appliedDate||'']);
+      });
+    } else {
+      // 보수교육: 원본 엑셀 양식과 동일한 컬럼 구조
+      wsData = [[
+        'NO\n(1 부터 ~ 등록 개수)',
+        '성명',
+        '주민등록번호\n(숫자만입력)\n(셀서식 : 텍스트)',
+        '연락처\n(숫자만 입력)',
+        '자격번호\n(숫자만입력)',
+        '소속 장기요양기관',
+        '기관 연락처\n(숫자만입력)',
+        '교육 희망일\n(예:20250101)',
+        '교육시간\n(4 또는 8)',
+        '금액\n(18000 또는 36000)',
+        '수납여부\n(Y/N)',
+        '결제방법\n(현금:0/카드:1/계좌이체:2)'
+      ]];
+      list.forEach((a,i)=>{
+        wsData.push([
+          i+1,
+          a.name||'',
+          a.ssn||'',
+          a.phone||'',
+          a.certNo||'',
+          a.org||'',
+          a.orgPhone||'',
+          a.eduDate||'',
+          a.hours||'',
+          a.amount||'',
+          a.paymentStatus||'N',
+          a.payment||''
+        ]);
+      });
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      // 열 너비 설정
+      if(type==='cert'){
+        ws['!cols'] = [{wch:5},{wch:12},{wch:15},{wch:8},{wch:15},{wch:12}];
+      } else {
+        ws['!cols'] = [{wch:8},{wch:10},{wch:16},{wch:13},{wch:14},{wch:18},{wch:13},{wch:14},{wch:8},{wch:10},{wch:8},{wch:12}];
+        // 주민등록번호 컬럼(C)을 텍스트로 설정
+        for(let r=1;r<=list.length+1;r++){
+          const cell = ws[XLSX.utils.encode_cell({r:r,c:2})];
+          if(cell) cell.t = 's'; // 텍스트 타입
+        }
+      }
+      const sheetName = type==='cert' ? '교육신청자' : '보수교육 수강신청 등록';
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      const fileName = `${d.instName}_${type==='cert'?'교육':'보수교육'}_${sched.date}_신청자.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      showToast('📥 엑셀 파일이 다운로드되었습니다');
+    } catch(e){
+      console.error('Excel download error:', e);
+      showToast('엑셀 다운로드 중 오류 발생');
+    }
+  });
 }
 
 // ============================================================
