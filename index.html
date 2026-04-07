@@ -29,6 +29,7 @@
       --bg:#F5F5F5;--card:#FFFFFF;
       --text:#1A1A1A;--text-sub:#666;--border:#E0E0E0;
       --nav-h:70px;--header-h:60px;
+      --mascot:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56' fill='none'%3E%3Ccircle cx='28' cy='28' r='27' fill='%23FFF3E0'/%3E%3Ccircle cx='28' cy='28' r='24' fill='%23FFE0B2'/%3E%3Cellipse cx='28' cy='38' rx='14' ry='10' fill='%23D4A054'/%3E%3Ccircle cx='28' cy='24' r='13' fill='%23E8B95A'/%3E%3Cellipse cx='15' cy='22' rx='5' ry='9' fill='%23D4A054' transform='rotate(-10 15 22)'/%3E%3Cellipse cx='41' cy='22' rx='5' ry='9' fill='%23D4A054' transform='rotate(10 41 22)'/%3E%3Ccircle cx='23' cy='22' r='2.5' fill='%23333'/%3E%3Ccircle cx='33' cy='22' r='2.5' fill='%23333'/%3E%3Ccircle cx='24' cy='21' r='1' fill='%23fff'/%3E%3Ccircle cx='34' cy='21' r='1' fill='%23fff'/%3E%3Cellipse cx='28' cy='27' rx='2.5' ry='2' fill='%238B6914'/%3E%3Cpath d='M24 29 Q28 33 32 29' stroke='%238B6914' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='28' cy='30.5' rx='2' ry='1.5' fill='%23FF8A80'/%3E%3Cpath d='M8 32 Q2 24 8 20 Q12 24 10 30Z' fill='%23fff' opacity='0.8'/%3E%3Cpath d='M48 32 Q54 24 48 20 Q44 24 46 30Z' fill='%23fff' opacity='0.8'/%3E%3Cellipse cx='28' cy='10' rx='8' ry='2.5' fill='none' stroke='%23FFD54F' stroke-width='2'/%3E%3C/svg%3E");
     }
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#ccc;font-size:17px}
@@ -73,7 +74,7 @@
     .msg-row{display:flex;margin-bottom:2px;align-items:flex-end;gap:4px;padding:0 12px}
     .msg-row.me{flex-direction:row-reverse}
     .msg-row.first-in-group{margin-top:8px}
-    .msg-bubble{max-width:72%;padding:8px 12px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word;overflow-wrap:break-word;position:relative}
+    .msg-bubble{max-width:11em;padding:8px 12px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word;overflow-wrap:break-word;position:relative}
     .msg-bubble.other{background:#fff;color:#111;border-top-left-radius:2px}
     .msg-bubble.me{background:#FEE500;color:#111;border-top-right-radius:2px}
     .msg-meta{display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:1px;flex-shrink:0}
@@ -316,7 +317,8 @@
     .bottom-nav{padding-bottom:env(safe-area-inset-bottom)}
     .header{padding-top:env(safe-area-inset-top)}
     /* AI 챗봇 */
-    .ai-fab{position:fixed;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));right:16px;z-index:900;width:56px;height:56px;border-radius:28px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(102,126,234,.4);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+    .ai-fab{position:fixed;bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom));right:16px;z-index:900;width:56px;height:56px;border-radius:28px;background:#fff;color:#fff;border:2px solid #FFE0B2;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(212,160,84,.4);display:flex;align-items:center;justify-content:center;transition:transform .2s;padding:4px}
+    .ai-fab img{width:100%;height:100%;border-radius:50%}
     .ai-fab:active{transform:scale(.9)}
     /* 면접/매칭 시스템 */
     .interview-banner{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;flex-shrink:0;cursor:pointer}
@@ -636,7 +638,7 @@
     </div>
   </div>
 
-  <button class="ai-fab" onclick="toggleAiPanel()" id="ai-fab-btn" title="AI 도우미">🤖</button>
+  <button class="ai-fab" onclick="toggleAiPanel()" id="ai-fab-btn" title="AI 도우미"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56' fill='none'%3E%3Ccircle cx='28' cy='28' r='27' fill='%23FFF3E0'/%3E%3Ccircle cx='28' cy='28' r='24' fill='%23FFE0B2'/%3E%3Cellipse cx='28' cy='38' rx='14' ry='10' fill='%23D4A054'/%3E%3Ccircle cx='28' cy='24' r='13' fill='%23E8B95A'/%3E%3Cellipse cx='15' cy='22' rx='5' ry='9' fill='%23D4A054' transform='rotate(-10 15 22)'/%3E%3Cellipse cx='41' cy='22' rx='5' ry='9' fill='%23D4A054' transform='rotate(10 41 22)'/%3E%3Ccircle cx='23' cy='22' r='2.5' fill='%23333'/%3E%3Ccircle cx='33' cy='22' r='2.5' fill='%23333'/%3E%3Ccircle cx='24' cy='21' r='1' fill='%23fff'/%3E%3Ccircle cx='34' cy='21' r='1' fill='%23fff'/%3E%3Cellipse cx='28' cy='27' rx='2.5' ry='2' fill='%238B6914'/%3E%3Cpath d='M24 29 Q28 33 32 29' stroke='%238B6914' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='28' cy='30.5' rx='2' ry='1.5' fill='%23FF8A80'/%3E%3Cpath d='M8 32 Q2 24 8 20 Q12 24 10 30Z' fill='%23fff' opacity='0.8'/%3E%3Cpath d='M48 32 Q54 24 48 20 Q44 24 46 30Z' fill='%23fff' opacity='0.8'/%3E%3Cellipse cx='28' cy='10' rx='8' ry='2.5' fill='none' stroke='%23FFD54F' stroke-width='2'/%3E%3C/svg%3E" alt="링키"/></button>
   <button class="fab" onclick="switchTab('post')">✏️</button>
 
   <div class="bottom-nav">
@@ -651,14 +653,14 @@
 <!-- ===== AI 챗봇 패널 ===== -->
 <div id="ai-panel" class="ai-panel">
   <div class="ai-header">
-    <h3>🤖 AI 도우미</h3>
+    <h3><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56' fill='none'%3E%3Ccircle cx='28' cy='28' r='27' fill='%23FFF3E0'/%3E%3Ccircle cx='28' cy='28' r='24' fill='%23FFE0B2'/%3E%3Cellipse cx='28' cy='38' rx='14' ry='10' fill='%23D4A054'/%3E%3Ccircle cx='28' cy='24' r='13' fill='%23E8B95A'/%3E%3Cellipse cx='15' cy='22' rx='5' ry='9' fill='%23D4A054' transform='rotate(-10 15 22)'/%3E%3Cellipse cx='41' cy='22' rx='5' ry='9' fill='%23D4A054' transform='rotate(10 41 22)'/%3E%3Ccircle cx='23' cy='22' r='2.5' fill='%23333'/%3E%3Ccircle cx='33' cy='22' r='2.5' fill='%23333'/%3E%3Ccircle cx='24' cy='21' r='1' fill='%23fff'/%3E%3Ccircle cx='34' cy='21' r='1' fill='%23fff'/%3E%3Cellipse cx='28' cy='27' rx='2.5' ry='2' fill='%238B6914'/%3E%3Cpath d='M24 29 Q28 33 32 29' stroke='%238B6914' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='28' cy='30.5' rx='2' ry='1.5' fill='%23FF8A80'/%3E%3Cpath d='M8 32 Q2 24 8 20 Q12 24 10 30Z' fill='%23fff' opacity='0.8'/%3E%3Cpath d='M48 32 Q54 24 48 20 Q44 24 46 30Z' fill='%23fff' opacity='0.8'/%3E%3Cellipse cx='28' cy='10' rx='8' ry='2.5' fill='none' stroke='%23FFD54F' stroke-width='2'/%3E%3C/svg%3E" alt="링키" style="width:28px;height:28px;vertical-align:middle;margin-right:6px"/> AI 도우미</h3>
     <div style="display:flex;gap:12px;align-items:center">
       <span id="ai-mode-badge" style="font-size:11px;opacity:.8;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:8px">내장 AI</span>
       <button onclick="toggleAiPanel()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">✕</button>
     </div>
   </div>
   <div class="ai-messages" id="ai-messages">
-    <div class="ai-msg system" id="ai-welcome-msg">안녕하세요! 요양링크 AI 도우미입니다 🤖<br>요양보호사 자격증, 급여, 근무조건 등 무엇이든 물어보세요!</div>
+    <div class="ai-msg system" id="ai-welcome-msg">안녕하세요! 요양링크 AI 도우미 링키예요 🐾<br>요양보호사 자격증, 급여, 근무조건 등 무엇이든 물어보세요!</div>
   </div>
   <div style="display:flex;gap:6px;padding:8px 16px;overflow-x:auto;flex-shrink:0;background:#fff">
     <button onclick="aiQuickQ('요양보호사 자격증 어떻게 따나요?')" style="flex-shrink:0;padding:6px 12px;border:1.5px solid #667eea;border-radius:16px;background:#f5f3ff;color:#667eea;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">📋 자격증 취득</button>
@@ -7343,9 +7345,9 @@ var aiChatHistory = [];
 
 // ── 내장 AI 지식 베이스 (확장판) ──
 var AI_KB = {
-  '자격증': '📋 요양보호사 자격증 취득 안내\n\n요양보호사가 되고 싶으시군요! 차근차근 알려드릴게요 😊\n\n✅ 취득 절차:\n① 교육기관 등록 → 시·도 지정 교육원에서 총 240시간 수료\n   (이론 80h + 실기 80h + 실습 80h)\n② 국시원 시험 응시 → 필기 + 실기\n③ 합격 발표 → 필기·실기 각 60점 이상\n④ 자격증 수령\n\n💰 비용: 약 40~60만원 (국비지원 되는 곳 많아요!)\n⏰ 기간: 보통 1~2개월이면 충분해요\n👤 응시자격: 만 18세 이상 누구나 가능\n\n💡 꿀팁: 고용센터(1350)에 전화하시면 내일배움카드로 교육비 90%까지 지원받을 수 있어요!\n\n더 궁금하신 게 있으시면 편하게 물어보세요~',
+  '자격증': '📋 요양보호사 자격증 취득 안내 (2026 양성지침 기준)\n\n요양보호사가 되고 싶으시군요! 차근차근 알려드릴게요 😊\n\n✅ 취득 절차:\n① 교육기관 등록 → 시·도 지정 교육원에서 총 320시간 수료\n   (이론 126h + 실기 114h + 실습 80h)\n② 한국보건의료인국가시험원(국시원) 시험 응시\n   → 필기 35문항 + 실기 45문항 (객관식 5지선다)\n③ 합격 기준 → 필기·실기 각각 만점의 60% 이상\n④ 합격 후 자격증 발급 신청 (국시원 온라인)\n⑤ 서류접수 30일 이내 자격증 발급\n\n👤 교육 가능 대상: 만 18세 이상 국민 누구나\n   (외국인도 D-2, F-2, F-4, F-5, F-6, H-2 비자 등 가능)\n⏰ 기간: 보통 2~3개월 정도 소요\n\n📌 국가자격(면허) 소지자 감면\n  • 간호사: 40시간만 이수\n  • 사회복지사: 50시간만 이수\n  • 물리치료사·작업치료사·간호조무사: 50시간만 이수\n\n📌 경력자 감면\n  • 경력 1년+1,200시간 이상 → 실습 감면\n  • 시설+재가 경력자: 183시간 (실습 전체면제)\n\n📌 자격증 신청 시 필요서류\n  • 자격증 발급 신청서\n  • 사진 1장 (3cm×4cm)\n  • 교육수료증명서\n  • 건강진단서 (30일 이내 발급분)\n\n💡 꿀팁: 고용센터(1350)에 전화하시면 내일배움카드로 교육비 지원받을 수 있어요!\n📞 국시원: www.kuksiwon.or.kr\n\n더 궁금하신 게 있으시면 편하게 물어보세요~',
   '급여': '💰 요양보호사 급여 안내 (2025년 기준)\n\n궁금하셨죠? 근무 유형별로 정리해드릴게요!\n\n📌 시급제 (방문요양)\n  • 시급: 12,000~15,000원\n  • 하루 3~4시간 × 주 5일\n  • 월 환산: 약 180~220만원\n\n📌 월급제\n  • 입주요양: 250~320만원 (숙식 포함)\n  • 요양원: 200~260만원\n  • 주간보호: 190~230만원\n\n📌 추가로 받을 수 있는 수당\n  • 야간수당: +50% 할증\n  • 휴일수당: +50% 할증\n  • 경력수당: 경력 따라 추가\n  • 명절 상여금: 기관마다 다름\n\n📌 꼭 확인하세요!\n  • 4대보험 가입 여부\n  • 퇴직금 (1년 이상 근무 시)\n  • 교통비·식비 지원 여부\n\n💡 요양링크에서 공고별 급여를 바로 비교해보실 수 있어요!',
-  '근무유형': '🏠 근무유형별 비교 안내\n\n어떤 근무가 나에게 맞을지 고민되시죠? 하나씩 비교해드릴게요!\n\n🏠 방문요양\n  \"어르신 댁에 방문해서 돌봄\"\n  • 시간: 하루 3~4시간\n  • 장점: 시간 자유, 여러 곳 가능\n  • 추천: 육아·가사 병행하시는 분\n\n🏡 입주요양\n  \"어르신 댁에서 함께 생활\"\n  • 시간: 24시간 (격일제 많음)\n  • 장점: 높은 급여, 숙식 제공\n  • 추천: 높은 수입 원하시는 분\n\n🏥 요양원·시설\n  \"요양시설에서 교대 근무\"\n  • 시간: 주주야야휴휴 or 3교대\n  • 장점: 안정적, 동료와 협업\n  • 추천: 안정적 직장 원하시는 분\n\n🏫 주간보호센터\n  \"낮 시간만 근무\"\n  • 시간: 보통 09~18시\n  • 장점: 규칙적, 야간 없음\n  • 추천: 규칙적 생활 원하시는 분\n\n💡 요양링크에서 유형별로 필터해서 공고를 찾아보세요!',
+  '근무유형': '🏠 근무유형별 비교 안내\n\n어떤 근무가 나에게 맞을지 고민되시죠? 하나씩 비교해드릴게요!\n\n🏠 방문요양\n  \"어르신 댁에 방문해서 돌봄\"\n  • 시간: 하루 3~4시간\n  • 장점: 시간 자유, 여러 곳 가능\n  • 추천: 육아·가사 병행하시는 분\n\n🏡 입주요양\n  \"어르신 댁에서 함께 생활\"\n  • 시간: 24시간 (격일제 많음)\n  • 장점: 높은 급여, 숙식 제공\n  • 추천: 높은 수입 원하시는 분\n\n🏥 요양원 (노인의료복지시설)\n  \"요양시설에서 교대 근무\"\n  • 시간: 주주야야휴휴 or 3교대\n  • 장점: 안정적, 동료와 협업\n  • 추천: 안정적 직장 원하시는 분\n\n🏫 주·야간보호센터\n  \"낮 또는 야간 시간 돌봄\"\n  • 주간보호: 보통 09~18시\n  • 야간보호: 저녁~아침 시간대\n  • 장점: 규칙적, 정해진 시간 근무\n  • 추천: 규칙적 생활 원하시는 분\n\n🏘️ 공동생활가정 (그룹홈)\n  \"소규모 가정 같은 환경에서 돌봄\"\n  • 입소 정원: 5~9명 소규모\n  • 장점: 가정적 분위기, 어르신과 친밀\n  • 추천: 소규모 돌봄 선호하시는 분\n\n🏨 요양병원\n  \"의료기관에서 간병 업무\"\n  • 요양보호사 배치 법적 의무 없음\n  • 간병인으로 근무하는 경우가 많아요\n  • 의료진과 협업, 중증환자 돌봄\n  • 참고: 자격증 법적 필수는 아님\n\n💡 요양링크에서 유형별로 필터해서 공고를 찾아보세요!',
   '장기요양': '📑 장기요양등급 안내\n\n어르신의 장기요양등급에 대해 알려드릴게요.\n\n📊 등급 기준\n  • 1등급: 95점 이상 (최중증)\n  • 2등급: 75~94점 (중증)\n  • 3등급: 60~74점 (중등증)\n  • 4등급: 51~59점 (경증)\n  • 5등급: 45~50점 (치매)\n  • 인지지원: 45점 미만 치매\n\n📝 신청 방법 (간단 4단계)\n  ① 공단 지사 방문 or 온라인 신청\n  ② 공단 직원이 댁으로 방문조사\n  ③ 등급판정위원회 심의\n  ④ 약 30일 후 결과 통보\n\n💡 알아두면 좋은 점:\n  • 65세 이상이면 누구나 신청 가능\n  • 65세 미만도 노인성 질환 있으면 가능\n  • 등급 받으면 본인부담 15%만 내면 돼요\n\n📞 신청 문의: 1577-1000 (국민건강보험공단)',
   '이직': '🔄 이직·퇴사 가이드\n\n새로운 곳으로 옮기려고 하시는군요! 꼭 챙기셔야 할 것들 정리해드릴게요.\n\n📋 퇴사 전 체크리스트\n  ✅ 근로계약서에서 통보 기간 확인 (보통 1개월 전)\n  ✅ 퇴직금 계산 (1년 이상 근무 시)\n  ✅ 미사용 연차 정산 요청\n  ✅ 4대보험 상실 처리 확인\n  ✅ 경력증명서 발급 요청\n\n💰 놓치면 손해!\n  • 퇴직금 = 평균임금 × 근속일수/365\n  • 미사용 연차수당 꼭 받으세요\n  • 실업급여 자격 확인 (고용센터 1350)\n\n🔍 새 직장 구할 때 팁\n  • 요양링크에서 조건별 검색하세요\n  • 채팅으로 미리 분위기 파악\n  • 면접 때 업무범위 꼭 확인\n  • 수습기간 조건도 체크!\n\n요양링크가 좋은 자리 찾으시도록 도와드릴게요! 💪',
   '면접': '👔 면접 준비 완벽 가이드\n\n면접 준비 도와드릴게요! 차근차근 따라하시면 됩니다 😊\n\n📋 필수 준비물\n  ① 요양보호사 자격증 (원본 + 사본)\n  ② 신분증\n  ③ 이력서 (경력 상세히!)\n  ④ 건강진단서 (3개월 이내)\n  ⑤ 성범죄경력조회서\n  ⑥ 통장사본\n\n💡 면접 꿀팁\n  • 밝고 따뜻한 미소가 제일 중요해요\n  • \"어르신을 내 부모님처럼\" 마음가짐 어필\n  • 경험담을 구체적으로 말씀하세요\n  • 시간·요일 가능 범위 미리 정리\n\n❓ 면접 때 꼭 물어보세요\n  • 정확한 급여와 지급일\n  • 4대보험 가입 여부\n  • 업무 범위 (돌봄만? 가사도?)\n  • 식비·교통비 지원\n  • 대체인력 있는지\n\n🔑 좋은 기관 구별법\n  • 근로계약서 작성해주는 곳\n  • 4대보험 당연히 해주는 곳\n  • 업무 범위가 명확한 곳\n\n면접 잘 보실 수 있을 거예요! 화이팅! 💪',
@@ -7354,7 +7356,11 @@ var AI_KB = {
   '치매': '🧠 치매 어르신 돌봄 가이드\n\n치매 어르신을 돌보시는 건 정말 대단한 일이에요. 도움될 정보 드릴게요.\n\n📌 기본 원칙\n  • 어르신의 감정을 먼저 공감해주세요\n  • 짧고 간단하게 말씀하세요\n  • 같은 말 반복해도 처음 듣는 것처럼\n  • 익숙한 환경을 유지해주세요\n  • 규칙적인 일과가 안정감을 줘요\n\n⚠️ 이럴 때 이렇게\n  • 배회할 때 → 안전하게 동행, GPS 활용\n  • 화낼 때 → 원인 파악, 차분히 대응\n  • 거부할 때 → 잠시 후 다시 시도\n  • 반복 질문 → 메모판·사진 활용\n\n💡 돌보는 분도 쉬어야 해요!\n  • 주간보호 서비스 활용\n  • 단기보호(respite care) 이용\n  • 치매안심센터 ☎ 1899-9988\n  • 중앙치매센터 ☎ 1577-0199',
   '건강관리': '💪 요양보호사 건강관리\n\n어르신을 잘 돌보려면 내 건강이 먼저예요!\n\n🏥 직업병 예방\n  • 허리: 이동 보조 시 보조기구 활용\n  • 손목: 스트레칭 자주 하기\n  • 무릎: 쿠션 깔고 작업하기\n  • 감염: 손씻기·마스크 생활화\n\n😌 마음 건강도 중요해요\n  • 번아웃 느끼면 혼자 참지 마세요\n  • 동료 요양보호사와 소통하세요\n  • 쉬는 날은 푹 쉬세요\n  • 필요하면 상담 받으셔도 좋아요\n\n📞 도움 받을 곳\n  • 정신건강위기상담 ☎ 1577-0199\n  • 근로복지공단 ☎ 1588-0075 (산재)\n  • 건강보험 건강검진 매년 꼭 받으세요!',
   '계약서': '📝 근로계약서 체크리스트\n\n계약서 작성할 때 꼭 확인하세요!\n\n✅ 필수 기재 사항\n  • 근무 시작일\n  • 근무 장소\n  • 업무 내용 (돌봄? 가사? 범위 명확히)\n  • 근무시간 & 휴게시간\n  • 급여 (시급/월급, 지급일)\n  • 4대보험 가입 여부\n  • 휴일·연차 규정\n  • 계약기간\n\n🚫 주의할 점\n  • \"일 해보고 정하자\" → 반드시 먼저 계약!\n  • \"4대보험 빼면 더 줄게\" → 불법입니다\n  • \"업무범위는 그때그때\" → 구체적으로 정하세요\n  • 계약서 사본 꼭 받아두세요!\n\n💡 계약서 없이 일하면 불이익 시 보호받기 어려워요.\n근로계약서는 여러분의 권리 보호 첫걸음입니다!',
-  '보험': '🛡️ 4대보험 & 산재보험 안내\n\n요양보호사도 당연히 4대보험 가입 대상이에요!\n\n📌 4대보험이란?\n  • 국민연금: 노후 대비\n  • 건강보험: 병원비 지원\n  • 고용보험: 실업급여\n  • 산재보험: 업무 중 다쳤을 때\n\n💡 알아두세요\n  • 월 60시간 이상 근무 → 4대보험 의무\n  • 보험료는 사업주와 반반 부담\n  • 가입 안 해주면 → 고용노동부 1350 신고\n\n🏥 일하다 다치면 (산재)\n  • 산재보험으로 치료비 전액 지원\n  • 휴업급여도 받을 수 있어요\n  • 근로복지공단 ☎ 1588-0075\n\n💰 실업급여\n  • 비자발적 퇴직 시 신청 가능\n  • 고용센터 ☎ 1350'
+  '보험': '🛡️ 4대보험 & 산재보험 안내\n\n요양보호사도 당연히 4대보험 가입 대상이에요!\n\n📌 4대보험이란?\n  • 국민연금: 노후 대비\n  • 건강보험: 병원비 지원\n  • 고용보험: 실업급여\n  • 산재보험: 업무 중 다쳤을 때\n\n💡 알아두세요\n  • 월 60시간 이상 근무 → 4대보험 의무\n  • 보험료는 사업주와 반반 부담\n  • 가입 안 해주면 → 고용노동부 1350 신고\n\n🏥 일하다 다치면 (산재)\n  • 산재보험으로 치료비 전액 지원\n  • 휴업급여도 받을 수 있어요\n  • 근로복지공단 ☎ 1588-0075\n\n💰 실업급여\n  • 비자발적 퇴직 시 신청 가능\n  • 고용센터 ☎ 1350',
+  '결격사유': '🚫 요양보호사 결격사유 안내 (노인복지법 제39조의13)\n\n자격증 취득 전에 꼭 확인하세요!\n\n❌ 다음에 해당하면 요양보호사가 될 수 없어요:\n  1. 정신질환자 (단, 전문의가 적합 인정 시 가능)\n  2. 마약·대마·향정신성의약품 중독자\n  3. 피성년후견인\n  4. 금고 이상의 형 집행 중이거나 미면제자\n  4-2. 금고 이상의 형의 집행유예 기간 중인 자\n  5. 법원 판결로 자격 정지·상실된 자\n  6. 자격 취소 후 1년 미경과자\n\n📌 확인 방법\n  • 시험 합격 후 건강진단서 제출로 1,2호 확인\n  • 3,4,5호는 국시원 자격검정 시 행정정보로 확인\n\n⚠️ 결격사유 해당 시 시험에 합격해도 자격증 발급 불가!\n교육기관 등록 전에 꼭 확인하세요.\n\n궁금한 점 있으시면 편하게 물어보세요~',
+  '업무': '👩‍⚕️ 요양보호사 업무 안내 (2026 양성지침 기준)\n\n어떤 일을 하는지 궁금하시죠? 알려드릴게요!\n\n📌 주요 업무\n  장기요양기관 등에서 노인들에게\n  신체활동 및 일상생활활동 서비스 제공\n\n🏥 배치 가능 시설\n  • 노인주거복지시설\n  • 노인의료복지시설 (노인전문병원 제외)\n  • 재가노인복지시설\n  • 장기요양기관 (요양/재가)\n  • 재가장기요양기관 (방문간호 제외)\n\n🚫 수급자가 요구하면 안 되는 행위\n  (노인장기요양보험법 제28조의2)\n  • 수급자 가족만을 위한 행위\n  • 수급자·가족의 생업 지원 행위\n  • 수급자 일상생활에 지장 없는 행위\n\n💡 참고: 요양병원 등 병원에서는\n  요양보호사 배치 의무가 없어요.\n  간병인·자원봉사자는 자격증 불필요!\n\n더 궁금한 점 있으시면 물어보세요~ 😊',
+  '교육과정': '📚 요양보호사 교육과정 안내 (2026 양성지침 기준)\n\n교육 시간이 궁금하시군요!\n\n📌 신규자 (일반): 총 320시간\n  • 이론: 126시간\n  • 실기: 114시간\n  • 실습: 80시간 (시설+재가)\n\n📌 국가자격(면허) 소지자\n  • 간호사: 총 40시간 (이론26+실기6+실습8)\n  • 사회복지사: 총 50시간 (이론32+실기10+실습8)\n  • 물리치료사·작업치료사·간호조무사: 총 50시간\n\n📌 경력자 감면\n  • 기타일반 경력: 총 223시간\n  • 시설 또는 재가 경력: 총 203시간\n  • 시설+재가 경력: 총 183시간 (실습면제)\n  ※ 경력 1년 이상 + 1,200시간 이상 필요\n\n📌 시험 과목\n  • 필기: 요양보호론 35문항\n  • 실기: 요양보호에 관한 것 45문항\n  • 형태: 객관식 5지선다 필기형\n  • 합격: 각각 만점의 60% 이상\n\n📌 교육생 관리 (2026년 변경)\n  • 지각 기준: 매 교시 수업 시작 후 10분까지만 출석 인정\n\n💡 국시원 홈페이지: www.kuksiwon.or.kr\n\n더 궁금한 점 있으시면 물어보세요~',
+  '외국인': '🌏 외국인 요양보호사 자격취득 안내\n\n외국인도 요양보호사가 될 수 있어요!\n\n📌 교육 가능한 비자 유형\n  • D-2 (유학) 비자\n  • D-10 (구직) 비자 - 전문대 이상 졸업자\n  • F-2 (거주) 비자\n  • F-4 (재외동포) 비자\n  • F-5 (영주) 비자\n  • F-6 (결혼이민) 비자\n  • H-2 (방문취업) 비자\n\n📌 필요 서류 (추가)\n  • D-10 비자: 국내 전문대학 이상 졸업증명서 사본\n\n📌 취업 특례\n  • 국내 전문대 이상 졸업 외국인 유학생이\n    자격 취득 후 요양시설 취업 시\n    특정활동(E-7) 비자 허용 시범사업 운영 중\n    (2024~2026년)\n\n⚠️ 체류조건·체류기한 등\n  출입국관리법령에 위반되지 않아야 해요!\n\n더 궁금한 점 있으시면 물어보세요~ 😊'
 };
 
 // ── 스마트 AI 매칭 함수 (확장판) ──
@@ -7375,12 +7381,20 @@ function aiLocalAnswer(question){
     return thanks[Math.floor(Math.random()*thanks.length)];
   }
 
+  // 결격사유
+  if(q.match(/결격|결격사유|될수없|안되는사람|못되|자격없|전과|범죄|금고|집행유예|정신질환|마약|후견/)) return AI_KB['결격사유'];
+  // 교육과정/교육시간
+  if(q.match(/교육과정|교육시간|몇시간|320시간|240시간|이론.*실기|커리큘럼|감면|경력자.*교육/)) return AI_KB['교육과정'];
+  // 외국인
+  if(q.match(/외국인|비자|visa|이민|다문화|동포|유학생|f-4|f-5|f-6|h-2|d-2|체류/)) return AI_KB['외국인'];
+  // 업무/하는일
+  if(q.match(/업무|하는일|뭐해|무슨일|일내용|역할|담당|배치시설|급여외행위/)) return AI_KB['업무'];
   // 자격증
-  if(q.match(/자격증|자격|취득|따|시험|교육기관|국시원|합격|교육비|수료/)) return AI_KB['자격증'];
+  if(q.match(/자격증|자격|취득|따|시험|교육기관|국시원|합격|수료|발급/)) return AI_KB['자격증'];
   // 급여
   if(q.match(/급여|월급|시급|연봉|얼마|돈|수당|임금|보수|페이|많이버|벌수있|수입|소득/)) return AI_KB['급여'];
   // 근무유형
-  if(q.match(/방문요양|입주요양|주간보호|요양원|시설|근무유형|차이|유형|종류|뭐가다|어떤게/)) return AI_KB['근무유형'];
+  if(q.match(/방문요양|입주요양|주간보호|야간보호|주야간|요양원|시설|근무유형|차이|유형|종류|뭐가다|어떤게|공동생활|그룹홈|요양병원/)) return AI_KB['근무유형'];
   // 장기요양등급
   if(q.match(/장기요양|등급|판정|신청|건강보험공단|1등급|2등급|3등급|4등급|5등급|인지지원/)) return AI_KB['장기요양'];
   // 이직/퇴사
@@ -7427,7 +7441,7 @@ function aiLocalAnswer(question){
 
   // 잘 모르겠을 때 - 자연스러운 폴백
   var fallbacks = [
-    timeGreet + ' 링키가 도와드릴게요!\n\n제가 잘 아는 주제들이에요:\n\n📋 자격증 → \"자격증 어떻게 따요?\"\n💰 급여 → \"급여 얼마예요?\"\n🏠 근무유형 → \"방문요양이 뭐예요?\"\n📑 등급 → \"장기요양등급 알려줘\"\n👔 면접 → \"면접 어떻게 준비해요?\"\n⚖️ 권리 → \"내 권리가 뭔가요?\"\n🧠 치매돌봄 → \"치매 어르신 어떻게 돌봐요?\"\n📝 계약서 → \"계약서 뭘 확인해야 해요?\"\n🛡️ 보험 → \"4대보험 알려줘\"\n📱 앱사용 → \"앱 어떻게 써요?\"\n\n편하게 물어보세요~ 😊',
+    timeGreet + ' 링키가 도와드릴게요!\n\n제가 잘 아는 주제들이에요:\n\n📋 자격증 → \"자격증 어떻게 따요?\"\n📚 교육과정 → \"교육시간 얼마나 돼요?\"\n💰 급여 → \"급여 얼마예요?\"\n🏠 근무유형 → \"방문요양이 뭐예요?\"\n📑 등급 → \"장기요양등급 알려줘\"\n👔 면접 → \"면접 어떻게 준비해요?\"\n⚖️ 권리 → \"내 권리가 뭔가요?\"\n🚫 결격사유 → \"결격사유가 뭐예요?\"\n🌏 외국인 → \"외국인도 자격증 딸 수 있어요?\"\n👩‍⚕️ 업무 → \"요양보호사 뭐 해요?\"\n🧠 치매돌봄 → \"치매 어르신 어떻게 돌봐요?\"\n📝 계약서 → \"계약서 뭘 확인해야 해요?\"\n🛡️ 보험 → \"4대보험 알려줘\"\n📱 앱사용 → \"앱 어떻게 써요?\"\n\n편하게 물어보세요~ 😊',
     '음, 조금 더 구체적으로 물어봐 주시면\n더 정확하게 도와드릴 수 있어요! 😊\n\n이런 질문들은 어떨까요?\n• \"자격증 따는데 얼마나 걸려요?\"\n• \"방문요양이랑 입주요양 차이가 뭐예요?\"\n• \"면접 때 뭘 준비해야 해요?\"\n• \"치매 어르신 돌볼 때 팁 알려줘\"\n\n편하게 말씀하세요~ 제가 최선을 다해 도와드릴게요! 💪'
   ];
   return fallbacks[Math.floor(Math.random()*fallbacks.length)];
@@ -7439,7 +7453,7 @@ function updateAiModeBadge(){
   var welcome = document.getElementById('ai-welcome-msg');
   if(AI_WORKER_URL){
     if(badge) badge.textContent = '✨ Claude AI';
-    if(welcome) welcome.innerHTML = '안녕하세요! 요양링크 <b>Claude AI</b> 도우미입니다 🤖<br>자연어로 무엇이든 물어보세요! 요양 관련 상담, 앱 사용법, 문의사항까지 도와드립니다.';
+    if(welcome) welcome.innerHTML = '안녕하세요! 요양링크 <b>Claude AI</b> 도우미 링키예요 🐾<br>자연어로 무엇이든 물어보세요! 요양 관련 상담, 앱 사용법, 문의사항까지 도와드립니다.';
   } else {
     if(badge) badge.textContent = '내장 AI';
   }
@@ -7547,7 +7561,7 @@ function aiRecommend(){
   }
 
   var btn = document.getElementById('ai-recommend-btn');
-  if(btn) btn.textContent = '🤖 AI가 분석 중...';
+  if(btn) btn.textContent = '🐾 링키가 분석 중...';
 
   var listings = state.listings.filter(function(l){ return l.status==='active' || l.status==='interviewing'; });
   var userArea = (state.user.area || '').replace(/\s/g,'');
@@ -7620,7 +7634,7 @@ function aiRecommend(){
 // ── AI 공고 작성 도우미 (내장) ──
 function aiWritePost(){
   var btn = document.getElementById('ai-write-btn');
-  if(btn){ btn.textContent = '🤖 AI가 작성 중...'; btn.disabled = true; }
+  if(btn){ btn.textContent = '🐾 링키가 작성 중...'; btn.disabled = true; }
 
   var area = (document.getElementById('post-area')||{}).value || '';
   var workType = (document.getElementById('post-worktype')||{}).value || '';
