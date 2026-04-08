@@ -7606,23 +7606,44 @@ function updateProfileCompletion(){
 //  Pull-to-refresh (당근마켓 스타일)
 // ============================================================
 let _pullRefreshCooldown = false;
-function handlePullRefresh(el){
+let _pullStartY = 0;
+let _pullTriggered = false;
+(function(){
+  var listView = document.getElementById('list-view');
+  if(!listView) return;
+  listView.addEventListener('touchstart', function(e){
+    if(listView.scrollTop <= 0){
+      _pullStartY = e.touches[0].clientY;
+      _pullTriggered = false;
+    }
+  }, {passive:true});
+  listView.addEventListener('touchmove', function(e){
+    if(_pullRefreshCooldown || _pullTriggered) return;
+    if(listView.scrollTop > 0) return;
+    var dy = e.touches[0].clientY - _pullStartY;
+    if(dy > 60){
+      _pullTriggered = true;
+      doPullRefresh();
+    }
+  }, {passive:true});
+})();
+function doPullRefresh(){
   const indicator = document.getElementById('pull-indicator');
-  if(!indicator) return;
-  if(el.scrollTop <= 0 && !_pullRefreshCooldown){
-    indicator.classList.add('visible');
-    indicator.textContent = '↻ 새로고침 중...';
-    _pullRefreshCooldown = true;
-    // Refresh listings
-    renderHomeScreen();
+  if(!indicator || _pullRefreshCooldown) return;
+  indicator.classList.add('visible');
+  indicator.textContent = '↻ 새로고침 중...';
+  _pullRefreshCooldown = true;
+  renderHomeScreen();
+  setTimeout(()=>{
+    indicator.textContent = '✅ 새로고침 완료';
     setTimeout(()=>{
-      indicator.textContent = '✅ 새로고침 완료';
-      setTimeout(()=>{
-        indicator.classList.remove('visible');
-        _pullRefreshCooldown = false;
-      }, 800);
-    }, 600);
-  }
+      indicator.classList.remove('visible');
+      _pullRefreshCooldown = false;
+    }, 800);
+  }, 600);
+}
+function handlePullRefresh(el){
+  // 터치 기반으로 변경 - onscroll에서는 아무것도 하지 않음
 }
 
 // ============================================================
