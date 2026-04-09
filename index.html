@@ -503,13 +503,22 @@
 
     <div style="background:#fff;border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:20px">
 
-      <!-- 이름 -->
+      <!-- 이름(실명) -->
       <div class="form-group" style="margin-bottom:0">
-        <label class="form-label" style="font-size:17px">👤 이름</label>
+        <label class="form-label" style="font-size:17px">👤 이름 (실명)</label>
         <input class="form-input" id="setup-name" type="text" placeholder="예) 홍길동"
           style="font-size:18px;padding:16px"
           oninput="checkSetupReady()"/>
-        <div style="margin-top:6px;font-size:13px;color:#aaa">실명으로 입력해 주세요</div>
+        <div style="margin-top:6px;font-size:13px;color:#aaa">실명으로 입력해 주세요 (관리자만 확인 가능)</div>
+      </div>
+
+      <!-- 별명 (요양보호사만 필수, 기관은 선택) -->
+      <div class="form-group" style="margin-bottom:0" id="setup-nickname-group">
+        <label class="form-label" style="font-size:17px">🏷️ 별명 <span id="setup-nickname-required" style="font-size:13px;color:var(--primary)">(필수)</span></label>
+        <input class="form-input" id="setup-nickname" type="text" placeholder="예) 따뜻한요양사, 성실한간병인"
+          style="font-size:18px;padding:16px"
+          oninput="checkSetupReady()" maxlength="12"/>
+        <div id="setup-nickname-hint" style="margin-top:6px;font-size:13px;color:#aaa">다른 사용자에게 보이는 이름이에요 (2~12자)</div>
       </div>
 
       <!-- 연락처 -->
@@ -827,6 +836,14 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- 별명 수정 -->
+    <div style="padding:14px 20px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:13px;color:var(--text-sub);margin-bottom:2px">🏷️ 별명</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text)" id="profile-nickname-display">미설정</div>
+      </div>
+      <button class="btn btn-outline" style="padding:6px 14px;font-size:13px" onclick="showNicknameEditModal()">변경</button>
     </div>
     <div style="height:8px;background:var(--bg)"></div>
     <div style="padding:16px 20px;background:#fff;border-bottom:1px solid var(--border)">
@@ -1167,6 +1184,28 @@
       <div style="display:flex;gap:10px">
         <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-set-manager')">취소</button>
         <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="saveManagerId()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 별명 변경 ===== -->
+<div class="modal-overlay" id="modal-edit-nickname" onclick="closeModal('modal-edit-nickname')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏷️ 별명 변경</div>
+    <div style="padding:0 4px 16px;display:flex;flex-direction:column;gap:14px">
+      <div style="background:#E3F2FD;border-radius:12px;padding:14px;font-size:13px;color:#1565C0;line-height:1.7">
+        다른 사용자에게 보이는 이름이에요.<br>실명은 관리자만 확인 가능합니다.
+      </div>
+      <div>
+        <div class="form-label" style="margin-bottom:6px">새 별명 (2~12자)</div>
+        <input class="form-input" id="edit-nickname-input" placeholder="예) 따뜻한요양사" maxlength="12" oninput="checkEditNicknameReady()"/>
+        <div id="edit-nickname-status" style="margin-top:6px;font-size:12px;color:#aaa"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edit-nickname')">취소</button>
+        <button class="btn btn-primary" style="flex:1;font-size:15px" id="btn-save-nickname" onclick="saveEditedNickname()">저장</button>
       </div>
     </div>
   </div>
@@ -2035,7 +2074,17 @@ const BANNED_KEYWORDS = {
         '보험영업','보험설계사 모집','대리운전 모집','배달 알바','쿠팡','택배'],
   sexual: ['섹스','성인','야동','만남','폰섹','원나잇','조건만남','조건녀','출장안마',
            '마사지','키스방','오피','유흥','룸싸롱','풀싸롱','안마시술','성매매',
-           '19금','음란','야한','벗방','노출','가슴','엉덩이'],
+           '19금','음란','야한','벗방','노출','가슴','엉덩이',
+           '자위','성기','음경','질내','사정','삽입','페니스','보지','자지','딸딸이',
+           '야사','야설','몸매','섹파','불륜','외도','바람','원조교제',
+           '성관계','성행위','섹시','야시시','노브라','속옷','팬티',
+           '빨아','핥아','빨아줘','핥아줘','안아줘','껴안아','뽀뽀',
+           '동거','하룻밤','잠자리','같이자','모텔','호텔방',
+           '몸파는','몸팔아','육체','관능','음탕','변태','페티쉬','SM',
+           '스와핑','쓰리섬','그루밍','성추행','성폭행','성희롱','몰카','도촬',
+           '음부','유두','젖꼭지','허벅지','비키니','교복','코스프레'],
+  nonverbal: ['🍆','🍑','💦','🔥🔥🔥','😈','🥵','👅','💋','🤤',
+              '19🔞','ㅅㅅ','ㅂㅇ','ㅇㄷ','ㅈㅇ','ㅎㅂ','ㄱㅊ남','ㄱㅊ녀'],
   scam: ['급전','사채','개인돈','일수','월변','신용불량','연체자 가능',
          '보증금 필요','선불','계좌이체 후','입금 먼저','수수료 선납',
          '로또','도박','카지노','바카라','슬롯','토토','스포츠배팅',
@@ -2051,7 +2100,7 @@ function checkContentFilter(text){
   for(const [category, words] of Object.entries(BANNED_KEYWORDS)){
     for(const word of words){
       if(lower.includes(word.replace(/\s/g,'').toLowerCase())){
-        const labels = {ads:'광고성 내용',sexual:'부적절한 내용',scam:'사기/도박 관련 내용',profanity:'욕설/비방'};
+        const labels = {ads:'광고성 내용',sexual:'부적절한 내용',nonverbal:'부적절한 표현',scam:'사기/도박 관련 내용',profanity:'욕설/비방'};
         return {category, word, label: labels[category]||'부적절한 내용'};
       }
     }
@@ -2453,7 +2502,7 @@ function init(){
         // 프로필 화면 반영
         const pName = document.getElementById('profile-name');
         const pType = document.getElementById('profile-type-label');
-        if(pName) pName.textContent = profile.name;
+        if(pName) pName.textContent = getDisplayName(profile);
         if(pType) pType.textContent =
           (profile.role==='employer'?'구인자':'요양보호사') +
           (profile.gender ? ' · '+(profile.gender==='male'?'남성':'여성') : '') +
@@ -2468,6 +2517,8 @@ function init(){
         checkHireConfirmation();
         cleanupOldMessages();
         saveUserToFirebase(); // Firebase에 유저 정보 동기화
+        // 기존 사용자 별명 자동 부여
+        ensureNickname(function(){ if(pName) pName.textContent = getDisplayName(state.user); });
         navigate('home');
         updateAiButtons();
         return; // 로그인 화면 건너뜀
@@ -2511,6 +2562,7 @@ function navigate(screen, skipHistory){
     if(state.chatUnsubscribe){ state.chatUnsubscribe(); state.chatUnsubscribe=null; }
   }
   if(screen==='resume') renderResumeScreen();
+  if(screen==='profile') updateProfileNicknameDisplay();
   if(screen==='admin'){ updateAdminStats(); }
   if(screen==='admin-users'){ renderAdminUsers(); }
   if(screen==='admin-listings'){ renderAdminListings(); }
@@ -2719,7 +2771,7 @@ document.addEventListener('DOMContentLoaded', function(){
     try {
       const saved = JSON.parse(localStorage.getItem('carelink_profile') || 'null');
       if(saved && saved.kakaoId === kakaoId && saved.role){
-        saved.name = nickname;
+        saved.name = saved.name || nickname; // 실명은 기존 저장값 유지
         if(profileImg) saved.profileImg = profileImg;
         state.user = saved;
         state.role = saved.role;
@@ -2729,7 +2781,9 @@ document.addEventListener('DOMContentLoaded', function(){
         startChatNotificationListener();
         checkHireConfirmation();
         cleanupOldMessages();
-        showToast('🎉 ' + nickname + '님, 어서오세요!');
+        // 기존 사용자 별명 자동 부여
+        ensureNickname(function(){});
+        showToast('🎉 ' + getDisplayName(saved) + '님, 어서오세요!');
         navigate('home');
         updateAiButtons();
         return;
@@ -2797,6 +2851,7 @@ function confirmRole(){
   if(!selectedRole){showToast('역할을 선택해 주세요');return;}
   state.role=selectedRole;
   navigate('profile-setup'); // 이름/연락처 입력 단계로
+  updateNicknameUI();
 }
 
 // 역할 선택 화면 사진 업로드 처리
@@ -2903,23 +2958,59 @@ function blockNonNumeric(e){
 }
 function checkSetupReady(){
   const name=(document.getElementById('setup-name')||{value:''}).value.trim();
+  const nickname=(document.getElementById('setup-nickname')||{value:''}).value.trim();
   const phone=(document.getElementById('setup-phone')||{value:''}).value.replace(/\D/g,'');
   const year=(document.getElementById('setup-year')||{value:''}).value;
   const month=(document.getElementById('setup-month')||{value:''}).value;
   const day=(document.getElementById('setup-day')||{value:''}).value;
   const btn=document.getElementById('btn-setup-confirm');
   if(!btn) return;
-  const ready=name.length>=2 && phone.length>=10 && year && month && day && selectedGender;
+  // 요양보호사: 별명 필수(2~12자), 구인자: 별명 선택
+  var nicknameOk = true;
+  if(selectedRole === 'caregiver'){
+    nicknameOk = nickname.length >= 2 && nickname.length <= 12;
+  } else if(selectedRole === 'employer'){
+    nicknameOk = nickname.length === 0 || (nickname.length >= 2 && nickname.length <= 12);
+  }
+  const ready=name.length>=2 && phone.length>=10 && year && month && day && selectedGender && nicknameOk;
   btn.style.opacity=ready?'1':'0.4';
   btn.style.pointerEvents=ready?'auto':'none';
 }
+// 역할 선택 시 별명 필수/선택 표시 업데이트
+function updateNicknameUI(){
+  var grp = document.getElementById('setup-nickname-group');
+  var reqLabel = document.getElementById('setup-nickname-required');
+  var hint = document.getElementById('setup-nickname-hint');
+  if(!grp) return;
+  if(selectedRole === 'employer'){
+    if(reqLabel) reqLabel.textContent = '(선택)';
+    if(hint) hint.textContent = '설정하면 공고에 이 이름이 표시돼요 (2~12자)';
+  } else {
+    if(reqLabel) reqLabel.textContent = '(필수)';
+    if(hint) hint.textContent = '다른 사용자에게 보이는 이름이에요 (2~12자)';
+  }
+}
 function confirmSetup(){
   const name=document.getElementById('setup-name').value.trim();
+  const nickname=(document.getElementById('setup-nickname')||{value:''}).value.trim();
   const phone=document.getElementById('setup-phone').value.trim();
   const year=document.getElementById('setup-year').value;
   const month=document.getElementById('setup-month').value;
   const day=document.getElementById('setup-day').value;
   if(name.length<2){showToast('이름을 입력해 주세요');return;}
+  // 요양보호사 별명 필수 검증
+  if(selectedRole === 'caregiver' && (nickname.length < 2 || nickname.length > 12)){
+    showToast('별명을 2~12자로 입력해 주세요');return;
+  }
+  // 구인자 별명 선택인데 입력한 경우 길이 검증
+  if(selectedRole === 'employer' && nickname.length > 0 && (nickname.length < 2 || nickname.length > 12)){
+    showToast('별명은 2~12자로 입력해 주세요');return;
+  }
+  // 별명 부적절 내용 필터링
+  if(nickname.length > 0){
+    var nickFilter = checkContentFilter(nickname);
+    if(nickFilter){ showToast('별명에 부적절한 표현이 포함되어 있습니다'); return; }
+  }
   if(phone.replace(/\D/g,'').length<10){showToast('연락처를 확인해 주세요');return;}
   if(!year||!month||!day){showToast('생년월일을 선택해 주세요');return;}
   if(!selectedGender){showToast('성별을 선택해 주세요');return;}
@@ -2928,13 +3019,20 @@ function confirmSetup(){
   const genderLabel=selectedGender==='male'?'남성':'여성';
   state.user.name=name; state.user.phone=phone;
   state.user.birth=birth; state.user.gender=selectedGender;
+  // 별명 저장
+  if(nickname.length >= 2){
+    state.user.nickname = nickname;
+  } else if(selectedRole === 'employer'){
+    // 구인자는 별명 미설정 시 실명 사용
+    state.user.nickname = '';
+  }
   // 역할 선택 화면에서 미리 올린 사진 반영
   if(state._pendingCertPhoto){
     state.user.certPhoto=state._pendingCertPhoto;
     state._pendingCertPhoto=null;
   }
   // 프로필 화면 반영
-  document.getElementById('profile-name').textContent=name;
+  document.getElementById('profile-name').textContent=state.user.nickname||name;
   document.getElementById('profile-type-label').textContent=
     `${state.role==='caregiver'?'요양보호사':'구인자'} · ${genderLabel} · ${birth}`;
   document.getElementById('profile-area-label').textContent='📍 서울 강남구';
@@ -4210,7 +4308,7 @@ function submitPost(){
     if(!desc.trim()){showToast('⚠️ 상세 내용을 입력해 주세요');return;}
   } else {
     // ── 구직: 기본 검증 ──
-    title = (state.user&&state.user.name||'요양보호사') + ' 구직합니다';
+    title = (state.user? getDisplayName(state.user) : '요양보호사') + ' 구직합니다';
     if(!area){showToast('⚠️ 주소를 검색해 주세요');return;}
     if(sharePhoneSelected !== false){
       if(!phone){showToast('⚠️ 연락처를 입력해 주세요');return;}
@@ -4298,8 +4396,8 @@ function submitPost(){
       id:Date.now(),type:'caregiver',title,area,
       workType,days,hours:'협의',salary,
       desc:finalDesc,contact:phone||'',
-      name:(state.user&&state.user.name)||'나',
-      postedBy:(state.user&&state.user.name)||'나',
+      name:(state.user? getDisplayName(state.user) : '나'),
+      postedBy:(state.user? getDisplayName(state.user) : '나'),
       postedByKakaoId:(state.user&&state.user.kakaoId)||'',
       time:'방금 전',urgent:false,status:'active',
       createdAt:Date.now(),exactAddress:addrDetail,
@@ -4329,8 +4427,8 @@ function submitPost(){
     id:Date.now(),type:'employer',title,area,
     workType,days,hours:'협의',salary,
     desc:desc||'상세 내용 없음',contact:phone,
-    name:(state.user&&state.user.name)||'나',
-    postedBy:(state.user&&state.user.name)||'나',
+    name:(state.user? getDisplayName(state.user) : '나'),
+    postedBy:(state.user? getDisplayName(state.user) : '나'),
     postedByKakaoId:(state.user&&state.user.kakaoId)||'',
     time:'방금 전',urgent,status:'active',
     createdAt:Date.now(),exactAddress:addrDetail||exactAddress,
@@ -4751,28 +4849,34 @@ function initFirebase(){
     // ── 영구밴 목록 로드 ────────────────────────────────────
     loadBannedUsers();
 
-    // ── 실시간 연결 감지 + REST 폴백 ────────────────────────
+    // ── 실시간 연결 감지 + REST 즉시 병행 로드 ──────────────
     var _realtimeConnected = false;
+
+    // 즉시 REST로 공고 먼저 로드 (사용자 체감 속도 최적화)
+    loadListingsViaRest();
+    fbRestGet('reports').then(function(data){
+      state.reports = [];
+      if(data){
+        Object.keys(data).forEach(function(k){ state.reports.push(Object.assign({id:k}, data[k])); });
+      }
+    }).catch(function(){});
+
+    // 3초 후에도 실시간 미연결이면 REST 폴백 모드 확정
     var _connectionTimeout = setTimeout(function(){
       if(!_realtimeConnected){
         console.warn('[요양링크] 실시간 연결 실패 → REST API 폴백 모드 전환');
         _fbUseRest = true;
         enableRestFallback();
         startRestPolling();
-        // reports도 REST로 로드
-        fbRestGet('reports').then(function(data){
-          state.reports = [];
-          if(data){
-            Object.keys(data).forEach(function(k){ state.reports.push(Object.assign({id:k}, data[k])); });
-          }
-        }).catch(function(){});
       }
-    }, 8000);
+    }, 3000);
 
     fbDB.ref('.info/connected').on('value', function(snap){
       if(snap.val() === true && !_realtimeConnected){
         _realtimeConnected = true;
+        _fbUseRest = false;
         clearTimeout(_connectionTimeout);
+        if(_fbRestTimer){ clearInterval(_fbRestTimer); _fbRestTimer = null; }
         console.log('[요양링크] Firebase 실시간 연결 성공 ✅');
       }
     });
@@ -4990,7 +5094,7 @@ function openChatRoom(listingId, forceInquirerId){
 
   // Firebase에 meta 즉시 저장 (상대방이 채팅 목록에서 볼 수 있도록)
   if(fbDB){
-    const myName = (state.user && state.user.name) || '나';
+    const myName = getMyDisplayName();
     const initMeta = {
       listingId: listingId,
       title: item.title,
@@ -5150,7 +5254,7 @@ function renderMessages(chatId){
   const container = document.getElementById('chatroom-messages'); if(!container) return;
   container.style.background = '#B2C7D9';
   const myKakaoId = (state.user&&state.user.kakaoId)||'';
-  const myName = (state.user && state.user.name) || '나';
+  const myName = getMyDisplayName();
   const msgs = chat.messages || [];
 
   // 상대방의 마지막 메시지 시간 (읽음 "1" 판정용) — 한 번만 계산
@@ -5342,7 +5446,7 @@ function sendMessage(){
   }
 
   const chatId = state.activeChatId; if(!chatId) return;
-  const myName = (state.user && state.user.name) || '나';
+  const myName = getMyDisplayName();
 
   const msg = {
     sender: myName,
@@ -7531,6 +7635,7 @@ function saveUserToFirebase(){
   var u = state.user;
   var userData = {
     name: u.name || '',
+    nickname: u.nickname || '',
     role: u.role || state.role || '',
     area: u.area || '',
     phone: u.phone || '',
@@ -7549,6 +7654,152 @@ function saveUserToFirebase(){
       console.error('사용자 정보 저장 실패:', err);
     });
   });
+}
+
+// ============================================================
+//  별명(닉네임) 시스템
+// ============================================================
+// 공개 표시용 이름 반환: 별명 > 실명
+function getDisplayName(user){
+  if(!user) return '사용자';
+  if(user.nickname) return user.nickname;
+  return user.name || '사용자';
+}
+// 현재 로그인 사용자의 공개 이름
+function getMyDisplayName(){
+  return getDisplayName(state.user);
+}
+
+// 임시 별명 자동 생성 (기존 사용자 중 별명 없는 경우)
+var _tempNicknameAdjectives = ['따뜻한','성실한','밝은','다정한','부지런한','꼼꼼한','상냥한','활발한','차분한','든든한','정성스런','유쾌한','친절한','꾸준한','건강한'];
+var _tempNicknameNouns = ['해바라기','별빛','산들바람','봄날','햇살','꽃향기','소나무','들꽃','바다','하늘','다람쥐','토끼','무지개','새벽','달빛'];
+
+function generateTempNickname(){
+  var adj = _tempNicknameAdjectives[Math.floor(Math.random()*_tempNicknameAdjectives.length)];
+  var noun = _tempNicknameNouns[Math.floor(Math.random()*_tempNicknameNouns.length)];
+  var num = Math.floor(Math.random()*900) + 100; // 100~999
+  return adj + noun + num;
+}
+
+// 기존 사용자 로그인 시 별명 없으면 자동 부여
+function ensureNickname(callback){
+  if(!state.user || !state.user.kakaoId) { if(callback) callback(); return; }
+  // 이미 별명 있으면 스킵
+  if(state.user.nickname) { if(callback) callback(); return; }
+  // Firebase에서 사용자 데이터 확인
+  fbRestGet('users/' + state.user.kakaoId).then(function(data){
+    if(data && data.nickname) {
+      state.user.nickname = data.nickname;
+      try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+      if(callback) callback();
+      return;
+    }
+    // 별명 없음 → 고유한 임시 별명 생성
+    generateUniqueNickname(function(nick){
+      state.user.nickname = nick;
+      try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+      // Firebase에 저장
+      if(fbDB){
+        fbDB.ref('users/' + state.user.kakaoId + '/nickname').set(nick).catch(function(){});
+      }
+      console.log('[요양링크] 임시 별명 자동 부여:', nick);
+      if(callback) callback();
+    });
+  }).catch(function(){
+    // REST 실패 시 그냥 임시 별명 생성
+    var nick = generateTempNickname();
+    state.user.nickname = nick;
+    try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+    if(callback) callback();
+  });
+}
+
+// 별명 중복 확인 후 고유한 닉네임 반환
+function generateUniqueNickname(callback, attempt){
+  attempt = attempt || 0;
+  if(attempt > 10) { callback(generateTempNickname()); return; } // 10회 초과 시 그냥 사용
+  var nick = generateTempNickname();
+  checkNicknameExists(nick, function(exists){
+    if(!exists) { callback(nick); }
+    else { generateUniqueNickname(callback, attempt + 1); }
+  });
+}
+
+// Firebase에서 별명 중복 확인
+function checkNicknameExists(nickname, callback){
+  fbRestGet('users').then(function(data){
+    if(!data) { callback(false); return; }
+    var exists = Object.keys(data).some(function(k){
+      return data[k].nickname && data[k].nickname === nickname;
+    });
+    callback(exists);
+  }).catch(function(){ callback(false); });
+}
+
+// 별명 변경 모달
+function showNicknameEditModal(){
+  var input = document.getElementById('edit-nickname-input');
+  if(input) input.value = (state.user && state.user.nickname) || '';
+  var status = document.getElementById('edit-nickname-status');
+  if(status) status.textContent = '';
+  openModal('modal-edit-nickname');
+  checkEditNicknameReady();
+}
+function checkEditNicknameReady(){
+  var input = document.getElementById('edit-nickname-input');
+  var btn = document.getElementById('btn-save-nickname');
+  var status = document.getElementById('edit-nickname-status');
+  if(!input || !btn) return;
+  var v = input.value.trim();
+  var ok = v.length >= 2 && v.length <= 12;
+  btn.style.opacity = ok ? '1' : '0.4';
+  btn.style.pointerEvents = ok ? 'auto' : 'none';
+  if(status){
+    if(v.length === 0) status.textContent = '';
+    else if(v.length < 2) status.textContent = '2자 이상 입력해 주세요';
+    else status.textContent = '✅ 사용 가능한 길이에요';
+    status.style.color = ok ? '#4CAF50' : '#E53935';
+  }
+}
+function saveEditedNickname(){
+  var input = document.getElementById('edit-nickname-input');
+  if(!input) return;
+  var nick = input.value.trim();
+  if(nick.length < 2 || nick.length > 12) { showToast('별명은 2~12자로 입력해 주세요'); return; }
+  // 부적절 표현 필터링
+  var nickFilter = checkContentFilter(nick);
+  if(nickFilter){ showToast('별명에 부적절한 표현이 포함되어 있습니다'); return; }
+  // 중복 확인 후 저장
+  var btn = document.getElementById('btn-save-nickname');
+  if(btn) { btn.textContent = '확인 중...'; btn.style.pointerEvents = 'none'; }
+  checkNicknameExists(nick, function(exists){
+    if(exists && nick !== (state.user && state.user.nickname)){
+      showToast('이미 사용 중인 별명이에요');
+      if(btn) { btn.textContent = '저장'; btn.style.pointerEvents = 'auto'; }
+      return;
+    }
+    state.user.nickname = nick;
+    try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+    if(fbDB && state.user.kakaoId){
+      fbDB.ref('users/' + state.user.kakaoId + '/nickname').set(nick).catch(function(){});
+    }
+    // UI 업데이트
+    var pName = document.getElementById('profile-name');
+    if(pName) pName.textContent = nick;
+    var pNickDisplay = document.getElementById('profile-nickname-display');
+    if(pNickDisplay) pNickDisplay.textContent = nick;
+    closeModal('modal-edit-nickname');
+    showToast('✅ 별명이 변경되었습니다');
+    if(btn) { btn.textContent = '저장'; btn.style.pointerEvents = 'auto'; }
+  });
+}
+
+// 프로필 화면 진입 시 별명 표시 업데이트
+function updateProfileNicknameDisplay(){
+  var el = document.getElementById('profile-nickname-display');
+  if(el && state.user){
+    el.textContent = state.user.nickname || '미설정';
+  }
 }
 
 // ============================================================
@@ -7673,6 +7924,51 @@ function adminUnbanUser(kakaoId){
   renderAdminUsers();
 }
 
+// 관리자: 유저 실명 직접 수정
+function adminEditUserName(kakaoId, currentName){
+  if(!isAdmin()) return;
+  var newName = prompt('실명을 수정하세요:', currentName);
+  if(newName === null) return; // 취소
+  newName = newName.trim();
+  if(newName.length < 1) { showToast('이름을 입력해 주세요'); return; }
+  fbDB.ref('users/' + kakaoId + '/name').set(newName).then(function(){
+    showToast('✅ ' + kakaoId + ' 님의 실명이 변경되었습니다');
+    renderAdminUsers();
+  }).catch(function(err){
+    console.error('실명 변경 실패:', err);
+    showToast('⚠️ 실명 변경 실패');
+  });
+}
+
+// 관리자: 유저 별명 직접 수정
+function adminEditUserNickname(kakaoId, currentNick){
+  if(!isAdmin()) return;
+  var newNick = prompt('별명을 수정하세요 (2~12자):', currentNick);
+  if(newNick === null) return; // 취소
+  newNick = newNick.trim();
+  if(newNick.length > 0 && (newNick.length < 2 || newNick.length > 12)){
+    showToast('별명은 2~12자로 입력해 주세요'); return;
+  }
+  fbDB.ref('users/' + kakaoId + '/nickname').set(newNick).then(function(){
+    showToast('✅ ' + kakaoId + ' 님의 별명이 변경되었습니다');
+    renderAdminUsers();
+  }).catch(function(err){
+    console.error('별명 변경 실패:', err);
+    showToast('⚠️ 별명 변경 실패');
+  });
+}
+
+// 관리자: 강제 회원 탈퇴
+function adminForceWithdraw(kakaoId, userName){
+  if(!isAdmin()) return;
+  if(!confirm('⚠️ 정말 ' + (userName||kakaoId) + ' 님을 강제 탈퇴시키겠습니까?\n\n이 회원의 모든 공고, 채팅, 프로필 데이터가\n즉시 삭제됩니다. 되돌릴 수 없습니다.')) return;
+  if(!confirm('🔴 최종 확인: ' + (userName||kakaoId) + ' 님을 정말 강제 탈퇴합니까?')) return;
+
+  deleteAllUserData(kakaoId, userName);
+  showToast('⛔ ' + (userName||kakaoId) + ' 님이 강제 탈퇴 처리되었습니다');
+  setTimeout(function(){ renderAdminUsers(); }, 1000);
+}
+
 // 신고 모달에서 바로 밴
 function adminBanFromReport(listingId){
   if(!isAdmin()) return;
@@ -7772,15 +8068,18 @@ function renderAdminUsers(){
         var joinDate = u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('ko-KR') : '';
         var lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ko-KR') : '';
         var posts = postCounts[kakaoId] || 0;
+        var displayNick = u.nickname ? escapeHtml(u.nickname) : '<span style="color:#ccc">별명 없음</span>';
 
         return '<div style="background:#fff;border:1px solid ' + (isBanned?'#ffcdd2':'#eee') + ';border-radius:12px;padding:14px;margin-bottom:10px">'
-          // 이름 + 역할
-          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          // 이름 + 별명 + 역할
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
           + '<div style="font-size:15px;font-weight:700;color:' + (isBanned?'#E53935':'var(--text)') + '">'
           + (isBanned ? '🚫 ' : '') + escapeHtml(u.name||kakaoId) + (isMe ? ' <span style="font-size:11px;color:var(--primary)">(나)</span>' : '')
           + '</div>'
           + '<div style="font-size:12px;font-weight:600;color:#fff;background:' + (u.role==='employer'?'#FF6B35':'#1565C0') + ';padding:2px 8px;border-radius:8px">' + roleLabel + '</div>'
           + '</div>'
+          // 별명 표시
+          + '<div style="font-size:12px;color:#1565C0;margin-bottom:6px">🏷️ ' + displayNick + '</div>'
           // 상세 정보
           + '<div style="font-size:12px;color:#888;line-height:1.8;margin-bottom:8px">'
           + (u.area ? '📍 ' + escapeHtml(u.area) : '')
@@ -7792,10 +8091,19 @@ function renderAdminUsers(){
           + (lastLogin ? ' · 최근 ' + lastLogin : '')
           + '</div>'
           + '<div style="font-size:10px;color:#ccc;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
-          // 버튼
-          + (isBanned
-            ? '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">차단 해제</button>'
-            : (isMe ? '' : '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#E53935;border-color:#E53935" onclick="adminBanUser(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">🚫 영구밴</button>')
+          // 관리 버튼들
+          + (isMe ? '' : '<div style="display:flex;flex-direction:column;gap:6px">'
+            // 이름 수정 버튼
+            + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminEditUserName(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">✏️ 실명 수정</button>'
+            // 별명 수정 버튼
+            + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminEditUserNickname(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.nickname||'') + '\')">🏷️ 별명 수정</button>'
+            + (isBanned
+              ? '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#4CAF50;border-color:#4CAF50" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">✅ 차단 해제</button>'
+              : '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#E53935;border-color:#E53935" onclick="adminBanUser(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">🚫 영구밴</button>'
+            )
+            // 강제 탈퇴 버튼
+            + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#fff;background:#E53935;border-color:#E53935" onclick="adminForceWithdraw(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">⛔ 강제 탈퇴</button>'
+            + '</div>'
           )
           + '</div>';
       }).join('');
