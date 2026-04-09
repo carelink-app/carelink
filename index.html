@@ -3,7 +3,7 @@
 <head>
   <!-- 보안 메타태그 -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://*.cloudflare.com wss://*.firebaseio.com; font-src 'self' https://cdnjs.cloudflare.com"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://*.cloudflare.com wss://*.firebaseio.com wss://*.firebasedatabase.app; font-src 'self' https://cdnjs.cloudflare.com"/>
   <meta http-equiv="X-Frame-Options" content="DENY"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
@@ -4674,49 +4674,22 @@ function initFirebase(){
     // ── 영구밴 목록 로드 ────────────────────────────────────
     loadBannedUsers();
 
-    // ── 공고 실시간 동기화 (최적화: 초기 1회 로드 + 변경분만 업데이트) ──
-    var _listingsInitialized = false;
-    fbDB.ref('listings').once('value', snap => {
+    // ── 공고 실시간 동기화 ────────────────────────────────────
+    fbDB.ref('listings').on('value', snap => {
       const listings = [];
       snap.forEach(child => {
         const item = { ...child.val(), fbKey: child.key };
         listings.push(item);
       });
+      // 최신순 정렬
       listings.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
       state.listings = listings;
       state._firebaseLoaded = true;
-      _listingsInitialized = true;
       checkExpiryNotices();
       renderListings();
       if(state.mapInstance) renderMapMarkers();
       renderMyListings();
-
-      // 이후 변경분만 실시간 감지
-      fbDB.ref('listings').on('child_added', function(child){
-        if(!_listingsInitialized) return;
-        var item = { ...child.val(), fbKey: child.key };
-        var exists = state.listings.find(function(l){ return l.fbKey === child.key; });
-        if(!exists){
-          state.listings.unshift(item);
-          renderListings();
-          if(state.mapInstance) renderMapMarkers();
-        }
-      });
-      fbDB.ref('listings').on('child_changed', function(child){
-        var item = { ...child.val(), fbKey: child.key };
-        var idx = state.listings.findIndex(function(l){ return l.fbKey === child.key; });
-        if(idx >= 0) state.listings[idx] = item;
-        else state.listings.unshift(item);
-        renderListings();
-        if(state.mapInstance) renderMapMarkers();
-        renderMyListings();
-      });
-      fbDB.ref('listings').on('child_removed', function(child){
-        state.listings = state.listings.filter(function(l){ return l.fbKey !== child.key; });
-        renderListings();
-        if(state.mapInstance) renderMapMarkers();
-        renderMyListings();
-      });
     });
 
     // ── 신고 실시간 동기화 ────────────────────────────────────
@@ -5232,7 +5205,7 @@ function renderChatList(){
   if(!fbDB || !state.user || !state.user.kakaoId){ renderChatListDraw(); return; }
 
   // 매번 새로 읽어서 실시간 반영
-  fbDB.ref('chats').once('value', snap=>{
+  fbDB.ref('chats').once('value').then(snap=>{
     const myId = state.user.kakaoId;
     const isAdmin = myId === ADMIN_KAKAO_ID;
     snap.forEach(chatSnap=>{
@@ -5310,6 +5283,9 @@ function renderChatList(){
     });
     updateChatBadge();
     renderChatListDraw();
+  }).catch(function(err){
+    console.error('[요양링크] 채팅 목록 로드 실패:', err);
+    renderChatListDraw();
   });
 }
 
@@ -5323,7 +5299,7 @@ function saveMsgCache(chatId){
     var msgs = (state.chats[chatId] && state.chats[chatId].messages) || [];
     // 최근 30개만 캐시
     cache[chatId] = {
-      msgs: msgs.slice(-20).map(function(m){ return {id:m.id, sender:m.sender, senderId:m.senderId, text:(m.type==='sticker'?m.text:(m.text||'').slice(0,200)), type:m.type, time:m.time}; }),
+      msgs: msgs.slice(-30).map(function(m){ return {id:m.id, sender:m.sender, senderId:m.senderId, text:(m.type==='sticker'?m.text:(m.text||'').slice(0,200)), type:m.type, time:m.time, imageUrl:m.imageUrl||'', imageLabel:m.imageLabel||''}; }),
       ts: Date.now()
     };
     // 캐시 크기 제한
@@ -5363,7 +5339,7 @@ function cleanupOldMessages(){
   var lastCleanup = parseInt(localStorage.getItem('carelink_lastMsgCleanup') || '0');
   if(Date.now() - lastCleanup < CLEANUP_INTERVAL) return;
 
-  var EXPIRY_MS = 60 * 24 * 60 * 60 * 1000; // 60일
+  var EXPIRY_MS = 90 * 24 * 60 * 60 * 1000; // 90일
   var cutoff = Date.now() - EXPIRY_MS;
   var myId = state.user.kakaoId;
 
@@ -6931,7 +6907,11 @@ function updateAdminStats(){
 
   // Firebase에서 실제 회원 수 및 오늘 신규 가입 조회
   if(fbDB){
-    fbDB.ref('users').once('value', function(snap){
+    var el3 = document.getElementById('stat-total-users');
+    var el4 = document.getElementById('stat-today-new');
+    if(el3) el3.textContent = '...';
+    if(el4) el4.textContent = '...';
+    fbDB.ref('users').once('value').then(function(snap){
       var users = snap.val() || {};
       var keys = Object.keys(users);
       var totalUsers = keys.length;
@@ -6944,6 +6924,12 @@ function updateAdminStats(){
       var el4 = document.getElementById('stat-today-new');
       if(el3) el3.textContent = totalUsers;
       if(el4) el4.textContent = todayNew;
+    }).catch(function(err){
+      console.error('[요양링크] 회원 통계 로드 실패:', err);
+      var el3 = document.getElementById('stat-total-users');
+      var el4 = document.getElementById('stat-today-new');
+      if(el3) el3.textContent = '-';
+      if(el4) el4.textContent = '-';
     });
   }
 }
@@ -7527,7 +7513,14 @@ function renderAdminUsers(){
       container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">Firebase 미연결</div>';
       return;
     }
-    fbDB.ref('users').once('value', function(snap){
+    container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa"><div class="shimmer-line" style="width:60%;margin:0 auto 12px"></div><div class="shimmer-line" style="width:40%;margin:0 auto"></div><div style="margin-top:12px;font-size:13px">회원 정보 불러오는 중...</div></div>';
+    var _adminLoadTimer = setTimeout(function(){
+      if(container.innerHTML.indexOf('불러오는 중') !== -1){
+        container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">로딩 시간이 초과되었습니다<br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
+      }
+    }, 10000);
+    fbDB.ref('users').once('value').then(function(snap){
+      clearTimeout(_adminLoadTimer);
       var users = snap.val() || {};
       var keys = Object.keys(users);
       if(searchTerm){
@@ -7584,6 +7577,9 @@ function renderAdminUsers(){
           )
           + '</div>';
       }).join('');
+    }).catch(function(err){
+      console.error('[요양링크] 회원 목록 로드 실패:', err);
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">회원 목록을 불러올 수 없습니다<br><span style="font-size:12px;color:#aaa">Firebase 권한을 확인하세요</span><br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
     });
   }
 }
