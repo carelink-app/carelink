@@ -588,7 +588,7 @@
 
   <div class="header">
     <div style="font-size:20px;font-weight:900;color:var(--primary)">요양링크</div>
-    <div style="flex:1;margin-left:8px;font-size:15px;color:var(--text-sub)">📍 <span id="home-area-label">내 지역</span></div>
+    <div style="flex:1;margin-left:8px;font-size:15px;color:var(--text-sub);cursor:pointer" onclick="openAreaSelectModal(function(area){ var el=document.getElementById('home-area-label'); if(el) el.textContent=area; if(state.mapInstance){ var c=DISTRICT_COORDS[area]; if(c) state.mapInstance.setView(c,13); } })">📍 <span id="home-area-label">내 지역</span> <span style="font-size:11px;color:#ccc">▼</span></div>
     <div class="header-right" onclick="showToast('새 알림이 없습니다')">🔔</div>
   </div>
 
@@ -824,7 +824,7 @@
           <span id="admin-badge" style="background:#FF9800;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;display:none">🔧 관리자</span>
         </div>
         <div class="profile-sub" id="profile-type-label">요양보호사</div>
-        <div class="profile-sub" id="profile-area-label" style="margin-top:2px">📍 서울 강남구</div>
+        <div class="profile-sub" id="profile-area-label" style="margin-top:2px">📍 지역 미설정</div>
         <!-- 프로필 완성도 -->
         <div id="profile-completion-wrap" style="margin-top:8px">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1186,6 +1186,19 @@
         <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="saveManagerId()">저장</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 지역 설정 (회원가입/설정 공용) ===== -->
+<div class="modal-overlay" id="modal-area-select" onclick="closeAreaSelectModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:82vh;display:flex;flex-direction:column">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;padding:0 4px 14px;gap:4px">
+      <div id="area-modal-back" onclick="areaSelectBack()" style="display:none;font-size:22px;padding:4px 10px 4px 0;cursor:pointer;color:var(--text)">←</div>
+      <div id="area-modal-title" style="font-size:18px;font-weight:800;color:var(--text);flex:1">📍 지역을 선택해 주세요</div>
+      <div onclick="closeAreaSelectModal()" style="font-size:22px;color:#aaa;cursor:pointer;padding:4px 0 4px 10px">✕</div>
+    </div>
+    <div id="area-modal-list" style="overflow-y:auto;padding:0 4px 20px;flex:1"></div>
   </div>
 </div>
 
@@ -1870,9 +1883,9 @@
       <div class="settings-item">
         <div>
           <div class="settings-label">활동 지역</div>
-          <div class="settings-value" id="settings-area">서울 강남구</div>
+          <div class="settings-value" id="settings-area">지역 미설정</div>
         </div>
-        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="showToast('지역 변경은 프로필 설정을 통해 가능합니다')">변경</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="openAreaSelectModal(function(){ var el=document.getElementById('settings-area'); if(el && state.user) el.textContent=state.user.area||'미설정'; })">변경</button>
       </div>
       <div class="settings-item">
         <div>
@@ -2156,6 +2169,94 @@ function checkAutoHideByReports(){
 // ============================================================
 //  DISTRICT COORDS  (center of district)
 // ============================================================
+// ============================================================
+//  지역 선택 시스템 (회원가입 + 설정 공용)
+// ============================================================
+var _areaSelectCallback = null; // 선택 완료 후 콜백
+var _areaSelectedSido = null;
+
+function openAreaSelectModal(callback){
+  _areaSelectCallback = callback;
+  _areaSelectedSido = null;
+  renderAreaSidoList();
+  openModal('modal-area-select');
+}
+function closeAreaSelectModal(){
+  closeModal('modal-area-select');
+}
+function areaSelectBack(){
+  _areaSelectedSido = null;
+  renderAreaSidoList();
+}
+function renderAreaSidoList(){
+  var container = document.getElementById('area-modal-list');
+  var title = document.getElementById('area-modal-title');
+  var back = document.getElementById('area-modal-back');
+  if(!container) return;
+  if(title) title.textContent = '📍 시/도를 선택해 주세요';
+  if(back) back.style.display = 'none';
+
+  // DISTRICT_COORDS 키에서 시도 목록 추출
+  var sidos = [];
+  var sidoSet = {};
+  Object.keys(DISTRICT_COORDS).forEach(function(k){
+    var parts = k.split(' ');
+    var sido = parts[0];
+    if(!sidoSet[sido]){ sidoSet[sido]=true; sidos.push(sido); }
+  });
+
+  container.innerHTML = sidos.map(function(sido){
+    return '<div onclick="selectAreaSido(\'' + sido + '\')" style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-size:16px;font-weight:600;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-radius:10px;margin-bottom:2px" onmouseover="this.style.background=\'#f5f5f5\'" onmouseout="this.style.background=\'#fff\'">'
+      + '<span>' + sido + '</span><span style="color:#ccc;font-size:14px">›</span></div>';
+  }).join('');
+}
+
+function selectAreaSido(sido){
+  _areaSelectedSido = sido;
+  var container = document.getElementById('area-modal-list');
+  var title = document.getElementById('area-modal-title');
+  var back = document.getElementById('area-modal-back');
+  if(!container) return;
+  if(title) title.textContent = '📍 ' + sido + ' — 시/군/구 선택';
+  if(back) back.style.display = 'block';
+
+  // 해당 시도의 시군구 목록
+  var districts = [];
+  Object.keys(DISTRICT_COORDS).forEach(function(k){
+    if(k.indexOf(sido) === 0){
+      var parts = k.split(' ');
+      var sigungu = parts.length > 1 ? parts.slice(1).join(' ') : '';
+      districts.push({key: k, name: sigungu || sido});
+    }
+  });
+
+  container.innerHTML = districts.map(function(d){
+    return '<div onclick="confirmAreaSelect(\'' + d.key.replace(/'/g,"\\'") + '\')" style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-size:16px;color:var(--text);cursor:pointer;border-radius:10px;margin-bottom:2px" onmouseover="this.style.background=\'#FFF3E0\'" onmouseout="this.style.background=\'#fff\'">'
+      + d.name + '</div>';
+  }).join('');
+}
+
+function confirmAreaSelect(areaKey){
+  closeAreaSelectModal();
+  // state에 저장
+  if(state.user){
+    state.user.area = areaKey;
+    try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+    // Firebase 업데이트
+    if(fbDB && state.user.kakaoId){
+      fbDB.ref('users/' + state.user.kakaoId + '/area').set(areaKey).catch(function(){});
+    }
+    // UI 업데이트
+    var pArea = document.getElementById('profile-area-label');
+    if(pArea) pArea.textContent = '📍 ' + areaKey;
+    var sArea = document.getElementById('settings-area');
+    if(sArea) sArea.textContent = areaKey;
+  }
+  showToast('📍 지역이 ' + areaKey + '(으)로 설정되었습니다');
+  if(_areaSelectCallback) _areaSelectCallback(areaKey);
+  _areaSelectCallback = null;
+}
+
 const DISTRICT_COORDS = {
   // 서울 (keep existing + add missing)
   '서울 강남구':[37.5172,127.0473],'서울 강동구':[37.5301,127.1238],'서울 강북구':[37.6396,127.0254],
@@ -2507,6 +2608,11 @@ function init(){
           (profile.role==='employer'?'구인자':'요양보호사') +
           (profile.gender ? ' · '+(profile.gender==='male'?'남성':'여성') : '') +
           (profile.birth  ? ' · '+profile.birth : '');
+        // 지역 표시
+        var pArea = document.getElementById('profile-area-label');
+        if(pArea) pArea.textContent = '📍 ' + (profile.area || '지역 미설정');
+        var sArea = document.getElementById('settings-area');
+        if(sArea) sArea.textContent = profile.area || '지역 미설정';
         // 공고 글쓰기 연락처 자동 채우기
         const phoneInput=document.getElementById('post-phone');
         if(phoneInput && profile.phone) phoneInput.value=profile.phone;
@@ -2519,8 +2625,20 @@ function init(){
         saveUserToFirebase(); // Firebase에 유저 정보 동기화
         // 기존 사용자 별명 자동 부여
         ensureNickname(function(){ if(pName) pName.textContent = getDisplayName(state.user); });
+        // 홈 화면 지역 라벨 업데이트
+        var hArea = document.getElementById('home-area-label');
+        if(hArea && profile.area) hArea.textContent = profile.area;
         navigate('home');
         updateAiButtons();
+        // 지역 미설정 사용자에게 지역 선택 유도
+        if(!profile.area){
+          setTimeout(function(){
+            openAreaSelectModal(function(areaKey){
+              var pa = document.getElementById('profile-area-label');
+              if(pa) pa.textContent = '📍 ' + areaKey;
+            });
+          }, 500);
+        }
         return; // 로그인 화면 건너뜀
       }
     }
@@ -2786,6 +2904,10 @@ document.addEventListener('DOMContentLoaded', function(){
         showToast('🎉 ' + getDisplayName(saved) + '님, 어서오세요!');
         navigate('home');
         updateAiButtons();
+        // 지역 미설정이면 지역 선택 유도
+        if(!saved.area){
+          setTimeout(function(){ openAreaSelectModal(function(){}); }, 500);
+        }
         return;
       }
     } catch(e){}
@@ -3035,7 +3157,7 @@ function confirmSetup(){
   document.getElementById('profile-name').textContent=state.user.nickname||name;
   document.getElementById('profile-type-label').textContent=
     `${state.role==='caregiver'?'요양보호사':'구인자'} · ${genderLabel} · ${birth}`;
-  document.getElementById('profile-area-label').textContent='📍 서울 강남구';
+  document.getElementById('profile-area-label').textContent='📍 ' + (state.user.area || '지역 설정 중...');
   // 공고 글쓰기 연락처 자동 채우기
   const phoneInput=document.getElementById('post-phone');
   if(phoneInput) phoneInput.value=phone;
@@ -3052,7 +3174,13 @@ function confirmSetup(){
   startChatNotificationListener();
   checkHireConfirmation();
   cleanupOldMessages();
+  // 지역 선택 후 홈으로 이동
   navigate('home');
+  setTimeout(function(){
+    openAreaSelectModal(function(areaKey){
+      // 지역 선택 완료
+    });
+  }, 300);
 }
 
 // ============================================================
@@ -3082,7 +3210,12 @@ function initMap(){
     renderMapMarkers();
     return;
   }
-  const fallback = DISTRICT_COORDS['서울 강남구']||[37.5665,126.9780];
+  // 사용자 설정 지역 기반으로 지도 중심 설정
+  var userArea = (state.user && state.user.area) || '';
+  var fallback = DISTRICT_COORDS[userArea] || DISTRICT_COORDS['서울 강남구'] || [37.5665,126.9780];
+  // 홈 화면 지역 라벨 업데이트
+  var homeAreaLabel = document.getElementById('home-area-label');
+  if(homeAreaLabel && userArea) homeAreaLabel.textContent = userArea;
   const map = L.map('leaflet-map',{center:fallback,zoom:13,zoomControl:false,attributionControl:false,maxZoom:15});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     maxZoom:19,
@@ -3136,8 +3269,9 @@ function tryGeolocation(map, fallback){
       if(distFilter) distFilter.style.display = 'flex';
     },
     ()=>{
-      // 권한 거부 시 기본 위치로
+      // 권한 거부 시 사용자 설정 지역으로
       locBtn.innerHTML='🎯 내 위치';
+      if(homeAreaLabel && userArea) homeAreaLabel.textContent = userArea;
       startMapWithCenter(map,fallback);
     },
     {timeout:6000,enableHighAccuracy:true}
@@ -7601,7 +7735,7 @@ function deleteMyListing(listingId){
 function updateSettingsScreen(){
   const areaEl = document.getElementById('settings-area');
   const roleEl = document.getElementById('settings-role');
-  if(areaEl) areaEl.textContent = state.user?.area || '서울 강남구';
+  if(areaEl) areaEl.textContent = state.user?.area || '지역 미설정';
   if(roleEl) roleEl.textContent = state.role || '요양보호사';
 }
 
