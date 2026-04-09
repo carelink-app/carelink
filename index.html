@@ -4654,6 +4654,83 @@ const FIREBASE_CONFIG = {
 };
 
 let fbDB = null; // Firebase Realtime Database 인스턴스
+var FB_REST_BASE = FIREBASE_CONFIG.databaseURL;
+var _fbUseRest = false; // REST API 폴백 모드 플래그
+var _fbRestTimer = null; // REST 폴링 타이머
+
+// ── REST API 헬퍼 ──────────────────────────────────────────
+function fbRestGet(path){
+  return fetch(FB_REST_BASE + '/' + path + '.json').then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+function fbRestSet(path, data){
+  return fetch(FB_REST_BASE + '/' + path + '.json', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+function fbRestPush(path, data){
+  return fetch(FB_REST_BASE + '/' + path + '.json', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+function fbRestUpdate(path, data){
+  return fetch(FB_REST_BASE + '/' + path + '.json', {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+function fbRestRemove(path){
+  return fetch(FB_REST_BASE + '/' + path + '.json', {
+    method: 'DELETE'
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return null;
+  });
+}
+
+// ── REST 폴백 모드: 주기적 데이터 새로고침 ──────────────────
+function startRestPolling(){
+  if(_fbRestTimer) return;
+  console.log('[요양링크] REST 폴링 모드 시작 (15초 간격)');
+  loadListingsViaRest();
+  _fbRestTimer = setInterval(function(){
+    loadListingsViaRest();
+  }, 15000);
+}
+function loadListingsViaRest(){
+  fbRestGet('listings').then(function(data){
+    if(!data) { state.listings = []; state._firebaseLoaded = true; renderListings(); return; }
+    var listings = [];
+    Object.keys(data).forEach(function(k){
+      listings.push(Object.assign({}, data[k], {fbKey: k}));
+    });
+    listings.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    state.listings = listings;
+    state._firebaseLoaded = true;
+    checkExpiryNotices();
+    renderListings();
+    if(state.mapInstance) renderMapMarkers();
+    renderMyListings();
+  }).catch(function(e){
+    console.error('[요양링크] REST listings 로드 실패:', e);
+  });
+}
 
 function initFirebase(){
   try {
@@ -4669,13 +4746,40 @@ function initFirebase(){
     }
     firebase.initializeApp(FIREBASE_CONFIG);
     fbDB = firebase.database();
-    console.log('[요양링크] Firebase 연결 성공 ✅');
+    console.log('[요양링크] Firebase SDK 초기화 완료');
 
     // ── 영구밴 목록 로드 ────────────────────────────────────
     loadBannedUsers();
 
+    // ── 실시간 연결 감지 + REST 폴백 ────────────────────────
+    var _realtimeConnected = false;
+    var _connectionTimeout = setTimeout(function(){
+      if(!_realtimeConnected){
+        console.warn('[요양링크] 실시간 연결 실패 → REST API 폴백 모드 전환');
+        _fbUseRest = true;
+        enableRestFallback();
+        startRestPolling();
+        // reports도 REST로 로드
+        fbRestGet('reports').then(function(data){
+          state.reports = [];
+          if(data){
+            Object.keys(data).forEach(function(k){ state.reports.push(Object.assign({id:k}, data[k])); });
+          }
+        }).catch(function(){});
+      }
+    }, 8000);
+
+    fbDB.ref('.info/connected').on('value', function(snap){
+      if(snap.val() === true && !_realtimeConnected){
+        _realtimeConnected = true;
+        clearTimeout(_connectionTimeout);
+        console.log('[요양링크] Firebase 실시간 연결 성공 ✅');
+      }
+    });
+
     // ── 공고 실시간 동기화 ────────────────────────────────────
     fbDB.ref('listings').on('value', snap => {
+      if(_fbUseRest) return; // REST 모드면 실시간 무시
       const listings = [];
       snap.forEach(child => {
         const item = { ...child.val(), fbKey: child.key };
@@ -4694,6 +4798,7 @@ function initFirebase(){
 
     // ── 신고 실시간 동기화 ────────────────────────────────────
     fbDB.ref('reports').on('value', snap => {
+      if(_fbUseRest) return;
       state.reports = [];
       snap.forEach(child => {
         state.reports.push({ id: child.key, ...child.val() });
@@ -4706,6 +4811,123 @@ function initFirebase(){
 }
 
 // seedSampleListingsToFirebase 제거됨 (실서비스 전환)
+
+// ── REST 폴백 래퍼: fbDB.ref() 작업을 REST로 자동 전환 ─────────
+// .once('value'), .push(), .set(), .update(), .remove() 지원
+var _origRef = null;
+function enableRestFallback(){
+  if(_origRef) return; // 이미 활성화됨
+  _origRef = fbDB.ref.bind(fbDB);
+
+  fbDB.ref = function(path){
+    var origRefObj = _origRef(path);
+    if(!_fbUseRest) return origRefObj; // 실시간 연결 OK면 원본 사용
+
+    // REST 모드: once, push, set, update, remove를 REST로 대체
+    var restPath = path || '';
+
+    // 가짜 snapshot 생성 헬퍼
+    function makeSnap(data, refPath){
+      var keys = data && typeof data === 'object' ? Object.keys(data) : [];
+      return {
+        val: function(){ return data; },
+        exists: function(){ return data !== null && data !== undefined; },
+        numChildren: function(){ return keys.length; },
+        key: refPath ? refPath.split('/').pop() : null,
+        forEach: function(cb){
+          keys.forEach(function(k){
+            cb(makeSnap(data[k], restPath + '/' + k));
+          });
+        },
+        child: function(childPath){
+          var parts = childPath.split('/');
+          var d = data;
+          parts.forEach(function(p){ if(d) d = d[p]; });
+          return makeSnap(d, restPath + '/' + childPath);
+        }
+      };
+    }
+
+    var wrapped = {
+      // 원본 ref 메서드도 유지 (on, off 등 — REST에서는 no-op)
+      on: function(eventType, cb){
+        // REST 모드에서는 once처럼 동작 (실시간 리스닝 불가)
+        if(eventType === 'value'){
+          var params = [];
+          if(wrapped._orderByKey) params.push('orderBy="$key"');
+          if(wrapped._orderByChild) params.push('orderBy="' + wrapped._orderByChild + '"');
+          if(wrapped._limitToLast) params.push('limitToLast=' + wrapped._limitToLast);
+          if(wrapped._limitToFirst) params.push('limitToFirst=' + wrapped._limitToFirst);
+          var url = params.length > 0
+            ? FB_REST_BASE + '/' + restPath + '.json?' + params.join('&')
+            : FB_REST_BASE + '/' + restPath + '.json';
+          fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+            .then(function(data){ cb(makeSnap(data, restPath)); })
+            .catch(function(e){ console.error('[REST on]', e); });
+        }
+        return cb;
+      },
+      off: function(){ /* no-op in REST mode */ },
+      once: function(eventType, cb){
+        var p = fbRestGet(restPath).then(function(data){
+          var snap = makeSnap(data, restPath);
+          if(typeof cb === 'function') cb(snap);
+          return snap;
+        });
+        return p;
+      },
+      push: function(data){
+        if(data !== undefined){
+          return fbRestPush(restPath, data).then(function(res){
+            return { key: res.name };
+          });
+        }
+        // push() without data — generate key
+        var newKey = '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+        return { key: newKey, set: function(d){ return fbRestSet(restPath + '/' + newKey, d); } };
+      },
+      set: function(data){ return fbRestSet(restPath, data); },
+      update: function(data){ return fbRestUpdate(restPath, data); },
+      remove: function(){ return fbRestRemove(restPath); },
+      orderByKey: function(){ wrapped._orderByKey = true; return wrapped; },
+      orderByChild: function(child){ wrapped._orderByChild = child; return wrapped; },
+      limitToLast: function(n){ wrapped._limitToLast = n; return wrapped; },
+      limitToFirst: function(n){ wrapped._limitToFirst = n; return wrapped; },
+      ref: function(childPath){ return fbDB.ref(restPath + '/' + childPath); },
+      toString: function(){ return FB_REST_BASE + '/' + restPath; },
+      // catch를 위한 then 지원
+      catch: function(fn){ return Promise.resolve().catch(fn); }
+    };
+
+    // orderBy + limit 조합 시 once 재정의
+    var origOnce = wrapped.once;
+    wrapped.once = function(eventType, cb){
+      var url = restPath;
+      var params = [];
+      if(wrapped._orderByKey) params.push('orderBy="$key"');
+      if(wrapped._orderByChild) params.push('orderBy="' + wrapped._orderByChild + '"');
+      if(wrapped._limitToLast) params.push('limitToLast=' + wrapped._limitToLast);
+      if(wrapped._limitToFirst) params.push('limitToFirst=' + wrapped._limitToFirst);
+
+      if(params.length > 0){
+        var fullUrl = FB_REST_BASE + '/' + url + '.json?' + params.join('&');
+        var p = fetch(fullUrl).then(function(r){
+          if(!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        }).then(function(data){
+          var snap = makeSnap(data, url);
+          if(typeof cb === 'function') cb(snap);
+          return snap;
+        });
+        return p;
+      }
+      return origOnce(eventType, cb);
+    };
+
+    return wrapped;
+  };
+  console.log('[요양링크] REST 폴백 래퍼 활성화');
+}
 
 // ============================================================
 //  CHAT STATE
