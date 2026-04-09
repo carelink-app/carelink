@@ -3,6 +3,7 @@
 <head>
   <!-- 보안 메타태그 -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://*.cloudflare.com wss://*.firebaseio.com; font-src 'self' https://cdnjs.cloudflare.com"/>
   <meta http-equiv="X-Frame-Options" content="DENY"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
@@ -1925,6 +1926,14 @@ const state = {
 // ============================================================
 //  XSS 방지 (HTML 이스케이프)
 // ============================================================
+
+function maskPhone(phone){
+  if(!phone) return '';
+  var d = phone.replace(/\D/g,'');
+  if(d.length===11) return d.slice(0,3)+'-****-'+d.slice(7);
+  if(d.length===10) return d.slice(0,3)+'-***-'+d.slice(6);
+  return phone.slice(0,3)+'****'+phone.slice(-2);
+}
 function escapeHtml(str){
   if(!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -2502,6 +2511,9 @@ function navigate(screen, skipHistory){
     if(state.chatUnsubscribe){ state.chatUnsubscribe(); state.chatUnsubscribe=null; }
   }
   if(screen==='resume') renderResumeScreen();
+  if(screen==='admin'){ updateAdminStats(); }
+  if(screen==='admin-users'){ renderAdminUsers(); }
+  if(screen==='admin-listings'){ renderAdminListings(); }
 
   if(!skipHistory){
     var tab = getTabForScreen(screen);
@@ -3331,7 +3343,7 @@ function openDetail(id){
         ${item.status==='interviewing'?'<span class="badge-interview">📅 면접 중</span>':''}
         ${isMatched?'<span class="badge-matched">🤝 매칭완료</span>':''}
       </div>
-      <div style="font-size:21px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:12px">${item.title}</div>
+      <div style="font-size:21px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:12px">${escapeHtml(item.title)}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:14px;color:#aaa">📍${item.area} · ${item.time}</div>
         <div style="font-size:14px;color:#aaa">${escapeHtml(item.name)}</div>
@@ -3663,7 +3675,7 @@ const CAREGIVER_FIELDS = `
       <div id="exp-type-new" onclick="selectExpType('new')" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:15px;font-weight:700;transition:all .2s">🌱 신입</div>
       <div id="exp-type-exp" onclick="selectExpType('exp')" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:15px;font-weight:700;transition:all .2s">💼 경력자</div>
     </div>
-    <div id="exp-detail-wrap" style="display:none;margin-top:10px;display:flex;flex-direction:column;gap:8px">
+    <div id="exp-detail-wrap" style="display:none;margin-top:10px;flex-direction:column;gap:8px">
       <div id="exp-row-nursing" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;transition:all .2s">
         <div style="font-size:14px;font-weight:600">🏥 요양원/요양병원</div>
         <select class="form-select" id="exp-nursing" style="width:120px;font-size:13px;padding:6px 8px" onchange="highlightExpRow('nursing',this.value)">
@@ -4662,22 +4674,49 @@ function initFirebase(){
     // ── 영구밴 목록 로드 ────────────────────────────────────
     loadBannedUsers();
 
-    // ── 공고 실시간 동기화 ────────────────────────────────────
-    fbDB.ref('listings').on('value', snap => {
+    // ── 공고 실시간 동기화 (최적화: 초기 1회 로드 + 변경분만 업데이트) ──
+    var _listingsInitialized = false;
+    fbDB.ref('listings').once('value', snap => {
       const listings = [];
       snap.forEach(child => {
         const item = { ...child.val(), fbKey: child.key };
         listings.push(item);
       });
-      // 최신순 정렬
       listings.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
       state.listings = listings;
       state._firebaseLoaded = true;
+      _listingsInitialized = true;
       checkExpiryNotices();
       renderListings();
       if(state.mapInstance) renderMapMarkers();
       renderMyListings();
+
+      // 이후 변경분만 실시간 감지
+      fbDB.ref('listings').on('child_added', function(child){
+        if(!_listingsInitialized) return;
+        var item = { ...child.val(), fbKey: child.key };
+        var exists = state.listings.find(function(l){ return l.fbKey === child.key; });
+        if(!exists){
+          state.listings.unshift(item);
+          renderListings();
+          if(state.mapInstance) renderMapMarkers();
+        }
+      });
+      fbDB.ref('listings').on('child_changed', function(child){
+        var item = { ...child.val(), fbKey: child.key };
+        var idx = state.listings.findIndex(function(l){ return l.fbKey === child.key; });
+        if(idx >= 0) state.listings[idx] = item;
+        else state.listings.unshift(item);
+        renderListings();
+        if(state.mapInstance) renderMapMarkers();
+        renderMyListings();
+      });
+      fbDB.ref('listings').on('child_removed', function(child){
+        state.listings = state.listings.filter(function(l){ return l.fbKey !== child.key; });
+        renderListings();
+        if(state.mapInstance) renderMapMarkers();
+        renderMyListings();
+      });
     });
 
     // ── 신고 실시간 동기화 ────────────────────────────────────
@@ -4796,7 +4835,7 @@ function openChatRoom(listingId, forceInquirerId){
 function loadMessages(chatId){
   if(state.chatUnsubscribe){ state.chatUnsubscribe(); state.chatUnsubscribe=null; }
 
-  var CHAT_PAGE_SIZE = 50;
+  var CHAT_PAGE_SIZE = 30;
 
   if(fbDB){
     // 페이지네이션 상태 초기화
@@ -4856,7 +4895,7 @@ function loadOlderMessages(){
   if(!chat || !state._chatOldestKey) return;
 
   state._chatLoadingMore = true;
-  var CHAT_PAGE_SIZE = 50;
+  var CHAT_PAGE_SIZE = 30;
 
   fbDB.ref('chats/'+chatId+'/messages')
     .orderByKey().endBefore(state._chatOldestKey).limitToLast(CHAT_PAGE_SIZE)
@@ -5284,7 +5323,7 @@ function saveMsgCache(chatId){
     var msgs = (state.chats[chatId] && state.chats[chatId].messages) || [];
     // 최근 30개만 캐시
     cache[chatId] = {
-      msgs: msgs.slice(-30).map(function(m){ return {id:m.id, sender:m.sender, senderId:m.senderId, text:m.text, type:m.type, imageUrl:m.imageUrl, imageLabel:m.imageLabel, time:m.time}; }),
+      msgs: msgs.slice(-20).map(function(m){ return {id:m.id, sender:m.sender, senderId:m.senderId, text:(m.type==='sticker'?m.text:(m.text||'').slice(0,200)), type:m.type, time:m.time}; }),
       ts: Date.now()
     };
     // 캐시 크기 제한
@@ -5294,7 +5333,17 @@ function saveMsgCache(chatId){
       for(var i=0; i < keys.length - MSG_CACHE_MAX; i++) delete cache[keys[i]];
     }
     localStorage.setItem(MSG_CACHE_KEY, JSON.stringify(cache));
-  } catch(e){}
+  } catch(e){
+    // localStorage 용량 초과 시 오래된 캐시 삭제
+    if(e.name === 'QuotaExceededError' || e.code === 22){
+      try {
+        var c2 = JSON.parse(localStorage.getItem(MSG_CACHE_KEY) || '{}');
+        var k2 = Object.keys(c2).sort(function(a,b){ return (c2[a].ts||0)-(c2[b].ts||0); });
+        for(var j=0; j < Math.ceil(k2.length/2); j++) delete c2[k2[j]];
+        localStorage.setItem(MSG_CACHE_KEY, JSON.stringify(c2));
+      } catch(e2){}
+    }
+  }
 }
 
 function loadMsgCache(chatId){
@@ -5314,7 +5363,7 @@ function cleanupOldMessages(){
   var lastCleanup = parseInt(localStorage.getItem('carelink_lastMsgCleanup') || '0');
   if(Date.now() - lastCleanup < CLEANUP_INTERVAL) return;
 
-  var EXPIRY_MS = 90 * 24 * 60 * 60 * 1000; // 90일
+  var EXPIRY_MS = 60 * 24 * 60 * 60 * 1000; // 60일
   var cutoff = Date.now() - EXPIRY_MS;
   var myId = state.user.kakaoId;
 
@@ -6725,8 +6774,8 @@ function openApplicantsModal(type, idx){
         <div class="edu-applicant-row">
           <div style="width:28px;height:28px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--primary);flex-shrink:0">${i+1}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:700;color:var(--text)">${a.name}</div>
-            <div style="font-size:12px;color:var(--text-sub)">${a.phone}${a.certNo?' · 자격: '+a.certNo:''}${a.discount?' · 감면대상':''}${a.org?' · '+a.org:''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
+            <div style="font-weight:700;color:var(--text)">${escapeHtml(a.name)}</div>
+            <div style="font-size:12px;color:var(--text-sub)">${escapeHtml(a.phone)}${a.certNo?' · 자격: '+escapeHtml(a.certNo):''}${a.discount?' · 감면대상':''}${a.org?' · '+a.org:''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
           </div>
           <div style="font-size:11px;color:#aaa;flex-shrink:0">${a.appliedDate||''}</div>
         </div>
@@ -6869,23 +6918,34 @@ function updateAdminUI(){
   if(adminMenu) adminMenu.style.display = isAdminUser ? '' : 'none';
 }
 
-// 통계 업데이트 함수
+// 통계 업데이트 함수 (Firebase 실제 데이터)
 function updateAdminStats(){
   const allListings = state.listings;
   const activeListings = allListings.filter(l => l.status === 'active').length;
-  const totalUsers = 1; // 현재 사용자만 표시
-  const todayNew = Math.floor(Math.random() * 3); // 데모용
 
-  const els = {
-    'stat-total-listings': allListings.length,
-    'stat-active-listings': activeListings,
-    'stat-total-users': totalUsers,
-    'stat-today-new': todayNew,
-  };
-  Object.entries(els).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if(el) el.textContent = val;
-  });
+  // 기본 공고 통계 즉시 표시
+  var el1 = document.getElementById('stat-total-listings');
+  var el2 = document.getElementById('stat-active-listings');
+  if(el1) el1.textContent = allListings.length;
+  if(el2) el2.textContent = activeListings;
+
+  // Firebase에서 실제 회원 수 및 오늘 신규 가입 조회
+  if(fbDB){
+    fbDB.ref('users').once('value', function(snap){
+      var users = snap.val() || {};
+      var keys = Object.keys(users);
+      var totalUsers = keys.length;
+      var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+      var todayNew = keys.filter(function(k){
+        return users[k].joinedAt && users[k].joinedAt >= todayStart.getTime();
+      }).length;
+
+      var el3 = document.getElementById('stat-total-users');
+      var el4 = document.getElementById('stat-today-new');
+      if(el3) el3.textContent = totalUsers;
+      if(el4) el4.textContent = todayNew;
+    });
+  }
 }
 
 // 홈 화면 전체 렌더링
@@ -7148,10 +7208,10 @@ function renderAdminListings(){
 
     return `
       <div class="listing-card-compact" onclick="state.selectedListing=state.listings.find(l=>l.id=='${listing.id}');navigate('detail')">
-        <div class="listing-title">${listing.title}</div>
+        <div class="listing-title">${escapeHtml(listing.title)}</div>
         <div style="font-size:13px;color:var(--text-sub);margin-bottom:8px">
           <div>📍 ${listing.location || '위치 미지정'} · ${statusBadge}</div>
-          <div style="margin-top:4px">작성: ${listing.postedBy || '미지정'}</div>
+          <div style="margin-top:4px">작성: ${escapeHtml(listing.postedBy || '미지정')}</div>
         </div>
         <button class="btn btn-outline" onclick="event.stopPropagation();adminDeleteListing('${listing.id}')" style="padding:6px 12px;font-size:12px;color:#E53935;border-color:#E53935;width:100%">
           🗑️ 삭제
@@ -8635,10 +8695,7 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
   fab.addEventListener('touchend', function(e){
     if(!isDragging) return;
     isDragging = false;
-    if(!moved){
-      // 클릭으로 처리 - toggleAiPanel은 onclick에서 처리
-      return;
-    }
+    if(!moved) return; // 클릭으로 처리 - toggleAiPanel은 onclick에서 처리
     // 화면 가장자리에 스냅
     var r = fab.getBoundingClientRect();
     var cx = r.left + r.width/2;
@@ -8648,8 +8705,8 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
     } else {
       fab.style.left = 'auto'; fab.style.right = '16px';
     }
-    // moved가 true면 onclick 막기
-    e.preventDefault();
+    // 200ms 후 moved 리셋 (onclick 이벤트가 먼저 처리된 후)
+    setTimeout(function(){ moved = false; }, 300);
   });
   
   // 마우스 드래그 (PC)
@@ -8688,6 +8745,7 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
       } else {
         fab.style.left = 'auto'; fab.style.right = '16px';
       }
+      setTimeout(function(){ moved = false; }, 300);
     }
   });
   
@@ -8703,40 +8761,30 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
 (function(){
   var listView = document.getElementById('list-view');
   if(!listView) return;
+  // CSS 클래스로 숨기기 (인라인 스타일 건드리지 않음)
+  var style = document.createElement('style');
+  style.textContent = '.scroll-hidden{max-height:0!important;overflow:hidden!important;padding-top:0!important;padding-bottom:0!important;margin-top:0!important;margin-bottom:0!important;border-width:0!important;opacity:0;transition:all .25s ease}.scroll-shown{transition:all .25s ease}';
+  document.head.appendChild(style);
+
   var lastScroll = 0;
-  var headerEls = [];
-  // 검색바, 광고배너, 공지배너를 포함하는 상단 영역
-  var searchBar = listView.previousElementSibling; // toggle bar
-  
-  function getHideTargets(){
-    // floating-notice, ad-banner, search bar, notice banner
-    var targets = [];
-    var el = document.getElementById('app-notice-banner');
-    if(el) targets.push(el);
-    var ad = document.getElementById('ad-banner-area');
-    if(ad) targets.push(ad);
-    // 검색바 wrapper
-    var homeSearch = document.getElementById('home-search-input');
-    if(homeSearch) targets.push(homeSearch.closest('div[style]'));
-    return targets;
-  }
-  
-  var hideWrap = document.createElement('div');
-  hideWrap.id = 'scroll-hide-header';
-  hideWrap.style.cssText = 'transition:margin-top .25s ease;overflow:hidden';
-  
-  // 더 간단한 방법: list-view의 scroll 이벤트로 상단 요소들의 높이를 조절
   var hidden = false;
+  var targetIds = ['app-notice-banner','ad-banner-area'];
+
+  function getTargets(){
+    var arr = [];
+    targetIds.forEach(function(id){ var el=document.getElementById(id); if(el) arr.push(el); });
+    var si = document.getElementById('home-search-input');
+    if(si && si.parentElement) arr.push(si.parentElement);
+    return arr;
+  }
+
   listView.addEventListener('scroll', function(){
     var st = listView.scrollTop;
-    var targets = getHideTargets();
-    if(st > 60 && st > lastScroll && !hidden){
-      // 아래로 스크롤 - 숨기기
-      targets.forEach(function(el){ if(el){ el.style.maxHeight='0'; el.style.overflow='hidden'; el.style.padding='0'; el.style.margin='0'; el.style.borderWidth='0'; el.style.transition='all .25s ease'; }});
+    if(st > 80 && st > lastScroll + 5 && !hidden){
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
       hidden = true;
-    } else if(st < lastScroll - 10 && hidden){
-      // 위로 스크롤 - 보이기
-      targets.forEach(function(el){ if(el){ el.style.maxHeight=''; el.style.overflow=''; el.style.padding=''; el.style.margin=''; el.style.borderWidth=''; el.style.transition='all .25s ease'; }});
+    } else if(st < lastScroll - 15 && hidden){
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
       hidden = false;
     }
     lastScroll = st;
