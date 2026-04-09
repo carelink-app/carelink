@@ -2630,15 +2630,6 @@ function init(){
         if(hArea && profile.area) hArea.textContent = profile.area;
         navigate('home');
         updateAiButtons();
-        // 지역 미설정 사용자에게 지역 선택 유도
-        if(!profile.area){
-          setTimeout(function(){
-            openAreaSelectModal(function(areaKey){
-              var pa = document.getElementById('profile-area-label');
-              if(pa) pa.textContent = '📍 ' + areaKey;
-            });
-          }, 500);
-        }
         return; // 로그인 화면 건너뜀
       }
     }
@@ -2904,10 +2895,6 @@ document.addEventListener('DOMContentLoaded', function(){
         showToast('🎉 ' + getDisplayName(saved) + '님, 어서오세요!');
         navigate('home');
         updateAiButtons();
-        // 지역 미설정이면 지역 선택 유도
-        if(!saved.area){
-          setTimeout(function(){ openAreaSelectModal(function(){}); }, 500);
-        }
         return;
       }
     } catch(e){}
@@ -3689,7 +3676,7 @@ function checkExpiryNotices(){
     }
   });
   // 곧 만료될 내 공고 알림
-  const myExpiring=expiring.find(l=>state.user&&l.postedBy===state.user.name);
+  const myExpiring=expiring.find(l=>state.user&&(l.postedByKakaoId===state.user.kakaoId||l.postedBy===state.user.name||l.postedBy===state.user.nickname));
   if(myExpiring){
     document.getElementById('expiry-notice').style.display='flex';
     document.getElementById('expiry-notice-text').textContent=`"${myExpiring.title.substring(0,18)}..." 공고 기간이 내일 만료됩니다`;
@@ -5544,7 +5531,7 @@ function sendDocFromChat(type){
   }
   const chatId = state.activeChatId; if(!chatId) return;
   const chat = state.chats[chatId]; if(!chat) return;
-  const me = state.user.name;
+  const me = getMyDisplayName();
   const msgData = { sender: me, senderId: (state.user&&state.user.kakaoId)||'me', type: 'image', imageUrl: photo, imageLabel: label, time: Date.now() };
   if(fbDB){
     fbDB.ref('chats/'+chatId+'/messages').push(msgData).catch(err=>{
@@ -6121,7 +6108,7 @@ function openSupportChat(){
         if(!snap.exists()){
           fbDB.ref('chats/'+chatId+'/meta').set({
             title: '1:1 문의',
-            senderName: state.user.name,
+            senderName: getMyDisplayName(),
             senderId: myId,
             lastMsg: '',
             lastTime: Date.now(),
@@ -7404,7 +7391,7 @@ function renderHomeScreen(){
 function updateHeaderUI(){
   const pName = document.getElementById('profile-name');
   const pType = document.getElementById('profile-type-label');
-  if(pName && state.user) pName.textContent = state.user.name || '';
+  if(pName && state.user) pName.textContent = getDisplayName(state.user);
   if(pType && state.user){
     const roleLabel = (state.role === 'employer' ? '구인자' : '요양보호사');
     const genderLabel = state.user.gender ? ' · ' + (state.user.gender === 'male' ? '남성' : '여성') : '';
@@ -7672,7 +7659,7 @@ function renderMyListings(){
   const area = document.getElementById('my-listings-area');
   if(!area || !state.user) return;
 
-  const myListings = state.listings.filter(l => l.postedByKakaoId === state.user.kakaoId || l.postedBy === state.user.name);
+  const myListings = state.listings.filter(l => l.postedByKakaoId === state.user.kakaoId || l.postedBy === state.user.name || l.postedBy === state.user.nickname);
   if(myListings.length === 0){
     area.innerHTML = `
       <div style="text-align:center;padding:20px;color:#aaa;line-height:1.6">
@@ -8557,7 +8544,7 @@ function sendInterviewRequest(){
 
   closeModal('modal-docs');
 
-  var myName = (state.user && state.user.name) || '기관';
+  var myName = getMyDisplayName();
   var myId = (state.user && state.user.kakaoId) || '';
   var ivData = pendingInterviewData;
 
@@ -8803,7 +8790,7 @@ function sendSticker(stickerId){
   var panel = document.getElementById('sticker-panel');
   if(panel) panel.classList.remove('open');
 
-  var myName = (state.user && state.user.name) || '나';
+  var myName = getMyDisplayName();
   var msg = {
     sender: myName,
     senderId: (state.user&&state.user.kakaoId)||'me',
