@@ -1,0 +1,10 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+          "namespace": "android_app",
+          "package_name": "com.yoyanglink.app",
+          "sha256_cert_fingerprints": [
+                  "3B:9B:19:AF:DD:9D:C1:1D:CC:41:6D:B8:20:5B:4D:00:5F:8E:81:75:84:9F:8D:A8:F3:0F:54:4C:AC:D3:E5:76"
+          ]
+    }
+}]
