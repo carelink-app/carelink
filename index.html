@@ -512,13 +512,9 @@
         <div style="margin-top:6px;font-size:13px;color:#aaa">실명으로 입력해 주세요 (관리자만 확인 가능)</div>
       </div>
 
-      <!-- 별명 (요양보호사만 필수, 기관은 선택) -->
-      <div class="form-group" style="margin-bottom:0" id="setup-nickname-group">
-        <label class="form-label" style="font-size:17px">🏷️ 별명 <span id="setup-nickname-required" style="font-size:13px;color:var(--primary)">(필수)</span></label>
-        <input class="form-input" id="setup-nickname" type="text" placeholder="예) 따뜻한요양사, 성실한간병인"
-          style="font-size:18px;padding:16px"
-          oninput="checkSetupReady()" maxlength="12"/>
-        <div id="setup-nickname-hint" style="margin-top:6px;font-size:13px;color:#aaa">다른 사용자에게 보이는 이름이에요 (2~12자)</div>
+      <!-- 별명 (자동 생성, 입력란 숨김. 가입 후 설정에서 변경 가능) -->
+      <div class="form-group" style="margin-bottom:0;display:none" id="setup-nickname-group">
+        <input id="setup-nickname" type="hidden"/>
       </div>
 
       <!-- 연락처 -->
@@ -927,6 +923,14 @@
       <div class="header-title" id="chatroom-title" style="font-size:16px;font-weight:700;text-align:center">상대방 이름</div>
     </div>
     <div id="chatroom-phone-btn" class="header-right" onclick="openContactFromChat()" style="font-size:18px">📞</div>
+    <div class="header-right" onclick="toggleChatroomMenu(event)" style="font-size:22px;font-weight:bold;cursor:pointer;user-select:none">⋮</div>
+    <!-- 채팅방 메뉴 (⋮ 클릭 시) -->
+    <div id="chatroom-menu" style="display:none;position:absolute;top:58px;right:8px;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:2000;min-width:160px;overflow:hidden">
+      <div onclick="leaveChatRoom()" style="padding:14px 18px;font-size:15px;font-weight:600;color:#E53935;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee">
+        <span style="font-size:18px">🚪</span><span>채팅방 나가기</span>
+      </div>
+      <div onclick="closeChatroomMenu()" style="padding:12px 18px;font-size:14px;color:#666;cursor:pointer;text-align:center">취소</div>
+    </div>
   </div>
   <!-- 공고 정보 배너 -->
   <div id="chatroom-listing-banner" style="background:#F8F8F8;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;cursor:pointer;flex-shrink:0" onclick="openListingFromChat()">
@@ -2864,9 +2868,16 @@ document.addEventListener('DOMContentLoaded', function(){
   })
   .then(function(res){
     const kakaoId = String(res.id);
-    const profile = (res.kakao_account && res.kakao_account.profile) || {};
-    const nickname = profile.nickname || '사용자';
+    const account = res.kakao_account || {};
+    const profile = account.profile || {};
+    // ⚠️ 중요: profile.nickname은 카카오 "별명"이므로 실명으로 절대 사용 금지
+    const kakaoNickname = profile.nickname || '';
     const profileImg = profile.profile_image_url || '';
+    // account.name은 비즈앱 "이름" 동의항목 승인 시에만 내려옴 (실명)
+    const kakaoRealName = (account.name && String(account.name).trim()) || '';
+    // 생년월일 (비즈앱 승인 시)
+    const kakaoBirthyear = account.birthyear || '';
+    const kakaoBirthday = account.birthday || ''; // MMDD 형식
 
     if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
 
@@ -2880,7 +2891,9 @@ document.addEventListener('DOMContentLoaded', function(){
     try {
       const saved = JSON.parse(localStorage.getItem('carelink_profile') || 'null');
       if(saved && saved.kakaoId === kakaoId && saved.role){
-        saved.name = saved.name || nickname; // 실명은 기존 저장값 유지
+        // 실명은 본인이 입력한 것만 사용 (카카오 별명은 절대 실명 대체 금지)
+        if(!saved.name && kakaoRealName) saved.name = kakaoRealName;
+        if(kakaoNickname) saved.kakaoNickname = kakaoNickname; // 별명은 따로 보관
         if(profileImg) saved.profileImg = profileImg;
         state.user = saved;
         state.role = saved.role;
@@ -2899,8 +2912,15 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     } catch(e){}
 
-    // 신규 사용자 → 역할 선택
-    state.user = { kakaoId: kakaoId, name: nickname, profileImg: profileImg };
+    // 신규 사용자 → 역할 선택 (실명은 비워둠. 카카오에서 실명이 오면 자동 채움, 아니면 설정에서 입력)
+    state.user = {
+      kakaoId: kakaoId,
+      name: kakaoRealName,              // ✅ 실명만. 없으면 빈 문자열
+      kakaoNickname: kakaoNickname,     // 카카오 별명은 별도 필드
+      profileImg: profileImg,
+      birthyear: kakaoBirthyear,
+      birthday: kakaoBirthday
+    };
     navigate('role');
   })
   .catch(function(err){
@@ -3074,14 +3094,8 @@ function checkSetupReady(){
   const day=(document.getElementById('setup-day')||{value:''}).value;
   const btn=document.getElementById('btn-setup-confirm');
   if(!btn) return;
-  // 요양보호사: 별명 필수(2~12자), 구인자: 별명 선택
-  var nicknameOk = true;
-  if(selectedRole === 'caregiver'){
-    nicknameOk = nickname.length >= 2 && nickname.length <= 12;
-  } else if(selectedRole === 'employer'){
-    nicknameOk = nickname.length === 0 || (nickname.length >= 2 && nickname.length <= 12);
-  }
-  const ready=name.length>=2 && phone.length>=10 && year && month && day && selectedGender && nicknameOk;
+  // 별명은 자동 생성되므로 검증에서 제외
+  const ready=name.length>=2 && phone.length>=10 && year && month && day && selectedGender;
   btn.style.opacity=ready?'1':'0.4';
   btn.style.pointerEvents=ready?'auto':'none';
 }
@@ -3107,19 +3121,7 @@ function confirmSetup(){
   const month=document.getElementById('setup-month').value;
   const day=document.getElementById('setup-day').value;
   if(name.length<2){showToast('이름을 입력해 주세요');return;}
-  // 요양보호사 별명 필수 검증
-  if(selectedRole === 'caregiver' && (nickname.length < 2 || nickname.length > 12)){
-    showToast('별명을 2~12자로 입력해 주세요');return;
-  }
-  // 구인자 별명 선택인데 입력한 경우 길이 검증
-  if(selectedRole === 'employer' && nickname.length > 0 && (nickname.length < 2 || nickname.length > 12)){
-    showToast('별명은 2~12자로 입력해 주세요');return;
-  }
-  // 별명 부적절 내용 필터링
-  if(nickname.length > 0){
-    var nickFilter = checkContentFilter(nickname);
-    if(nickFilter){ showToast('별명에 부적절한 표현이 포함되어 있습니다'); return; }
-  }
+  // 별명은 자동 생성 (입력받지 않음)
   if(phone.replace(/\D/g,'').length<10){showToast('연락처를 확인해 주세요');return;}
   if(!year||!month||!day){showToast('생년월일을 선택해 주세요');return;}
   if(!selectedGender){showToast('성별을 선택해 주세요');return;}
@@ -3128,12 +3130,9 @@ function confirmSetup(){
   const genderLabel=selectedGender==='male'?'남성':'여성';
   state.user.name=name; state.user.phone=phone;
   state.user.birth=birth; state.user.gender=selectedGender;
-  // 별명 저장
-  if(nickname.length >= 2){
-    state.user.nickname = nickname;
-  } else if(selectedRole === 'employer'){
-    // 구인자는 별명 미설정 시 실명 사용
-    state.user.nickname = '';
+  // 별명 자동 생성 (예: 따뜻한해바라기123) - 본인이 설정에서 변경 가능
+  if(!state.user.nickname){
+    state.user.nickname = generateTempNickname();
   }
   // 역할 선택 화면에서 미리 올린 사진 반영
   if(state._pendingCertPhoto){
@@ -3154,6 +3153,8 @@ function confirmSetup(){
   try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
   // Firebase에 유저 정보 저장 (관리자 회원관리용)
   saveUserToFirebase();
+  // 별명은 이미 자동생성됨 (형용사15 × 명사15 × 숫자900 = 202,500 조합이라 중복 가능성 극히 낮음)
+  // 중복이 거슬리면 프로필 설정에서 변경 가능
   // 첫 로그인 시 공지 배너와 관리자 UI 초기화
   renderAppNotice();
   updateAdminUI();
@@ -5678,7 +5679,12 @@ function renderChatList(){
       // 일반 사용자: 내가 참여자(작성자 또는 문의자)인 채팅 로드
       const amInquirer = chatId.includes('__'+myId);
       const amPoster = meta.posterId === myId;
-      if(amInquirer || amPoster){
+      // 내가 "나가기"한 방이면 목록에서 제외
+      // 단, 내가 나간 이후 상대가 새 메시지를 보냈다면 다시 보이도록 함
+      const leftAt = (meta.leftBy && meta.leftBy[myId]) || 0;
+      const lastMsgTime = meta.lastTime || 0;
+      const iLeft = leftAt > 0 && lastMsgTime <= leftAt;
+      if((amInquirer || amPoster) && !iLeft){
         // 상대방 이름 결정: 내가 문의자면 작성자 이름, 내가 작성자면 문의자 이름
         const otherName = amPoster
           ? (meta.inquirerName || '문의자')
@@ -6024,7 +6030,15 @@ function renderChatListDraw(){
     const unreadBadge = unreadCount > 0
       ? `<div style="background:#FF3B30;color:#fff;border-radius:11px;font-size:11px;font-weight:700;padding:2px 6px;min-width:20px;text-align:center;line-height:16px">${unreadCount > 99 ? '99+' : unreadCount}</div>`
       : '';
-    html+=`<div class="chat-item" onclick="reopenChat('${chatId}')">
+    html+=`<div class="chat-item" data-chatid="${chatId}" onclick="handleChatItemClick(event,'${chatId}')"
+      ontouchstart="startChatItemLongPress(event,'${chatId}')"
+      ontouchend="cancelChatItemLongPress()"
+      ontouchmove="cancelChatItemLongPress()"
+      ontouchcancel="cancelChatItemLongPress()"
+      onmousedown="startChatItemLongPress(event,'${chatId}')"
+      onmouseup="cancelChatItemLongPress()"
+      onmouseleave="cancelChatItemLongPress()"
+      oncontextmenu="event.preventDefault();return false;">
       <div class="chat-avatar">${chat.otherIcon||'👤'}</div>
       <div style="flex:1;overflow:hidden;min-width:0">
         <div style="display:flex;align-items:center;gap:6px">
@@ -6076,6 +6090,130 @@ function openListingFromChat(){
   const chatId=state.activeChatId; if(!chatId) return;
   const chat=state.chats[chatId]; if(!chat) return;
   openDetail(chat.listingId);
+}
+
+// ============================================================
+//  채팅방 나가기 (롱프레스 / 헤더 ⋮ 메뉴에서 호출)
+// ============================================================
+var _chatLongPressTimer = null;
+var _chatLongPressTarget = null;
+var _chatLongPressFired = false; // 롱프레스가 발동되었는지 (다음 click 무시용)
+function startChatItemLongPress(e, chatId){
+  cancelChatItemLongPress();
+  _chatLongPressTarget = chatId;
+  _chatLongPressFired = false;
+  _chatLongPressTimer = setTimeout(function(){
+    // 햅틱 피드백 (지원되는 기기만)
+    if(navigator.vibrate) { try { navigator.vibrate(30); } catch(ex){} }
+    _chatLongPressFired = true;
+    showChatLeaveSheet(chatId);
+    _chatLongPressTimer = null;
+  }, 550); // 0.55초 이상 누르면 메뉴
+}
+function cancelChatItemLongPress(){
+  if(_chatLongPressTimer){ clearTimeout(_chatLongPressTimer); _chatLongPressTimer = null; }
+  _chatLongPressTarget = null;
+}
+// 채팅 목록 항목 클릭 처리: 롱프레스로 시트가 떴으면 일반 클릭 무시
+function handleChatItemClick(e, chatId){
+  if(_chatLongPressFired){
+    // 시트 뜬 직후의 click은 무시하고 플래그만 리셋
+    _chatLongPressFired = false;
+    if(e){ try{ e.preventDefault(); e.stopPropagation(); }catch(ex){} }
+    return;
+  }
+  reopenChat(chatId);
+}
+
+function showChatLeaveSheet(chatId){
+  var chat = state.chats[chatId]; if(!chat) return;
+  // 기존 오버레이 제거
+  var old = document.getElementById('chat-leave-sheet'); if(old) old.remove();
+  var sheet = document.createElement('div');
+  sheet.id = 'chat-leave-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;';
+  sheet.onclick = function(ev){ if(ev.target === sheet) sheet.remove(); };
+  sheet.innerHTML =
+    '<div style="background:#fff;width:100%;max-width:430px;border-radius:18px 18px 0 0;padding:16px 0 24px;animation:slideUpSheet .18s ease-out">'+
+      '<div style="text-align:center;font-size:13px;color:#999;padding:0 20px 12px;border-bottom:1px solid #f0f0f0">'+
+        escapeHtml(chat.otherName||'채팅방')+
+      '</div>'+
+      '<div onclick="confirmLeaveChatRoom(\''+chatId+'\')" style="padding:18px 22px;font-size:16px;font-weight:700;color:#E53935;cursor:pointer;display:flex;align-items:center;gap:14px">'+
+        '<span style="font-size:22px">🚪</span><span>채팅방 나가기</span>'+
+      '</div>'+
+      '<div onclick="document.getElementById(\'chat-leave-sheet\').remove()" style="padding:16px 22px;font-size:15px;color:#666;cursor:pointer;text-align:center;border-top:1px solid #f0f0f0">취소</div>'+
+    '</div>';
+  document.body.appendChild(sheet);
+  if(!document.getElementById('chat-sheet-style')){
+    var st = document.createElement('style');
+    st.id = 'chat-sheet-style';
+    st.textContent = '@keyframes slideUpSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}';
+    document.head.appendChild(st);
+  }
+}
+
+function confirmLeaveChatRoom(chatId){
+  var sheet = document.getElementById('chat-leave-sheet'); if(sheet) sheet.remove();
+  if(!confirm('이 채팅방을 나가시겠습니까?\n\n대화 목록에서 사라지고,\n새 메시지가 와도 알림을 받지 않습니다.\n(상대방이 다시 말을 걸면 새 채팅방으로 표시됩니다)')) return;
+  doLeaveChatRoom(chatId);
+}
+
+// 채팅방 내부 헤더 ⋮ 메뉴에서 호출
+function toggleChatroomMenu(ev){
+  if(ev){ ev.stopPropagation(); }
+  var m = document.getElementById('chatroom-menu'); if(!m) return;
+  m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
+  if(m.style.display === 'block'){
+    setTimeout(function(){
+      document.addEventListener('click', _closeChatroomMenuOutside, {once:true});
+    }, 0);
+  }
+}
+function _closeChatroomMenuOutside(){
+  var m = document.getElementById('chatroom-menu'); if(m) m.style.display = 'none';
+}
+function closeChatroomMenu(){ var m=document.getElementById('chatroom-menu'); if(m) m.style.display='none'; }
+function leaveChatRoom(){
+  closeChatroomMenu();
+  var chatId = state.activeChatId; if(!chatId) { showToast('채팅방 정보가 없습니다'); return; }
+  if(!confirm('이 채팅방을 나가시겠습니까?\n\n대화 목록에서 사라지고,\n새 메시지가 와도 알림을 받지 않습니다.\n(상대방이 다시 말을 걸면 새 채팅방으로 표시됩니다)')) return;
+  doLeaveChatRoom(chatId);
+  navigate('chat');
+}
+
+function doLeaveChatRoom(chatId){
+  var myId = state.user && state.user.kakaoId;
+  if(!myId){ showToast('로그인 정보가 없습니다'); return; }
+
+  // 1) Firebase에 "이 유저는 이 방을 나갔음" 표시 (상대 메시지는 상대 쪽에서 여전히 보임)
+  try {
+    if(fbDB){
+      fbDB.ref('chats/'+chatId+'/meta/leftBy/'+myId).set(Date.now()).catch(function(){});
+      // 내가 마지막으로 읽은 시점도 현재 시간으로 업데이트
+      fbDB.ref('chats/'+chatId+'/meta/readBy/'+myId).set(Date.now()).catch(function(){});
+    }
+  } catch(e){}
+
+  // 2) 로컬 상태에서 제거
+  try {
+    if(state.chats && state.chats[chatId]) delete state.chats[chatId];
+    if(state.unreadChatIds) delete state.unreadChatIds[chatId];
+    if(state.chatLastReadTime) delete state.chatLastReadTime[chatId];
+    if(state.activeChatId === chatId) state.activeChatId = null;
+  } catch(e){}
+
+  // 3) 메시지 캐시에서도 제거
+  try {
+    var cacheKey = (typeof MSG_CACHE_KEY !== 'undefined') ? MSG_CACHE_KEY : 'carelink_msgCache';
+    var cache = JSON.parse(localStorage.getItem(cacheKey)||'{}');
+    if(cache[chatId]) delete cache[chatId];
+    localStorage.setItem(cacheKey, JSON.stringify(cache));
+  } catch(e){}
+
+  // 4) 목록 재렌더링 + 피드백
+  showToast('채팅방에서 나갔습니다');
+  if(typeof updateChatBadge === 'function') updateChatBadge();
+  if(typeof renderChatListDraw === 'function') renderChatListDraw();
 }
 
 // ============================================================
@@ -9415,6 +9553,7 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
 
   var lastScroll = 0;
   var hidden = false;
+  var animating = false;
   var targetIds = ['app-notice-banner','ad-banner-area'];
 
   function getTargets(){
@@ -9425,17 +9564,25 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
     return arr;
   }
 
+  // 배너가 접힐 때 scrollTop이 자동으로 줄어드는 현상을 "위로 스크롤"로 오인해
+  // 무한 진동(깜빡임)이 발생하던 버그를 animating 쿨다운으로 방지한다.
   listView.addEventListener('scroll', function(){
     var st = listView.scrollTop;
+    if(animating){ lastScroll = st; return; }
+
     if(st > 80 && st > lastScroll + 5 && !hidden){
+      animating = true;
       getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
       hidden = true;
-    } else if(st < lastScroll - 15 && hidden){
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 320);
+    } else if(hidden && (st < 20 || st < lastScroll - 40)){
+      animating = true;
       getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
       hidden = false;
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 320);
     }
     lastScroll = st;
-  });
+  }, {passive:true});
 })();
 </script>
 </body>
