@@ -2811,20 +2811,32 @@ function doKakaoLogin(){
     showToast('이용약관 및 개인정보처리방침에 동의해 주세요');
     return;
   }
-  // SDK 준비 확인 (IIFE에서 이미 초기화되므로 중복 init 제거)
-  if(!window.Kakao || !Kakao.isInitialized()){
-    showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-    return;
-  }
 
   const btn = document.getElementById('kakao-btn');
   if(btn){ btn.disabled=true; btn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 중...'; }
 
-  // SDK v2: Kakao.Auth.login() 제거됨 → authorize() 리다이렉트 방식 사용
-  // 콜백은 하단 handleKakaoOAuthCallback() 에서 처리
-  Kakao.Auth.authorize({
-    redirectUri: window.location.origin + window.location.pathname
-  });
+  var redirectUri = window.location.origin + window.location.pathname;
+
+  // 앱 WebView 감지 (UserAgent에 YoyangLinkApp 포함)
+  var isInApp = navigator.userAgent.indexOf('YoyangLinkApp') !== -1;
+
+  if(isInApp){
+    // ★ WebView에서는 SDK authorize() 대신 직접 URL 리다이렉트
+    // SDK가 내부적으로 앱 기반 인증(intent://)을 유도할 수 있어
+    // 서버 302 리다이렉트 시 WebView가 빈 페이지 에러를 표시하는 문제 방지
+    window.location.href = 'https://kauth.kakao.com/oauth/authorize'
+      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=code';
+  } else {
+    // 일반 브라우저에서는 SDK 사용
+    if(!window.Kakao || !Kakao.isInitialized()){
+      showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
+      return;
+    }
+    Kakao.Auth.authorize({ redirectUri: redirectUri });
+  }
 }
 
 // ============================================================
