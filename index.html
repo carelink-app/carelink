@@ -675,7 +675,6 @@
   </div>
 
   <button class="ai-fab" onclick="toggleAiPanel()" id="ai-fab-btn" title="AI 도우미"><img src="stickers/help.png" alt="링키"/></button>
-  <button class="fab" onclick="switchTab('post')">✏️</button>
 
   <div class="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
@@ -3582,6 +3581,14 @@ function renderListings(filter){
     list = list.filter(l => l.type === 'employer');
   } else if(state.role === 'caregiver'){
     list = list.filter(l => l.type === 'caregiver');
+  }
+
+  // 지역 기반 필터: 사용자가 설정한 지역(시/도)의 공고만 표시
+  if(state.user && state.user.area){
+    var userSido = state.user.area.split(' ')[0]; // "서울", "경기", "부산" 등
+    list = list.filter(function(l){
+      return l.area && l.area.split(' ')[0] === userSido;
+    });
   }
 
   if(filter==='visit') list=list.filter(l=>l.workType==='visit'&&l.status!=='expired'&&l.status!=='reported_hidden');
