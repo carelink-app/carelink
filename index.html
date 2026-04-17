@@ -286,8 +286,6 @@
     /* Toast upgrade */
     /* toast: 최종 정의는 아래 293줄 부근에 있음 */
 
-    /* Badge pulse animation for urgent */
-
     /* Listing card hover/touch effect improvement */
     .listing-card{transition:background .15s, transform .1s}
     .listing-card:active{transform:scale(0.98)}
@@ -3467,7 +3465,22 @@ function renderMapMarkers(){
   state.mapMarkers=[];
   let active=state.listings.filter(l=>l.status==='active' && !isUserBanned(l.postedByKakaoId));
 
-  // 태그 필터 적용 (구인/구직/방문요양 등)
+  // 역할 기반 필터 (renderListings와 동일)
+  if(state.role === 'employer'){
+    active = active.filter(l => l.type === 'employer');
+  } else if(state.role === 'caregiver'){
+    active = active.filter(l => l.type === 'caregiver');
+  }
+
+  // 지역 기반 필터 (renderListings와 동일)
+  if(state.user && state.user.area){
+    var userSido = state.user.area.split(' ')[0];
+    active = active.filter(function(l){
+      return l.area && l.area.split(' ')[0] === userSido;
+    });
+  }
+
+  // 태그 필터 적용
   const tagFilter = state.filter || 'all';
   if(tagFilter==='visit') active=active.filter(l=>l.workType==='visit');
   else if(tagFilter==='live') active=active.filter(l=>l.workType==='live');
@@ -4675,6 +4688,9 @@ function resetPostForm(){
   const postLngEl=document.getElementById('post-lng');
   if(postLngEl) postLngEl.value='';
 
+  // 동네명 초기화
+  var bnameEl=document.getElementById('post-bname');
+  if(bnameEl) bnameEl.value='';
   // 모듈 변수 초기화
   selectedExpType = null;
   selectedCgDist = 5;
@@ -7890,7 +7906,7 @@ function renderAdminListings(){
       <div class="listing-card-compact" onclick="state.selectedListing=state.listings.find(l=>l.id=='${listing.id}');navigate('detail')">
         <div class="listing-title">${escapeHtml(listing.title)}</div>
         <div style="font-size:13px;color:var(--text-sub);margin-bottom:8px">
-          <div>📍 ${listing.location || '위치 미지정'} · ${statusBadge}</div>
+          <div>📍 ${listing.area || '위치 미지정'} · ${statusBadge}</div>
           <div style="margin-top:4px">작성: ${escapeHtml(listing.postedBy || '미지정')}</div>
         </div>
         <button class="btn btn-outline" onclick="event.stopPropagation();adminDeleteListing('${listing.id}')" style="padding:6px 12px;font-size:12px;color:#E53935;border-color:#E53935;width:100%">
@@ -9406,6 +9422,12 @@ function aiRecommend(){
   if(btn) btn.textContent = '🐾 링키가 분석 중...';
 
   var listings = state.listings.filter(function(l){ return l.status==='active' || l.status==='interviewing'; });
+  // 역할 기반 필터 (홈 화면과 동일하게 같은 타입만 추천)
+  if(state.role === 'employer'){
+    listings = listings.filter(function(l){ return l.type === 'employer'; });
+  } else if(state.role === 'caregiver'){
+    listings = listings.filter(function(l){ return l.type === 'caregiver'; });
+  }
   var userArea = (state.user.area || '').replace(/\s/g,'');
   var isCaregiver = (state.role === 'caregiver');
 
@@ -9427,9 +9449,8 @@ function aiRecommend(){
       }
     }
 
-    // 구인자면 구직 공고를, 구직자면 구인 공고를 추천
-    if(isCaregiver && l.type === 'employer'){ score += 30; reasons.push('🏠 구인 공고'); }
-    if(!isCaregiver && l.type === 'caregiver'){ score += 30; reasons.push('👩‍⚕️ 구직자'); }
+    // 같은 타입 공고 추천 (이미 역할 기반 필터 적용됨)
+    if(l.type === state.role){ score += 10; }
 
 
     // 최신 공고 우선
