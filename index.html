@@ -3,7 +3,7 @@
 <head>
   <!-- 보안 메타태그 -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net https://t1.daumcdn.net https://*.daumcdn.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://dapi.kakao.com https://*.cloudflare.com https://nominatim.openstreetmap.org wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src 'self' https://*.daumcdn.net https://*.daum.net; font-src 'self' https://cdnjs.cloudflare.com"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net https://t1.daumcdn.net https://*.daumcdn.net https://*.daum.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://dapi.kakao.com https://*.cloudflare.com https://nominatim.openstreetmap.org https://*.daum.net https://*.daumcdn.net wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src 'self' https://*.daumcdn.net https://*.daum.net https://postcode.map.daum.net; font-src 'self' https://cdnjs.cloudflare.com"/>
   <meta http-equiv="X-Frame-Options" content="DENY"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
@@ -622,13 +622,8 @@
   <!-- 지역별 광고 배너 (교육기관 유료 광고 슬롯) -->
   <div class="ad-banner-wrap" id="ad-banner-area"></div>
 
-  <!-- 구인/구직 구분 토글 -->
-  <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
-    <div style="display:flex;background:#f0f0f0;border-radius:12px;padding:4px">
-      <div id="home-type-employer" style="flex:1;text-align:center;padding:10px 8px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;transition:all .2s" onclick="setHomePostType('employer')">🏠 구인글</div>
-      <div id="home-type-caregiver" style="flex:1;text-align:center;padding:10px 8px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;transition:all .2s" onclick="setHomePostType('caregiver')">👩‍⚕️ 구직글</div>
-    </div>
-  </div>
+  <!-- 역할 기반 자동 필터 안내 (토글 제거) -->
+  <div id="home-type-label" style="background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;font-size:15px;font-weight:700;color:var(--primary);text-align:center"></div>
 
   <!-- 목록/지도 토글 -->
   <div style="background:#fff;border-bottom:1px solid var(--border);padding:6px 12px;display:flex;gap:6px;align-items:center">
@@ -724,11 +719,8 @@
     <div class="header-right"></div>
   </div>
   <div class="scroll-area" style="padding:16px">
-    <!-- 구인 / 구직 토글 -->
-    <div style="display:flex;background:#f0f0f0;border-radius:12px;padding:4px;margin-bottom:20px">
-      <div id="post-type-employer" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;background:#fff;color:var(--primary)" onclick="setPostType('employer')">🏠 구인합니다</div>
-      <div id="post-type-caregiver" style="flex:1;text-align:center;padding:12px 8px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;color:#999" onclick="setPostType('caregiver')">👩‍⚕️ 구직합니다</div>
-    </div>
+    <!-- 역할 기반 자동 설정 (토글 제거) -->
+    <div id="post-type-label" style="background:var(--primary-light);border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:15px;font-weight:700;color:var(--primary);text-align:center"></div>
 
     <!-- 구인: 기관명 / 구직: 숨김 -->
     <div class="form-group" id="post-title-wrap">
@@ -790,6 +782,17 @@
 
     <button class="btn btn-primary" style="font-size:18px;padding:18px" onclick="submitPost()">공고 올리기</button>
     <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- ===== 주소 검색 임베드 오버레이 ===== -->
+<div id="daum-addr-embed-wrap" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.5);flex-direction:column;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:430px;height:80vh;overflow:hidden;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e0e0e0">
+      <span style="font-size:17px;font-weight:800">🔍 주소 검색</span>
+      <span onclick="document.getElementById('daum-addr-embed-wrap').style.display='none'" style="font-size:22px;cursor:pointer;padding:4px">✕</span>
+    </div>
+    <div id="daum-addr-embed-container" style="flex:1;overflow:hidden"></div>
   </div>
 </div>
 
@@ -1928,13 +1931,6 @@
       <div class="settings-section-title">내 정보</div>
       <div class="settings-item">
         <div>
-          <div class="settings-label">활동 지역</div>
-          <div class="settings-value" id="settings-area">지역 미설정</div>
-        </div>
-        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="openAreaSelectModal(function(){ var el=document.getElementById('settings-area'); if(el && state.user) el.textContent=state.user.area||'미설정'; })">변경</button>
-      </div>
-      <div class="settings-item">
-        <div>
           <div class="settings-label">역할</div>
           <div class="settings-value" id="settings-role">요양보호사</div>
         </div>
@@ -2981,8 +2977,10 @@ function switchTab(tab){
     });
   });
   if(tab==='post'){
-    // 글쓰기 탭 진입 시 동적 필드 초기 렌더링
-    setPostType(state.postType || (state.role === 'caregiver' ? 'caregiver' : 'employer'));
+    // 글쓰기 탭 진입 시 역할에 따라 자동 고정 (토글 없음)
+    // 요양보호사(구직자) → 구직글만 작성 / 기관(구인자) → 구인글만 작성
+    var forcedPostType = state.role === 'caregiver' ? 'caregiver' : 'employer';
+    setPostType(forcedPostType);
   }
   if(tab==='chat'){
     // 채팅 목록 진입 — 방별 안읽은 수는 유지 (방에 들어가야 초기화됨)
@@ -3677,11 +3675,11 @@ function renderMapMarkers(){
     active = active.filter(l => l.type === state.homePostType);
   }
 
-  // 지역 기반 필터 (renderListings와 동일)
+  // 지역 기반 필터 (renderListings와 동일 — 시군구 단위)
   if(state.user && state.user.area){
-    var userSido = state.user.area.split(' ')[0];
+    var userArea = state.user.area.trim();
     active = active.filter(function(l){
-      return l.area && l.area.split(' ')[0] === userSido;
+      return l.area && l.area.trim() === userArea;
     });
   }
 
@@ -3795,11 +3793,11 @@ function renderListings(filter){
     list = list.filter(l => l.type === state.homePostType);
   }
 
-  // 지역 기반 필터: 사용자가 설정한 지역(시/도)의 공고만 표시
+  // 지역 기반 필터: 사용자가 설정한 지역(시/도 + 시군구)의 공고만 표시
   if(state.user && state.user.area){
-    var userSido = state.user.area.split(' ')[0]; // "서울", "경기", "부산" 등
+    var userArea = state.user.area.trim(); // "서울 강남구" 등
     list = list.filter(function(l){
-      return l.area && l.area.split(' ')[0] === userSido;
+      return l.area && l.area.trim() === userArea;
     });
   }
 
@@ -4509,38 +4507,39 @@ function updatePhoneVisibility(){
   }
 }
 
-// 홈 화면 구인/구직 토글
+// 홈 화면 역할 기반 자동 필터 (토글 제거)
 function setHomePostType(type){
   state.homePostType = type;
-  var empBtn = document.getElementById('home-type-employer');
-  var careBtn = document.getElementById('home-type-caregiver');
-  if(empBtn && careBtn){
-    var isEmp = type === 'employer';
-    empBtn.style.background = isEmp ? '#fff' : 'transparent';
-    empBtn.style.color = isEmp ? 'var(--primary)' : '#999';
-    empBtn.style.boxShadow = isEmp ? '0 2px 6px rgba(0,0,0,.08)' : 'none';
-    careBtn.style.background = !isEmp ? '#fff' : 'transparent';
-    careBtn.style.color = !isEmp ? 'var(--primary)' : '#999';
-    careBtn.style.boxShadow = !isEmp ? '0 2px 6px rgba(0,0,0,.08)' : 'none';
+  // 라벨 업데이트
+  var label = document.getElementById('home-type-label');
+  if(label){
+    if(type === 'employer'){
+      label.textContent = '🏠 구인글 보기';
+    } else {
+      label.textContent = '👩‍⚕️ 구직글 보기';
+    }
   }
   renderListings();
   if(state.mapInstance) refreshMapMarkers();
 }
 
-// 역할 선택 후 홈 화면 기본 토글 설정
+// 역할 기반 홈 화면 자동 설정 (토글 없음 — 역할에 따라 고정)
 function initHomePostType(){
-  // 구인자는 구직글(caregiver)부터, 구직자는 구인글(employer)부터 보여줌
+  // 요양보호사(구직자) → 구인글(employer)만 봄
+  // 기관(구인자) → 구직글(caregiver)만 봄
   var defaultType = state.role === 'employer' ? 'caregiver' : 'employer';
   setHomePostType(defaultType);
 }
 
 function setPostType(type){
   state.postType=type;
-  const e=document.getElementById('post-type-employer');
-  const c=document.getElementById('post-type-caregiver');
   const isEmployer=type==='employer';
-  e.style.background=isEmployer?'#fff':'transparent'; e.style.color=isEmployer?'var(--primary)':'#999';
-  c.style.background=!isEmployer?'#fff':'transparent'; c.style.color=!isEmployer?'var(--primary)':'#999';
+
+  // 역할 기반 라벨 업데이트 (토글 제거됨)
+  var postLabel = document.getElementById('post-type-label');
+  if(postLabel){
+    postLabel.textContent = isEmployer ? '🏠 구인합니다' : '👩‍⚕️ 구직합니다';
+  }
 
   document.getElementById('post-dynamic-fields').innerHTML = isEmployer ? EMPLOYER_FIELDS : CAREGIVER_FIELDS;
   document.getElementById('post-header-title').textContent = isEmployer ? '구인 공고 올리기' : '구직 공고 올리기';
@@ -4581,42 +4580,83 @@ function setPostType(type){
 
 // ── 도로명주소 검색 (Daum Postcode API) ──
 function openAddrSearch(){
-  new daum.Postcode({
-    oncomplete: function(data){
-      // data.roadAddress  → "서울특별시 강남구 테헤란로 123"
-      // data.sido         → "서울특별시" or "서울"
-      // data.sigungu      → "강남구"
-      // data.bname        → "역삼동"
-      // data.zonecode     → 우편번호
-      const roadAddr = data.roadAddress || data.jibunAddress || '';
-      document.getElementById('post-addr-display').value = roadAddr;
-      document.getElementById('post-addr-detail-wrap').style.display = 'block';
+  // Daum Postcode SDK 로드 확인
+  if(typeof daum === 'undefined' || !daum.Postcode){
+    showToast('⏳ 주소 검색 기능을 불러오는 중...');
+    // 동적으로 스크립트 재로드 시도
+    var script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.onload = function(){
+      console.log('[CareLink] Daum Postcode SDK 동적 로드 성공');
+      openAddrSearch(); // 재시도
+    };
+    script.onerror = function(){
+      showToast('⚠️ 주소 검색 서비스를 불러올 수 없습니다. 네트워크를 확인해주세요.');
+    };
+    document.head.appendChild(script);
+    return;
+  }
 
-      // 시/도 → 짧은 이름 변환 (서울특별시→서울, 경기도→경기 등)
-      const sidoShort = {
-        '서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천',
-        '광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종',
-        '경기도':'경기','강원특별자치도':'강원','강원도':'강원',
-        '충청북도':'충북','충청남도':'충남','전라북도':'전북','전북특별자치도':'전북',
-        '전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'
-      };
-      const sido = sidoShort[data.sido] || data.sido.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/,'');
-      const sigungu = data.sigungu.replace(/\s/g,'');
-      const bname = data.bname || ''; // 법정동명 (e.g. "역삼동")
-      const areaKey = sido + ' ' + sigungu; // e.g. "서울 강남구"
-      document.getElementById('post-area').value = areaKey;
-      // 법정동명 저장 (동 단위 표시용)
-      if(!document.getElementById('post-bname')){
-        const bn = document.createElement('input');
-        bn.type='hidden'; bn.id='post-bname';
-        document.getElementById('post-area').parentNode.appendChild(bn);
-      }
-      document.getElementById('post-bname').value = bname;
+  try {
+    new daum.Postcode({
+      oncomplete: function(data){
+        // data.roadAddress  → "서울특별시 강남구 테헤란로 123"
+        // data.sido         → "서울특별시" or "서울"
+        // data.sigungu      → "강남구"
+        // data.bname        → "역삼동"
+        // data.zonecode     → 우편번호
+        const roadAddr = data.roadAddress || data.jibunAddress || '';
+        document.getElementById('post-addr-display').value = roadAddr;
+        document.getElementById('post-addr-detail-wrap').style.display = 'block';
 
-      // 좌표 변환: Kakao Geocoding REST API
-      geocodeAddress(roadAddr, areaKey);
-    }
-  }).open();
+        // 시/도 → 짧은 이름 변환 (서울특별시→서울, 경기도→경기 등)
+        const sidoShort = {
+          '서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천',
+          '광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종',
+          '경기도':'경기','강원특별자치도':'강원','강원도':'강원',
+          '충청북도':'충북','충청남도':'충남','전라북도':'전북','전북특별자치도':'전북',
+          '전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'
+        };
+        const sido = sidoShort[data.sido] || data.sido.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/,'');
+        const sigungu = data.sigungu.replace(/\s/g,'');
+        const bname = data.bname || ''; // 법정동명 (e.g. "역삼동")
+        const areaKey = sido + ' ' + sigungu; // e.g. "서울 강남구"
+        document.getElementById('post-area').value = areaKey;
+        // 법정동명 저장 (동 단위 표시용)
+        if(!document.getElementById('post-bname')){
+          const bn = document.createElement('input');
+          bn.type='hidden'; bn.id='post-bname';
+          document.getElementById('post-area').parentNode.appendChild(bn);
+        }
+        document.getElementById('post-bname').value = bname;
+
+        // 주소 정보 표시
+        var addrInfo = document.getElementById('post-addr-info');
+        if(addrInfo) addrInfo.textContent = '✅ ' + areaKey + (bname ? ' ' + bname : '');
+
+        // 좌표 변환: Kakao Geocoding REST API
+        geocodeAddress(roadAddr, areaKey);
+
+        // 임베드 컨테이너 닫기
+        var embedWrap = document.getElementById('daum-addr-embed-wrap');
+        if(embedWrap) embedWrap.style.display = 'none';
+      },
+      onclose: function(state){
+        // 사용자가 닫기 버튼 클릭 시
+        var embedWrap = document.getElementById('daum-addr-embed-wrap');
+        if(embedWrap && state === 'FORCE_CLOSE') embedWrap.style.display = 'none';
+      },
+      width: '100%',
+      height: '100%'
+    }).embed(document.getElementById('daum-addr-embed-container'));
+
+    // 임베드 컨테이너 표시
+    var embedWrap = document.getElementById('daum-addr-embed-wrap');
+    if(embedWrap) embedWrap.style.display = 'flex';
+  } catch(e){
+    console.error('[CareLink] Daum Postcode 오류:', e);
+    showToast('⚠️ 주소 검색에 실패했습니다. 다시 시도해주세요.');
+  }
 }
 
 var _geocodingDone = true; // 지오코딩 완료 플래그
@@ -4923,8 +4963,9 @@ function resetPostForm(){
   selectedExpType = null;
   selectedCgDist = 5;
   selectedDrive = null;
-  // 동적 필드 초기화 (타입 재렌더)
-  setPostType(state.postType);
+  // 동적 필드 초기화 (역할 기반 고정)
+  var forcedType = state.role === 'caregiver' ? 'caregiver' : 'employer';
+  setPostType(forcedType);
 }
 function updateMyListings(item){
   const el=document.getElementById('my-listings-area');
