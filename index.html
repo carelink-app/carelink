@@ -7142,7 +7142,7 @@ function renderRefresherStep(){
     </div>`;
   } else if(step.type === 'text' || step.type === 'tel'){
     html += `<input id="refresher-wizard-input" class="form-input" type="${step.type}" ${step.type==='tel'?'inputmode="numeric"':''} placeholder="${step.placeholder}" value="${currentVal}" ${step.maxlength?'maxlength="'+step.maxlength+'"':''} style="font-size:18px;padding:16px;border-radius:14px;margin-bottom:8px" onkeydown="if(event.key==='Enter')refresherStepNext()"/>`;
-  } } else if(step.type === 'radio'){
+  } else if(step.type === 'radio'){
     html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">`;
     step.options.forEach(opt=>{
       const selected = currentVal === opt.val;
