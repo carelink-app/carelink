@@ -3,7 +3,7 @@
 <head>
   <!-- 보안 메타태그 -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://*.cloudflare.com wss://*.firebaseio.com wss://*.firebasedatabase.app; font-src 'self' https://cdnjs.cloudflare.com"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net https://t1.daumcdn.net https://*.daumcdn.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://dapi.kakao.com https://*.cloudflare.com https://nominatim.openstreetmap.org wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src 'self' https://*.daumcdn.net https://*.daum.net; font-src 'self' https://cdnjs.cloudflare.com"/>
   <meta http-equiv="X-Frame-Options" content="DENY"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
@@ -127,7 +127,6 @@
     .btn-orange-sm{background:var(--primary);color:#fff;font-size:13px;padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-weight:700}
     .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
     .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
-    .badge-urgent{background:#FFE4E4;color:#E53935}
     .badge-employer{background:#E8F5E9;color:#2E7D32}
     .badge-caregiver{background:#E3F2FD;color:#1565C0}
     .badge-visit{background:#FFF3E0;color:#E65100}
@@ -290,8 +289,6 @@
     /* toast: 최종 정의는 아래 293줄 부근에 있음 */
 
     /* Badge pulse animation for urgent */
-    @keyframes urgentPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-    .badge-urgent{animation:urgentPulse 2s ease-in-out infinite}
 
     /* Listing card hover/touch effect improvement */
     .listing-card{transition:background .15s, transform .1s}
@@ -622,11 +619,8 @@
     </div>
     <div class="tag-scroll" style="padding:0;border:none;background:transparent;flex:1">
       <div class="tag active" onclick="filterTag(this,'all')">전체</div>
-      <div class="tag" onclick="filterTag(this,'employer')">구인</div>
-      <div class="tag" onclick="filterTag(this,'caregiver')">구직</div>
       <div class="tag" onclick="filterTag(this,'visit')">방문요양</div>
       <div class="tag" onclick="filterTag(this,'live')">입주요양</div>
-      <div class="tag" onclick="filterTag(this,'urgent')">🔥 급구</div>
       <div class="tag" onclick="filterTag(this,'matched')">매칭완료</div>
     </div>
   </div>
@@ -3482,7 +3476,6 @@ function renderMapMarkers(){
   else if(tagFilter==='caregiver') active=active.filter(l=>l.type==='caregiver');
   else if(tagFilter==='visit') active=active.filter(l=>l.workType==='visit');
   else if(tagFilter==='live') active=active.filter(l=>l.workType==='live');
-  else if(tagFilter==='urgent') active=active.filter(l=>l.urgent);
 
   // 거리 필터 적용
   let filtered = active;
@@ -3584,11 +3577,15 @@ function renderListings(filter){
   // 영구밴된 유저의 공고 숨김
   list = list.filter(function(l){ return !isUserBanned(l.postedByKakaoId); });
 
+  // 역할 기반 기본 필터: 구인자는 구인글만, 구직자는 구직글만 표시
+  if(state.role === 'employer'){
+    list = list.filter(l => l.type === 'employer');
+  } else if(state.role === 'caregiver'){
+    list = list.filter(l => l.type === 'caregiver');
+  }
+
   if(filter==='visit') list=list.filter(l=>l.workType==='visit'&&l.status!=='expired'&&l.status!=='reported_hidden');
   else if(filter==='live') list=list.filter(l=>l.workType==='live'&&l.status!=='expired'&&l.status!=='reported_hidden');
-  else if(filter==='urgent') list=list.filter(l=>l.urgent&&l.status==='active');
-  else if(filter==='employer') list=list.filter(l=>l.type==='employer'&&l.status!=='expired'&&l.status!=='reported_hidden');
-  else if(filter==='caregiver') list=list.filter(l=>l.type==='caregiver'&&l.status!=='expired'&&l.status!=='reported_hidden');
   else if(filter==='matched') list=list.filter(l=>l.status==='matched');
   else list=list.filter(l=>l.status!=='expired' && l.status!=='reported_hidden');
 
@@ -3617,7 +3614,6 @@ function renderListings(filter){
           <div class="listing-title">${escapeHtml(item.title)}</div>
         </div>
         <div class="listing-meta">
-          ${item.urgent&&item.status==='active'?'<span class="badge badge-urgent">🔥 급구</span>':''}
           <span class="badge ${item.type==='employer'?'badge-employer':'badge-caregiver'}">${item.type==='employer'?'구인':'구직'}</span>
           <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
           ${item.status==='interviewing'?'<span class="badge-interview">📅 면접 중</span>':''}
@@ -3654,7 +3650,6 @@ function openDetail(id){
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-section">
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-        ${item.urgent&&!isMatched?'<span class="badge badge-urgent">🔥 급구</span>':''}
         <span class="badge ${item.type==='employer'?'badge-employer':'badge-caregiver'}">${item.type==='employer'?'구인':'구직'}</span>
         <span class="badge badge-visit">${getWorkTypeLabel(item.workType)}</span>
         ${item.status==='interviewing'?'<span class="badge-interview">📅 면접 중</span>':''}
@@ -3951,10 +3946,7 @@ const EMPLOYER_FIELDS = `
     <label class="form-label">💰 급여</label>
     <input class="form-input" id="post-salary" type="text" placeholder="예) 시급 13,000원 / 월 220만원" style="padding:10px 12px;font-size:14px"/>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-    <input type="checkbox" id="post-urgent" style="width:20px;height:20px"/>
-    <label for="post-urgent" style="font-size:15px;font-weight:600;cursor:pointer">🔥 급구 표시</label>
-  </div>`;
+`;
 
 const CAREGIVER_FIELDS = `
   <div class="form-group">
@@ -4489,14 +4481,6 @@ function submitPost(){
     }, 300);
     return;
   }
-  if(!rateLimit('post_listing', 3)){
-    showToast('공고 등록은 1분에 3회까지 가능합니다.');
-    return;
-  }
-  if(state._lastPostTime && Date.now() - state._lastPostTime < 30000){
-    showToast('⚠️ 잠시 후 다시 시도해주세요 (30초 간격)');
-    return;
-  }
   let title=sanitizeInput(document.getElementById('post-title').value);
   const area=document.getElementById('post-area').value;
   const phone=document.getElementById('post-phone').value.trim();
@@ -4573,7 +4557,6 @@ function submitPost(){
       days=collectDaysTime('day-cb','post-start-hour','post-start-min','post-end-hour','post-end-min','post-time-flexible');
     }
     salary=(document.getElementById('post-salary')||{}).value||'협의';
-    urgent=(document.getElementById('post-urgent')||{}).checked||false;
   } else {
     // 구직: 복수 유형 → 첫번째를 대표, 전부 days에 저장
     const types=['visit','live','center','hospital'].filter(t=>{
@@ -4649,7 +4632,7 @@ function submitPost(){
     name:(state.user? getDisplayName(state.user) : '나'),
     postedBy:(state.user? getDisplayName(state.user) : '나'),
     postedByKakaoId:(state.user&&state.user.kakaoId)||'',
-    time:'방금 전',urgent,status:'active',
+    time:'방금 전',status:'active',
     createdAt:Date.now(),exactAddress:addrDetail||exactAddress,
     lat:postLat, lng:postLng, roadAddress:roadAddress, bname:bname,
     sharePhone: sharePhoneSelected,
@@ -4667,7 +4650,6 @@ function submitPost(){
   }
   resetPostForm();
   showToast('✅ 구인 공고가 등록되었습니다! (14일 후 자동 삭제)');
-  state._lastPostTime = Date.now();
   setTimeout(()=>switchTab('home'),1000);
 }
 
@@ -9442,8 +9424,6 @@ function aiRecommend(){
     if(isCaregiver && l.listingType === 'employer'){ score += 30; reasons.push('🏠 구인 공고'); }
     if(!isCaregiver && l.listingType === 'caregiver'){ score += 30; reasons.push('👩‍⚕️ 구직자'); }
 
-    // 급구는 우선
-    if(l.isUrgent){ score += 15; reasons.push('🔥 급구'); }
 
     // 최신 공고 우선
     var ageHours = (Date.now() - (l.createdAt || 0)) / (1000*60*60);
