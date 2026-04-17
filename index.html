@@ -2639,7 +2639,11 @@ function init(){
         // 홈 화면 지역 라벨 업데이트
         var hArea = document.getElementById('home-area-label');
         if(hArea && profile.area) hArea.textContent = profile.area;
-        navigate('home');
+        // 새로고침 시 현재 화면 유지 (hash 기반)
+        var hashScreen = (window.location.hash || '').replace('#','') || 'home';
+        var validScreens = ['home','detail','post','chat','chatroom','edu','resume','profile','admin','admin-listings','admin-users','settings'];
+        if(validScreens.indexOf(hashScreen) === -1) hashScreen = 'home';
+        navigate(hashScreen);
         updateAiButtons();
         return; // 로그인 화면 건너뜀
       }
@@ -2676,6 +2680,8 @@ function navigate(screen, skipHistory){
   var el = document.getElementById('screen-'+screen);
   if(el) el.classList.add('active');
   state.currentScreen = screen;
+  // 교육 화면에서 나가면 좌석 실시간 리스너 해제
+  if(screen !== 'edu' && typeof cleanupSeatListeners === 'function') cleanupSeatListeners();
   // 채팅방에서 나가면 activeChatId 해제
   if(screen !== 'chatroom' && state.activeChatId){
     state.activeChatId = null;
@@ -6581,20 +6587,27 @@ function renderSeatInfo(schedule, idx, type, canEdit){
     <div class="edu-seat-bar"><div class="edu-seat-fill" id="seat-bar-${fbKey}" style="width:100%;background:#4CAF50"></div></div>`;
 }
 
+var _seatListeners = []; // 좌석 실시간 리스너 관리
 function loadSeatCount(fbKey, countElId, capacity){
   if(!fbDB) return;
-  fbDB.ref('edu-applications/'+fbKey).once('value', snap=>{
-    const count = snap.numChildren();
-    const remaining = Math.max(0, capacity - count);
-    const el = document.getElementById(countElId);
+  var ref = fbDB.ref('edu-applications/'+fbKey);
+  var cb = ref.on('value', function(snap){
+    var count = snap.numChildren();
+    var remaining = Math.max(0, capacity - count);
+    var el = document.getElementById(countElId);
     if(el) el.textContent = remaining;
-    const bar = document.getElementById('seat-bar-'+fbKey);
+    var bar = document.getElementById('seat-bar-'+fbKey);
     if(bar){
-      const pct = capacity > 0 ? ((capacity - count)/capacity)*100 : 100;
+      var pct = capacity > 0 ? ((capacity - count)/capacity)*100 : 100;
       bar.style.width = Math.max(0,pct)+'%';
       bar.style.background = pct > 30 ? '#4CAF50' : pct > 10 ? '#FF9800' : '#F44336';
     }
   });
+  _seatListeners.push({ref:ref, cb:cb});
+}
+function cleanupSeatListeners(){
+  _seatListeners.forEach(function(l){ l.ref.off('value', l.cb); });
+  _seatListeners = [];
 }
 
 // ---- 지역별 내용 렌더링 ----
