@@ -72,6 +72,7 @@
     .edu-form-group input:focus,.edu-form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,.12)}
     .edu-form-check{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f9f9f9;border-radius:12px;cursor:pointer;margin-bottom:8px}
     .edu-form-check input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary)}
+    .cert-license-btn.selected{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important;font-weight:700}
     .edu-schedule-card{border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;transition:all .15s}
     .edu-schedule-card.selected{border-color:var(--primary);background:var(--primary-light)}
     .edu-schedule-card:active{background:#f8f8f8}
@@ -1034,25 +1035,31 @@
       </div>
       <div class="edu-form-group">
         <label>연락처 <span style="color:var(--primary)">*</span></label>
-        <input id="cert-apply-phone" type="tel" inputmode="numeric" placeholder="010-0000-0000" oninput="autoFormatPhone(this)"/>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input id="cert-apply-phone1" type="tel" inputmode="numeric" maxlength="3" placeholder="010" style="flex:1;font-size:16px;padding:12px;border-radius:10px;text-align:center;letter-spacing:2px;border:1.5px solid var(--border);background:#fff" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3);if(this.value.length===3)document.getElementById('cert-apply-phone2').focus()"/>
+          <span style="font-size:20px;font-weight:900;color:var(--text)">-</span>
+          <input id="cert-apply-phone2" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" style="flex:1;font-size:16px;padding:12px;border-radius:10px;text-align:center;letter-spacing:2px;border:1.5px solid var(--border);background:#fff" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);if(this.value.length===4)document.getElementById('cert-apply-phone3').focus()" onkeydown="if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('cert-apply-phone1').focus()}"/>
+          <span style="font-size:20px;font-weight:900;color:var(--text)">-</span>
+          <input id="cert-apply-phone3" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" style="flex:1;font-size:16px;padding:12px;border-radius:10px;text-align:center;letter-spacing:2px;border:1.5px solid var(--border);background:#fff" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" onkeydown="if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('cert-apply-phone2').focus()}"/>
+        </div>
+        <input type="hidden" id="cert-apply-phone" value=""/>
       </div>
       <div class="edu-form-group">
         <label>감면 대상 여부</label>
-        <div class="edu-form-check" onclick="this.querySelector('input').click()">
-          <input type="checkbox" id="cert-apply-discount" onclick="event.stopPropagation()"/>
+        <div class="edu-form-check" onclick="var cb=this.querySelector('input');cb.click();">
+          <input type="checkbox" id="cert-apply-discount" onclick="event.stopPropagation();document.getElementById('cert-license-select').style.display=this.checked?'flex':'none';if(!this.checked){document.querySelectorAll('.cert-license-btn').forEach(function(b){b.classList.remove('selected')});document.getElementById('cert-apply-license').value='';}"/>
           <div>
-            <div style="font-size:14px;font-weight:700;color:var(--text)">국가자격증 소지자 (감면 대상)</div>
-            <div style="font-size:12px;color:var(--text-sub);margin-top:2px">간호사, 간호조무사, 물리치료사, 사회복지사, 작업치료사</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">감면대상자 국가자격증 소지자</div>
           </div>
         </div>
-      </div>
-      <div class="edu-form-group">
-        <label>소지 자격증명 (감면 대상인 경우)</label>
-        <input id="cert-apply-license" placeholder="예) 간호조무사"/>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:18px">
-        <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edu-cert-apply')">취소</button>
-        <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="submitCertApply()">신청하기</button>
+        <div id="cert-license-select" style="display:none;flex-wrap:wrap;gap:8px;margin-top:10px">
+          <button type="button" class="cert-license-btn" onclick="selectCertLicense(this)" style="padding:8px 14px;border-radius:20px;border:1.5px solid #ddd;background:#fff;font-size:13px;color:var(--text);cursor:pointer;transition:all .2s">간호사</button>
+          <button type="button" class="cert-license-btn" onclick="selectCertLicense(this)" style="padding:8px 14px;border-radius:20px;border:1.5px solid #ddd;background:#fff;font-size:13px;color:var(--text);cursor:pointer;transition:all .2s">간호조무사</button>
+          <button type="button" class="cert-license-btn" onclick="selectCertLicense(this)" style="padding:8px 14px;border-radius:20px;border:1.5px solid #ddd;background:#fff;font-size:13px;color:var(--text);cursor:pointer;transition:all .2s">물리치료사</button>
+          <button type="button" class="cert-license-btn" onclick="selectCertLicense(this)" style="padding:8px 14px;border-radius:20px;border:1.5px solid #ddd;background:#fff;font-size:13px;color:var(--text);cursor:pointer;transition:all .2s">사회복지사</button>
+          <button type="button" class="cert-license-btn" onclick="selectCertLicense(this)" style="padding:8px 14px;border-radius:20px;border:1.5px solid #ddd;background:#fff;font-size:13px;color:var(--text);cursor:pointer;transition:all .2s">작업치료사</button>
+        </div>
+        <input type="hidden" id="cert-apply-license" value=""/>
       </div>
     </div>
   </div>
@@ -6955,11 +6962,12 @@ function openCertApplyForm(schedIdx){
   if(info) info.innerHTML = `📋 ${d.instName} · ${s.date}<br>⏰ ${s.time}`;
   // 로그인한 사용자 정보 자동 입력
   const nameEl = document.getElementById('cert-apply-name');
-  const phoneEl = document.getElementById('cert-apply-phone');
   if(nameEl && state.user && state.user.name) nameEl.value = state.user.name;
-  if(phoneEl) phoneEl.value = '';
+  ['cert-apply-phone1','cert-apply-phone2','cert-apply-phone3'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('cert-apply-discount').checked = false;
   document.getElementById('cert-apply-license').value = '';
+  document.getElementById('cert-license-select').style.display = 'none';
+  document.querySelectorAll('.cert-license-btn').forEach(function(b){ b.classList.remove('selected'); });
   document.getElementById('modal-edu-cert-apply').classList.add('open');
 }
 
@@ -6983,9 +6991,18 @@ function openRefresherApplyForm(schedIdx){
 }
 
 // ---- 자격증 과정 신청 제출 ----
+function selectCertLicense(btn){
+  document.querySelectorAll('.cert-license-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('cert-apply-license').value = btn.textContent.trim();
+}
+
 function submitCertApply(){
   const name = (document.getElementById('cert-apply-name')||{}).value?.trim();
-  const phone = (document.getElementById('cert-apply-phone')||{}).value?.trim();
+  const p1 = (document.getElementById('cert-apply-phone1')?.value||'').replace(/[^0-9]/g,'');
+  const p2 = (document.getElementById('cert-apply-phone2')?.value||'').replace(/[^0-9]/g,'');
+  const p3 = (document.getElementById('cert-apply-phone3')?.value||'').replace(/[^0-9]/g,'');
+  const phone = p1 + p2 + p3;
   const discount = document.getElementById('cert-apply-discount')?.checked || false;
   const license = (document.getElementById('cert-apply-license')||{}).value?.trim();
   if(!name){ showToast('이름을 입력해 주세요'); return; }
@@ -7047,11 +7064,11 @@ const REFRESHER_STEPS = [
     placeholder:'실명을 입력해 주세요',
     hint:'정확한 실명을 입력해 주세요. 이수증에 기재됩니다.' },
   { key:'ssn', label:'주민등록번호', required:true, type:'tel',
-    placeholder:'숫자만 입력 (예: 0001013456789)', maxlength:13,
-    hint:'13자리 숫자만 입력해 주세요. (하이픈 없이)' },
+    placeholder:'', maxlength:13,
+    hint:'앞 6자리와 뒤 7자리를 각각 입력해 주세요.' },
   { key:'phone', label:'연락처', required:true, type:'tel',
-    placeholder:'숫자만 입력 (예: 01012345678)', maxlength:11,
-    hint:'교육 안내 문자를 받으실 번호를 입력해 주세요.' },
+    placeholder:'010-0000-0000',
+    hint:'숫자만 입력하면 자동으로 하이픈(-)이 붙어요.' },
   { key:'certNo', label:'자격번호', required:true, type:'tel',
     placeholder:'숫자만 입력 (예: 20251234567)',
     hint:'요양보호사 자격증에 기재된 번호를 입력해 주세요.' },
@@ -7103,9 +7120,29 @@ function renderRefresherStep(){
 
   // Input field
   const currentVal = refresherFormData[step.key] || '';
-  if(step.type === 'text' || step.type === 'tel'){
+  if(step.key === 'ssn'){
+    const ssnFront = currentVal.replace(/[^0-9]/g,'').slice(0,6);
+    const ssnBack = currentVal.replace(/[^0-9]/g,'').slice(6,13);
+    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <input id="refresher-ssn-front" class="form-input" type="tel" inputmode="numeric" maxlength="6" placeholder="앞 6자리" value="${ssnFront}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6);if(this.value.length===6)document.getElementById('refresher-ssn-back').focus()" onkeydown="if(event.key==='Enter'&&this.value.length===6)document.getElementById('refresher-ssn-back').focus()"/>
+      <span style="font-size:28px;font-weight:900;color:var(--text)">-</span>
+      <input id="refresher-ssn-back" class="form-input" type="tel" inputmode="numeric" maxlength="7" placeholder="뒤 7자리" value="${ssnBack}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,7)" onkeydown="if(event.key==='Enter')refresherStepNext();if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('refresher-ssn-front').focus()}"/>
+    </div>`;
+  } else if(step.key === 'phone' && step.type === 'tel'){
+    const digits = currentVal.replace(/[^0-9]/g,'');
+    const ph1 = digits.slice(0,3);
+    const ph2 = digits.slice(3,7);
+    const ph3 = digits.slice(7,11);
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <input id="refresher-phone1" class="form-input" type="tel" inputmode="numeric" maxlength="3" placeholder="010" value="${ph1}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3);if(this.value.length===3)document.getElementById('refresher-phone2').focus()"/>
+      <span style="font-size:28px;font-weight:900;color:var(--text)">-</span>
+      <input id="refresher-phone2" class="form-input" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" value="${ph2}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);if(this.value.length===4)document.getElementById('refresher-phone3').focus()" onkeydown="if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('refresher-phone1').focus()}"/>
+      <span style="font-size:28px;font-weight:900;color:var(--text)">-</span>
+      <input id="refresher-phone3" class="form-input" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" value="${ph3}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" onkeydown="if(event.key==='Enter')refresherStepNext();if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('refresher-phone2').focus()}"/>
+    </div>`;
+  } else if(step.type === 'text' || step.type === 'tel'){
     html += `<input id="refresher-wizard-input" class="form-input" type="${step.type}" ${step.type==='tel'?'inputmode="numeric"':''} placeholder="${step.placeholder}" value="${currentVal}" ${step.maxlength?'maxlength="'+step.maxlength+'"':''} style="font-size:18px;padding:16px;border-radius:14px;margin-bottom:8px" onkeydown="if(event.key==='Enter')refresherStepNext()"/>`;
-  } else if(step.type === 'radio'){
+  } } else if(step.type === 'radio'){
     html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">`;
     step.options.forEach(opt=>{
       const selected = currentVal === opt.val;
@@ -7151,7 +7188,17 @@ function renderRefresherStep(){
   container.innerHTML = html;
 
   // 텍스트 입력 필드에 자동 포커스
-  if(step.type === 'text' || step.type === 'tel'){
+  if(step.key === 'ssn'){
+    setTimeout(()=>{
+      const inp = document.getElementById('refresher-ssn-front');
+      if(inp) inp.focus();
+    }, 100);
+  } else if(step.key === 'phone'){
+    setTimeout(()=>{
+      const inp = document.getElementById('refresher-phone1');
+      if(inp) inp.focus();
+    }, 100);
+  } else if(step.type === 'text' || step.type === 'tel'){
     setTimeout(()=>{
       const inp = document.getElementById('refresher-wizard-input');
       if(inp) inp.focus();
@@ -7162,7 +7209,16 @@ function renderRefresherStep(){
 function refresherStepNext(){
   const step = REFRESHER_STEPS[refresherStep];
   // 텍스트 입력값 저장
-  if(step.type === 'text' || step.type === 'tel'){
+  if(step.key === 'ssn'){
+    const front = (document.getElementById('refresher-ssn-front')?.value||'').replace(/[^0-9]/g,'');
+    const back = (document.getElementById('refresher-ssn-back')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = front + back;
+  } else if(step.key === 'phone'){
+    const p1 = (document.getElementById('refresher-phone1')?.value||'').replace(/[^0-9]/g,'');
+    const p2 = (document.getElementById('refresher-phone2')?.value||'').replace(/[^0-9]/g,'');
+    const p3 = (document.getElementById('refresher-phone3')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = p1 + p2 + p3;
+  } else if(step.type === 'text' || step.type === 'tel'){
     const inp = document.getElementById('refresher-wizard-input');
     refresherFormData[step.key] = (inp?.value||'').trim().replace(step.type==='tel'?/[^0-9]/g:/$/,'');
   }
@@ -7192,9 +7248,18 @@ function refresherStepPrev(){
   }
   // 현재 입력값 저장
   const step = REFRESHER_STEPS[refresherStep];
-  if(step.type === 'text' || step.type === 'tel'){
+  if(step.key === 'ssn'){
+    const front = (document.getElementById('refresher-ssn-front')?.value||'').replace(/[^0-9]/g,'');
+    const back = (document.getElementById('refresher-ssn-back')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = front + back;
+  } else if(step.key === 'phone'){
+    const p1 = (document.getElementById('refresher-phone1')?.value||'').replace(/[^0-9]/g,'');
+    const p2 = (document.getElementById('refresher-phone2')?.value||'').replace(/[^0-9]/g,'');
+    const p3 = (document.getElementById('refresher-phone3')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = p1 + p2 + p3;
+  } else if(step.type === 'text' || step.type === 'tel'){
     const inp = document.getElementById('refresher-wizard-input');
-    refresherFormData[step.key] = (inp?.value||'').trim();
+    refresherFormData[step.key] = (inp?.value||'').trim().replace(step.type==='tel'?/[^0-9]/g:/$/,'');
   }
   refresherStep--;
   renderRefresherStep();
