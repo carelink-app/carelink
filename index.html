@@ -815,13 +815,16 @@
   <div class="scroll-area">
     <div class="profile-header">
       <div class="profile-avatar">😊</div>
-      <div>
+      <div style="flex:1">
         <div style="display:flex;align-items:center;gap:8px">
           <div class="profile-name" id="profile-name">김카카오</div>
           <span id="admin-badge" style="background:#FF9800;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;display:none">🔧 관리자</span>
         </div>
-        <div class="profile-sub" id="profile-type-label">요양보호사</div>
-        <div class="profile-sub" id="profile-area-label" style="margin-top:2px">📍 지역 미설정</div>
+        <!-- 닉네임 + 변경 버튼 한줄 -->
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <span style="font-size:14px;color:var(--text-sub)" id="profile-nickname-display">별명 미설정</span>
+          <span onclick="showNicknameEditModal()" style="font-size:11px;color:var(--primary);cursor:pointer;font-weight:600;border:1px solid var(--primary);border-radius:6px;padding:1px 6px">변경</span>
+        </div>
         <!-- 프로필 완성도 -->
         <div id="profile-completion-wrap" style="margin-top:8px">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -834,13 +837,32 @@
         </div>
       </div>
     </div>
-    <!-- 별명 수정 -->
-    <div style="padding:14px 20px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:13px;color:var(--text-sub);margin-bottom:2px">🏷️ 별명</div>
-        <div style="font-size:16px;font-weight:600;color:var(--text)" id="profile-nickname-display">미설정</div>
+    <!-- 프로필 정보 편집 섹션 -->
+    <div style="background:#fff;border-bottom:1px solid var(--border)">
+      <!-- 유형 (요양보호사/기관) -->
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f5f5f5">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px">🏷️</span>
+          <span style="font-size:14px;color:var(--text)" id="profile-type-label">요양보호사</span>
+        </div>
+        <span onclick="showProfileEditModal('type')" style="font-size:11px;color:#999;cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
       </div>
-      <button class="btn btn-outline" style="padding:6px 14px;font-size:13px" onclick="showNicknameEditModal()">변경</button>
+      <!-- 성별/생년월일 -->
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f5f5f5">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px">👤</span>
+          <span style="font-size:14px;color:var(--text)" id="profile-gender-birth-label">성별/생년월일 미설정</span>
+        </div>
+        <span onclick="showProfileEditModal('gender')" style="font-size:11px;color:#999;cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
+      </div>
+      <!-- 지역 -->
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px">📍</span>
+          <span style="font-size:14px;color:var(--text)" id="profile-area-label">지역 미설정</span>
+        </div>
+        <span onclick="showProfileEditModal('area')" style="font-size:11px;color:#999;cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
+      </div>
     </div>
     <div style="height:8px;background:var(--bg)"></div>
     <div style="padding:16px 20px;background:#fff;border-bottom:1px solid var(--border)">
@@ -1061,6 +1083,10 @@
         </div>
         <input type="hidden" id="cert-apply-license" value=""/>
       </div>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edu-cert-apply')">취소</button>
+        <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="submitCertApply()">신청하기</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1232,6 +1258,14 @@
         <button class="btn btn-primary" style="flex:1;font-size:15px" id="btn-save-nickname" onclick="saveEditedNickname()">저장</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 프로필 정보 수정 ===== -->
+<div class="modal-overlay" id="modal-profile-edit" onclick="closeModal('modal-profile-edit')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-body"></div>
   </div>
 </div>
 
@@ -2615,13 +2649,18 @@ function init(){
         const pName = document.getElementById('profile-name');
         const pType = document.getElementById('profile-type-label');
         if(pName) pName.textContent = getDisplayName(profile);
-        if(pType) pType.textContent =
-          (profile.role==='employer'?'구인자':'요양보호사') +
-          (profile.gender ? ' · '+(profile.gender==='male'?'남성':'여성') : '') +
-          (profile.birth  ? ' · '+profile.birth : '');
+        if(pType) pType.textContent = profile.role==='employer'?'구인자(기관)':'요양보호사';
+        // 성별/생년월일 표시
+        var pGender = document.getElementById('profile-gender-birth-label');
+        if(pGender){
+          var parts = [];
+          if(profile.gender) parts.push(profile.gender==='male'?'남성':'여성');
+          if(profile.birth) parts.push(profile.birth);
+          pGender.textContent = parts.length > 0 ? parts.join(' / ') : '성별/생년월일 미설정';
+        }
         // 지역 표시
         var pArea = document.getElementById('profile-area-label');
-        if(pArea) pArea.textContent = '📍 ' + (profile.area || '지역 미설정');
+        if(pArea) pArea.textContent = profile.area || '지역 미설정';
         var sArea = document.getElementById('settings-area');
         if(sArea) sArea.textContent = profile.area || '지역 미설정';
         // 공고 글쓰기 연락처 자동 채우기
@@ -2641,6 +2680,7 @@ function init(){
         if(hArea && profile.area) hArea.textContent = profile.area;
         // 새로고침 시 현재 화면 유지 (hash 기반)
         var hashScreen = (window.location.hash || '').replace('#','') || 'home';
+        // 유효한 화면인지 확인
         var validScreens = ['home','detail','post','chat','chatroom','edu','resume','profile','admin','admin-listings','admin-users','settings'];
         if(validScreens.indexOf(hashScreen) === -1) hashScreen = 'home';
         navigate(hashScreen);
@@ -2722,8 +2762,33 @@ function goBack(){
   }
 }
 
-// 브라우저 뒤로가기 버튼 처리 — 같은 탭 안에서만 뒤로 이동
+// 열린 모달 닫기 함수 (뒤로가기 시 사용)
+function closeAnyOpenModal(){
+  var modals = document.querySelectorAll('.modal-overlay.open');
+  if(modals.length > 0){
+    modals.forEach(function(m){ m.classList.remove('open'); m.style.display='none'; });
+    return true;
+  }
+  // display:flex로 열린 모달도 체크
+  var allModals = document.querySelectorAll('.modal-overlay');
+  for(var i=0; i<allModals.length; i++){
+    if(allModals[i].style.display === 'flex' || getComputedStyle(allModals[i]).display === 'flex'){
+      allModals[i].classList.remove('open');
+      allModals[i].style.display = 'none';
+      return true;
+    }
+  }
+  return false;
+}
+
+// 브라우저 뒤로가기 버튼 처리 — 모달 먼저 닫고, 탭 내 뒤로 이동
 window.addEventListener('popstate', function(e){
+  // 열린 모달/팝업이 있으면 먼저 닫기
+  if(closeAnyOpenModal()){
+    history.pushState({screen:state.currentScreen, tab:_activeTab}, '', '#'+state.currentScreen);
+    return;
+  }
+
   var tab = _activeTab;
   var stack = _tabHistory[tab];
 
@@ -3167,8 +3232,15 @@ function confirmSetup(){
   // 프로필 화면 반영
   document.getElementById('profile-name').textContent=state.user.nickname||name;
   document.getElementById('profile-type-label').textContent=
-    `${state.role==='caregiver'?'요양보호사':'구인자'} · ${genderLabel} · ${birth}`;
-  document.getElementById('profile-area-label').textContent='📍 ' + (state.user.area || '지역 설정 중...');
+    state.role==='caregiver'?'요양보호사':'구인자(기관)';
+  var _pgb = document.getElementById('profile-gender-birth-label');
+  if(_pgb){
+    var _parts=[];
+    if(genderLabel) _parts.push(genderLabel);
+    if(birth) _parts.push(birth);
+    _pgb.textContent = _parts.length>0 ? _parts.join(' / ') : '성별/생년월일 미설정';
+  }
+  document.getElementById('profile-area-label').textContent= state.user.area || '지역 설정 중...';
   // 공고 글쓰기 연락처 자동 채우기
   const phoneInput=document.getElementById('post-phone');
   if(phoneInput) phoneInput.value=phone;
@@ -7075,29 +7147,10 @@ const refresherFormData = {};
 const REFRESHER_STEPS = [
   { key:'name', label:'성명', required:true, type:'text',
     placeholder:'실명을 입력해 주세요',
-    hint:'정확한 실명을 입력해 주세요. 이수증에 기재됩니다.' },
-  { key:'ssn', label:'주민등록번호', required:true, type:'tel',
-    placeholder:'', maxlength:13,
-    hint:'앞 6자리와 뒤 7자리를 각각 입력해 주세요.' },
+    hint:'정확한 실명을 입력해 주세요.' },
   { key:'phone', label:'연락처', required:true, type:'tel',
     placeholder:'010-0000-0000',
     hint:'각 칸에 숫자를 입력하면 자동으로 다음 칸으로 넘어갑니다.' },
-  { key:'certNo', label:'자격번호', required:true, type:'tel',
-    placeholder:'숫자만 입력 (예: 20251234567)',
-    hint:'요양보호사 자격증에 기재된 번호를 입력해 주세요.' },
-  { key:'org', label:'소속 장기요양기관', required:true, type:'text',
-    placeholder:'정확한 기관명을 입력해 주세요',
-    hint:null, // 커스텀 경고로 대체
-    warning:'⚠️ 소속 장기요양기관명은 공단에 등록된 정식 명칭을 정확하게 기재해 주세요. 기관명이 틀릴 경우 교육 이수 처리가 지연될 수 있습니다.' },
-  { key:'orgPhone', label:'기관 연락처', required:false, type:'tel',
-    placeholder:'숫자만 입력 (예: 0311112222)',
-    hint:'소속 기관의 대표번호를 입력해 주세요. (선택)' },
-  { key:'hours', label:'교육시간', required:true, type:'radio',
-    options:[{val:'4',text:'4시간 (18,000원)'},{val:'8',text:'8시간 (36,000원)'}],
-    hint:'이수해야 할 교육시간을 선택해 주세요.' },
-  { key:'payment', label:'결제방법', required:true, type:'select',
-    options:[{val:'0',text:'현금'},{val:'1',text:'카드'},{val:'2',text:'계좌이체'}],
-    hint:null }, // 결제안내+환불규정 커스텀 표시
 ];
 
 function renderRefresherStep(){
@@ -7278,33 +7331,19 @@ function refresherStepPrev(){
   renderRefresherStep();
 }
 
-// ---- 보수교육 신청 제출 ----
+// ---- 보수교육 신청 제출 (간소화: 이름+연락처만) ----
 function submitRefresherApply(){
   const fd = refresherFormData;
   const name = fd.name || '';
-  const ssn = (fd.ssn || '').replace(/[^0-9]/g,'');
   const phone = (fd.phone || '').replace(/[^0-9]/g,'');
-  const certno = (fd.certNo || '').replace(/[^0-9]/g,'');
-  const org = fd.org || '';
-  const orgphone = (fd.orgPhone || '').replace(/[^0-9]/g,'');
-  const hours = fd.hours || '';
-  const payment = fd.payment;
 
   if(!name){ showToast('성명을 입력해 주세요'); return; }
-  if(!ssn || ssn.length < 13){ showToast('주민등록번호 13자리를 입력해 주세요'); return; }
   if(!phone || phone.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
-  if(!certno){ showToast('자격번호를 입력해 주세요'); return; }
-  if(!hours){ showToast('교육시간을 선택해 주세요'); return; }
-  if(payment===undefined || payment===''){ showToast('결제방법을 선택해 주세요'); return; }
   if(!fbDB){ showToast('Firebase가 연결되지 않았습니다'); return; }
 
   const d = regionEduData[selectedEduRegion];
   const s = d.refresherSchedule[currentApplyIdx];
   const fbKey = getEduFbKey('refresher', currentApplyIdx);
-  // 교육 희망일: 선택한 일정에서 날짜 추출 → YYYYMMDD 형식
-  const dateMatch = s.date.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
-  const eduDate = dateMatch ? dateMatch[1]+String(dateMatch[2]).padStart(2,'0')+String(dateMatch[3]).padStart(2,'0') : '';
-  const amount = hours === '8' ? '36000' : '18000';
 
   const userId = (state.user&&state.user.kakaoId)||name+phone;
   fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
@@ -7326,16 +7365,7 @@ function submitRefresherApply(){
         scheduleDate: s.date,
         scheduleTime: s.time,
         name: name,
-        ssn: ssn,
         phone: phone,
-        certNo: certno,
-        org: org || '',
-        orgPhone: orgphone || '',
-        eduDate: eduDate,
-        hours: hours,
-        amount: amount,
-        payment: payment,
-        paymentStatus: 'N',
         userId: userId,
         appliedAt: Date.now(),
         appliedDate: new Date().toLocaleDateString('ko-KR')
@@ -7343,7 +7373,7 @@ function submitRefresherApply(){
       fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
         if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
         closeModal('modal-edu-refresher-apply');
-        showToast('✅ 보수교육 신청이 완료되었습니다!');
+        showToast('✅ 보수교육 신청이 완료되었습니다!\n담당자가 연락드리겠습니다.');
         renderEduRegionContent();
       });
     });
@@ -8147,7 +8177,99 @@ function saveEditedNickname(){
 function updateProfileNicknameDisplay(){
   var el = document.getElementById('profile-nickname-display');
   if(el && state.user){
-    el.textContent = state.user.nickname || '미설정';
+    el.textContent = state.user.nickname || '별명 미설정';
+  }
+  // 유형 업데이트
+  var pType = document.getElementById('profile-type-label');
+  if(pType && state.user) pType.textContent = state.user.role==='employer'?'구인자(기관)':'요양보호사';
+  // 성별/생년월일 업데이트
+  var pGender = document.getElementById('profile-gender-birth-label');
+  if(pGender && state.user){
+    var parts = [];
+    if(state.user.gender) parts.push(state.user.gender==='male'?'남성':'여성');
+    if(state.user.birth) parts.push(state.user.birth);
+    pGender.textContent = parts.length > 0 ? parts.join(' / ') : '성별/생년월일 미설정';
+  }
+  // 지역 업데이트
+  var pArea = document.getElementById('profile-area-label');
+  if(pArea && state.user) pArea.textContent = state.user.area || '지역 미설정';
+}
+
+// 프로필 정보 수정 모달
+function showProfileEditModal(field){
+  if(!state.user) { showToast('로그인이 필요합니다'); return; }
+
+  if(field === 'type'){
+    // 유형 변경: 요양보호사/구인자 선택
+    var curRole = state.user.role || 'caregiver';
+    var html = '<div style="padding:20px">';
+    html += '<div style="font-size:18px;font-weight:800;margin-bottom:16px;text-align:center">유형 변경</div>';
+    ['caregiver','employer'].forEach(function(r){
+      var label = r==='caregiver'?'요양보호사':'구인자(기관)';
+      var sel = curRole===r;
+      html += '<div onclick="saveProfileField(\'role\',\''+r+'\')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:8px;background:'+(sel?'var(--primary-light)':'#f9f9f9')+';border:2px solid '+(sel?'var(--primary)':'var(--border)')+';border-radius:12px;cursor:pointer">';
+      html += '<div style="width:22px;height:22px;border-radius:50%;border:2.5px solid '+(sel?'var(--primary)':'#ccc')+';display:flex;align-items:center;justify-content:center">'+(sel?'<div style="width:11px;height:11px;border-radius:50%;background:var(--primary)"></div>':'')+'</div>';
+      html += '<div style="font-size:15px;font-weight:600">'+label+'</div></div>';
+    });
+    html += '</div>';
+    var modal = document.getElementById('modal-profile-edit');
+    if(modal){ modal.querySelector('.modal-body').innerHTML = html; openModal('modal-profile-edit'); }
+
+  } else if(field === 'gender'){
+    // 성별 + 생년월일 변경
+    var curGender = state.user.gender || '';
+    var curBirth = state.user.birth || '';
+    var html = '<div style="padding:20px">';
+    html += '<div style="font-size:18px;font-weight:800;margin-bottom:16px;text-align:center">성별 / 생년월일</div>';
+    html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px">성별</div>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:16px">';
+    ['female','male'].forEach(function(g){
+      var label = g==='female'?'여성':'남성';
+      var sel = curGender===g;
+      html += '<div onclick="document.getElementById(\'pe-gender\').value=\''+g+'\';this.parentElement.querySelectorAll(\'div\').forEach(function(d){d.style.border=\'2px solid var(--border)\';d.style.background=\'#f9f9f9\'});this.style.border=\'2px solid var(--primary)\';this.style.background=\'var(--primary-light)\'" style="flex:1;text-align:center;padding:12px;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;border:2px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'var(--primary-light)':'#f9f9f9')+'">'+label+'</div>';
+    });
+    html += '</div><input type="hidden" id="pe-gender" value="'+curGender+'"/>';
+    html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px">생년월일</div>';
+    html += '<input id="pe-birth" class="form-input" type="text" placeholder="예: 1985.03.15" value="'+curBirth+'" style="font-size:16px;padding:12px;border-radius:12px;margin-bottom:16px"/>';
+    html += '<button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px" onclick="saveProfileField(\'gender_birth\',{gender:document.getElementById(\'pe-gender\').value,birth:document.getElementById(\'pe-birth\').value.trim()})">저장</button>';
+    html += '</div>';
+    var modal = document.getElementById('modal-profile-edit');
+    if(modal){ modal.querySelector('.modal-body').innerHTML = html; openModal('modal-profile-edit'); }
+
+  } else if(field === 'area'){
+    // 지역 변경 — 기존 지역 선택 모달 사용
+    openAreaSelectModal(function(){
+      var pArea = document.getElementById('profile-area-label');
+      if(pArea && state.user) pArea.textContent = state.user.area || '지역 미설정';
+      var sArea = document.getElementById('settings-area');
+      if(sArea && state.user) sArea.textContent = state.user.area || '미설정';
+    });
+  }
+}
+
+function saveProfileField(field, value){
+  if(!state.user) return;
+  if(field === 'role'){
+    state.user.role = value;
+    state.role = value;
+    try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+    if(fbDB && state.user.kakaoId) fbDB.ref('users/'+state.user.kakaoId+'/role').set(value).catch(function(){});
+    closeModal('modal-profile-edit');
+    updateProfileNicknameDisplay();
+    showToast('유형이 변경되었습니다');
+  } else if(field === 'gender_birth'){
+    if(value.gender) state.user.gender = value.gender;
+    if(value.birth) state.user.birth = value.birth;
+    try { localStorage.setItem('carelink_profile', JSON.stringify(state.user)); } catch(e){}
+    if(fbDB && state.user.kakaoId){
+      var updates = {};
+      if(value.gender) updates.gender = value.gender;
+      if(value.birth) updates.birth = value.birth;
+      fbDB.ref('users/'+state.user.kakaoId).update(updates).catch(function(){});
+    }
+    closeModal('modal-profile-edit');
+    updateProfileNicknameDisplay();
+    showToast('정보가 변경되었습니다');
   }
 }
 
