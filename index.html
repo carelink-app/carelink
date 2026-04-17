@@ -197,8 +197,6 @@
     .menu-item:active{background:#f5f5f5}
     .menu-icon{font-size:22px;margin-right:14px}
     .menu-arrow{margin-left:auto;color:#999;font-size:18px}
-    .fab{position:absolute;bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));right:20px;width:60px;height:60px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;box-shadow:0 4px 16px rgba(255,107,53,.4);cursor:pointer;z-index:99;border:none}
-    .fab:active{transform:scale(.93)}
 
     /* admin dashboard */
     .admin-stat-card{background:#fff;border-radius:14px;padding:18px;text-align:center;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.08)}
@@ -3471,9 +3469,7 @@ function renderMapMarkers(){
 
   // 태그 필터 적용 (구인/구직/방문요양 등)
   const tagFilter = state.filter || 'all';
-  if(tagFilter==='employer') active=active.filter(l=>l.type==='employer');
-  else if(tagFilter==='caregiver') active=active.filter(l=>l.type==='caregiver');
-  else if(tagFilter==='visit') active=active.filter(l=>l.workType==='visit');
+  if(tagFilter==='visit') active=active.filter(l=>l.workType==='visit');
   else if(tagFilter==='live') active=active.filter(l=>l.workType==='live');
 
   // 거리 필터 적용
@@ -4548,7 +4544,7 @@ function submitPost(){
     return;
   }
 
-  let workType='visit', days='협의', salary='협의', exactAddress='', urgent=false;
+  let workType='visit', days='협의', salary='협의', exactAddress='';
 
   if(state.postType==='employer'){
     exactAddress=(document.getElementById('post-exact-addr')||{}).value||'';
@@ -4608,7 +4604,7 @@ function submitPost(){
       name:(state.user? getDisplayName(state.user) : '나'),
       postedBy:(state.user? getDisplayName(state.user) : '나'),
       postedByKakaoId:(state.user&&state.user.kakaoId)||'',
-      time:'방금 전',urgent:false,status:'active',
+      time:'방금 전',status:'active',
       createdAt:Date.now(),exactAddress:addrDetail,
       lat:postLat, lng:postLng, roadAddress:roadAddress, bname:bname,
       expData: expData||{}, canDrive: driveAble||null,
@@ -4679,6 +4675,10 @@ function resetPostForm(){
   const postLngEl=document.getElementById('post-lng');
   if(postLngEl) postLngEl.value='';
 
+  // 모듈 변수 초기화
+  selectedExpType = null;
+  selectedCgDist = 5;
+  selectedDrive = null;
   // 동적 필드 초기화 (타입 재렌더)
   setPostType(state.postType);
 }
@@ -9428,8 +9428,8 @@ function aiRecommend(){
     }
 
     // 구인자면 구직 공고를, 구직자면 구인 공고를 추천
-    if(isCaregiver && l.listingType === 'employer'){ score += 30; reasons.push('🏠 구인 공고'); }
-    if(!isCaregiver && l.listingType === 'caregiver'){ score += 30; reasons.push('👩‍⚕️ 구직자'); }
+    if(isCaregiver && l.type === 'employer'){ score += 30; reasons.push('🏠 구인 공고'); }
+    if(!isCaregiver && l.type === 'caregiver'){ score += 30; reasons.push('👩‍⚕️ 구직자'); }
 
 
     // 최신 공고 우선
