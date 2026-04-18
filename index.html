@@ -10,7 +10,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes"/>
   <title>요양링크 - 요양보호사 구인구직</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leahhflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- Kakao JavaScript SDK -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
@@ -2178,7 +2178,7 @@ const state = {
 
 // ============================================================
 //  보안 모듈: 토큰 암호화 저장 (AES-like obfuscation)
-//  GitHub Pages 환경에서 HttpOnly 쿠키 불가 → 암호화 + sessionStorage 조합
+//  GitHub Pages 환경에서 HttpOnly 쿠키 불가 → 암호화 + localStorage 조합 (영구 자동로그인)
 // ============================================================
 var SecureStorage = (function(){
   // 간단 XOR 기반 난독화 키 (완전한 AES 대신 실용적 보호)
@@ -2211,7 +2211,7 @@ var SecureStorage = (function(){
         var encrypted = _xorEncrypt(JSON.stringify({
           data: value,
           timestamp: Date.now(),
-          expiry: Date.now() + (24 * 60 * 60 * 1000) // 24시간 만료
+          expiry: Date.now() + (365 * 24 * 60 * 60 * 1000) // 365일 만료 (어르신 편의성 - 영구 자동로그인)
         }), _KEY);
         localStorage.setItem(key, encrypted);
       } catch(e){ console.warn('[SecureStorage] setItem 실패:', e); }
@@ -2248,18 +2248,18 @@ var SecureStorage = (function(){
 })();
 
 // ============================================================
-//  보안 모듈: 카카오 토큰 보호 (sessionStorage 사용 - 탭 닫으면 자동 삭제)
+//  보안 모듈: 카카오 토큰 보호 (localStorage 사용 - 영구 자동로그인)
 // ============================================================
 var TokenManager = {
   _tokenKey: 'cl_kakao_token',
   setToken: function(token){
-    try { sessionStorage.setItem(this._tokenKey, token); } catch(e){}
+    try { localStorage.setItem(this._tokenKey, token); } catch(e){}
   },
   getToken: function(){
-    try { return sessionStorage.getItem(this._tokenKey); } catch(e){ return null; }
+    try { return localStorage.getItem(this._tokenKey); } catch(e){ return null; }
   },
   clearToken: function(){
-    try { sessionStorage.removeItem(this._tokenKey); } catch(e){}
+    try { localStorage.removeItem(this._tokenKey); } catch(e){}
     // Kakao SDK 토큰도 클리어
     try { if(window.Kakao && Kakao.Auth) Kakao.Auth.setAccessToken(null); } catch(e){}
   }
@@ -3350,7 +3350,7 @@ document.addEventListener('DOMContentLoaded', function(){
   .then(function(r){ return r.json(); })
   .then(function(data){
     if(data.error) throw new Error(data.error_description || data.error);
-    // 토큰을 sessionStorage에 안전하게 저장 (탭 닫으면 자동 삭제)
+    // 토큰을 localStorage에 안전하게 저장 (영구 자동로그인)
     Kakao.Auth.setAccessToken(data.access_token);
     TokenManager.setToken(data.access_token);
     return fetch('https://kapi.kakao.com/v2/user/me', {
@@ -9151,7 +9151,7 @@ function confirmWithdraw(){
   try {
     var kakaoToken = TokenManager.getToken() || (Kakao.Auth && Kakao.Auth.getAccessToken());
     if(window.Kakao && Kakao.isInitialized() && kakaoToken){
-      // sessionStorage에서 토큰 복원
+      // localStorage에서 토큰 복원
       if(!Kakao.Auth.getAccessToken() && kakaoToken){
         Kakao.Auth.setAccessToken(kakaoToken);
       }
