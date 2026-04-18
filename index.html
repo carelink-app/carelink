@@ -426,9 +426,10 @@
           </label>
         </div>
       </div>
-      <button class="btn btn-kakao" id="kakao-btn" onclick="doKakaoLogin()" disabled style="opacity:0.5;cursor:not-allowed">
+      <button class="btn btn-kakao" id="kakao-btn" onclick="doKakaoLogin()">
         <span style="font-size:22px">💬</span> 카카오로 시작하기
       </button>
+      <p style="margin-top:10px;font-size:12px;color:#aaa;text-align:center;line-height:1.6">카카오 로그인 시 필수 약관에 자동 동의됩니다</p>
     </div>
     <p style="margin-top:24px;font-size:13px;color:#aaa;text-align:center;line-height:1.7">가입 시 <span onclick="openModal('modal-terms')" style="color:var(--primary);cursor:pointer;text-decoration:underline">이용약관</span> 및 <span onclick="navigate('privacy')" style="color:var(--primary);cursor:pointer;text-decoration:underline">개인정보처리방침</span>에<br>동의하게 됩니다.</p>
     <p style="margin-top:12px;font-size:12px;color:#bbb;text-align:center;line-height:1.7">
@@ -2643,7 +2644,7 @@ function selectAreaSido(sido){
 
   container.innerHTML = districts.map(function(d){
     return '<div onclick="confirmAreaSelect(\'' + d.key.replace(/'/g,"\\'") + '\')" style="padding:14px 16px;border-bottom:1px solid #f0f0f0;font-size:16px;color:var(--text);cursor:pointer;border-radius:10px;margin-bottom:2px" onmouseover="this.style.background=\'#FFF3E0\'" onmouseout="this.style.background=\'#fff\'">'
-      + d.name + '</div>';
+      + escapeHtml(d.name) + '</div>';
   }).join('');
 }
 
@@ -3260,17 +3261,7 @@ function toggleAllConsent(checked){
   checkConsent();
 }
 function checkConsent(){
-  var terms = document.getElementById('agree-terms');
-  var privacy = document.getElementById('agree-privacy');
   var allCb = document.getElementById('agree-all');
-  var btn = document.getElementById('kakao-btn');
-  // 필수 항목만 체크
-  var required = (terms && terms.checked) && (privacy && privacy.checked);
-  if(btn){
-    btn.disabled = !required;
-    btn.style.opacity = required ? '1' : '0.5';
-    btn.style.cursor = required ? 'pointer' : 'not-allowed';
-  }
   // 전체동의 체크박스 sync
   if(allCb){
     var all = document.querySelectorAll('.consent-cb');
@@ -3282,11 +3273,18 @@ function checkConsent(){
 
 window.doKakaoLogin = doKakaoLogin;
 function doKakaoLogin(){
+  // 카카오 로그인 버튼 클릭 시 필수 약관 자동 동의 처리
   var termsOk = document.getElementById('agree-terms');
   var privacyOk = document.getElementById('agree-privacy');
-  if(!termsOk || !termsOk.checked || !privacyOk || !privacyOk.checked){
-    showToast('[필수] 이용약관과 개인정보 수집·이용에 동의해 주세요');
-    return;
+  var allCb = document.getElementById('agree-all');
+  if(termsOk) termsOk.checked = true;
+  if(privacyOk) privacyOk.checked = true;
+  // 전체동의 체크박스도 동기화
+  if(allCb){
+    var all = document.querySelectorAll('.consent-cb');
+    var allChecked = true;
+    all.forEach(function(cb){ if(!cb.checked) allChecked = false; });
+    allCb.checked = allChecked;
   }
 
   const btn = document.getElementById('kakao-btn');
@@ -3938,7 +3936,7 @@ function renderMapMarkers(){
         '<div class="map-popup-card">'
         + '<div class="map-popup-title">'+escapeHtml(item.title)+'</div>'
         + '<div class="map-popup-salary">'+escapeHtml(item.salary)+'</div>'
-        + '<div class="map-popup-area">📍 '+(item.bname?(item.area+' '+item.bname):item.area)+'</div>'
+        + '<div class="map-popup-area">📍 '+(item.bname?(escapeHtml(item.area)+' '+escapeHtml(item.bname)):escapeHtml(item.area))+'</div>'
         + '<button class="map-popup-btn" onclick="openDetailFromMap('+item.id+')">상세 보기</button>'
         + '</div>',{maxWidth:240,className:'carelink-popup'});
       state.mapMarkers.push(marker);
@@ -3965,7 +3963,7 @@ function renderMapMarkers(){
           + '<div style="width:28px;height:28px;border-radius:50%;background:'+typeColor+';display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">'+typeIcon+'</div>'
           + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:13px;font-weight:700;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(it.title)+'</div>'
-          + '<div style="font-size:11px;color:#888">'+escapeHtml(it.salary||'')+' · '+(it.bname||it.area||'')+'</div>'
+          + '<div style="font-size:11px;color:#888">'+escapeHtml(it.salary||'')+' · '+escapeHtml(it.bname||it.area||'')+'</div>'
           + '</div>'
           + '</div>';
       });
@@ -4051,7 +4049,7 @@ function renderListings(filter){
         <div class="listing-desc">${escapeHtml(item.desc)}</div>
         <div class="listing-bottom">
           <span class="listing-salary">${escapeHtml(item.salary)}</span>
-          <span class="listing-area-time">📍${item.bname?(item.area+' '+item.bname):item.area} · ${item.createdAt ? getRelativeTime(item.createdAt) : item.time}</span>
+          <span class="listing-area-time">📍${item.bname?(escapeHtml(item.area)+' '+escapeHtml(item.bname)):escapeHtml(item.area)} · ${item.createdAt ? getRelativeTime(item.createdAt) : item.time}</span>
         </div>
       </div>`;
     });
@@ -4086,7 +4084,7 @@ function openDetail(id){
       </div>
       <div style="font-size:21px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:12px">${escapeHtml(item.title)}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:14px;color:#aaa">📍${item.area} · ${item.time}</div>
+        <div style="font-size:14px;color:#aaa">📍${escapeHtml(item.area)} · ${escapeHtml(item.time)}</div>
         <div style="font-size:14px;color:#aaa">${escapeHtml(item.name)}</div>
       </div>
     </div>
@@ -4095,12 +4093,12 @@ function openDetail(id){
       <div class="detail-info-row"><span class="detail-info-icon">💼</span><span class="detail-info-label">근무 유형</span><span class="detail-info-value">${getWorkTypeLabel(item.workType)}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📅</span><span class="detail-info-label">${item.type==='caregiver'?'희망 시간':'근무 요일'}</span><span class="detail-info-value">${item.days}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">💰</span><span class="detail-info-label">급여</span><span class="detail-info-value" style="color:var(--primary);font-size:17px">${escapeHtml(item.salary)}</span></div>
-      <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${item.bname ? (item.area+' '+item.bname) : (item.area||landmark)} <span style="font-size:12px;color:#aaa">(동 단위까지만 공개)</span></span></div>
+      <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${item.bname ? (escapeHtml(item.area)+' '+escapeHtml(item.bname)) : escapeHtml(item.area||landmark)} <span style="font-size:12px;color:#aaa">(동 단위까지만 공개)</span></span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📞</span><span class="detail-info-label">연락처</span><span class="detail-info-value">${
         item.sharePhone===false
           ? '<span style="color:#1565C0;font-weight:700">💬 채팅만 가능</span>'
           : isMatched
-            ? item.contact
+            ? escapeHtml(item.contact)
             : '<span style="color:#2E7D32;font-weight:700">🔒 안심번호 연결</span> <span style="font-size:12px;color:#aaa">(매칭 후 실번호 공개)</span>'
       }</span></div>
       ${item.type==='caregiver' && item.canDrive!==null && item.canDrive!==undefined
@@ -4271,7 +4269,7 @@ function openContactModal(){
       </div>
 
       <!-- 전화 걸기 (실제 번호로 연결) -->
-      <a href="tel:${phoneNum}" style="text-decoration:none" onclick="closeModal('modal-contact')">
+      <a href="tel:${encodeURIComponent(phoneNum.replace(/[^0-9-]/g,''))}" style="text-decoration:none" onclick="closeModal('modal-contact')">
         <button class="btn btn-primary" style="font-size:18px;padding:17px;margin-bottom:12px">
           📞 전화하기
         </button>
@@ -4982,6 +4980,11 @@ function submitPost(){
   const phone=document.getElementById('post-phone').value.trim();
   const desc=sanitizeInput(document.getElementById('post-desc').value);
 
+  // ── 클라이언트 데이터 길이 검증 (Firebase Rules와 동기화) ──
+  if(title && title.length > 100){ showToast('⚠️ 제목은 100자 이내로 입력해 주세요'); return; }
+  if(desc && desc.length > 2000){ showToast('⚠️ 상세내용은 2000자 이내로 입력해 주세요'); return; }
+  if(area && area.length > 100){ showToast('⚠️ 지역 정보가 너무 깁니다'); return; }
+
   // ── 구인: 모든 필수 항목 검증 ──
   if(state.postType==='employer'){
     if(!title){showToast('⚠️ 기관명을 입력해 주세요');return;}
@@ -5184,7 +5187,7 @@ function updateMyListings(item){
   if(el.textContent.includes('없습니다')) el.innerHTML='';
   el.innerHTML=`<div style="background:#f9f9f9;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border)" onclick="openDetail(${item.id})">
     <div style="font-size:15px;font-weight:700">${escapeHtml(item.title)}</div>
-    <div style="font-size:13px;color:#aaa;margin-top:4px">📍${item.area} · ${item.time} · <span style="color:var(--primary)">14일 후 만료</span></div>
+    <div style="font-size:13px;color:#aaa;margin-top:4px">📍${escapeHtml(item.area)} · ${item.time} · <span style="color:var(--primary)">14일 후 만료</span></div>
   </div>`+el.innerHTML;
 }
 
@@ -5437,7 +5440,7 @@ function showBookmarks(){
           ${item.status==='matched'?'<span class="badge-matched">🤝 매칭완료</span>':''}
         </div>
         <div style="font-size:16px;font-weight:700;margin-bottom:4px">${escapeHtml(item.title)}</div>
-        <div style="font-size:13px;color:#aaa">📍${item.area} · ${item.salary}</div>
+        <div style="font-size:13px;color:#aaa">📍${escapeHtml(item.area)} · ${escapeHtml(item.salary)}</div>
       </div>`).join('');
   }
   modal.classList.add('open');
@@ -5448,6 +5451,51 @@ function showBookmarks(){
 //  👉 아래 firebaseConfig 값을 본인의 Firebase 프로젝트 값으로 교체하세요
 //  Firebase Console(console.firebase.google.com) → 프로젝트 설정 → 웹앱 추가 → SDK 설정
 // ============================================================
+//
+// ⚠️ [중요] Firebase Realtime Database Security Rules 권장 설정
+// Firebase Console → Realtime Database → Rules 탭에서 아래 규칙을 적용하세요:
+//
+// {
+//   "rules": {
+//     "users": {
+//       "$uid": {
+//         ".read": "auth != null",
+//         ".write": "auth != null && auth.uid == $uid",
+//         ".validate": "newData.hasChildren(['name','role','area'])",
+//         "name": { ".validate": "newData.isString() && newData.val().length <= 50" },
+//         "nickname": { ".validate": "newData.isString() && newData.val().length <= 30" },
+//         "phone": { ".validate": "newData.isString() && newData.val().matches(/^[0-9-]{10,14}$/)" },
+//         "role": { ".validate": "newData.val() === 'caregiver' || newData.val() === 'employer'" },
+//         "area": { ".validate": "newData.isString() && newData.val().length <= 100" }
+//       }
+//     },
+//     "listings": {
+//       ".read": true,
+//       "$listingId": {
+//         ".write": "auth != null",
+//         ".validate": "newData.hasChildren(['title','type','area','createdAt','kakaoId'])",
+//         "title": { ".validate": "newData.isString() && newData.val().length <= 100" },
+//         "desc": { ".validate": "newData.isString() && newData.val().length <= 2000" },
+//         "salary": { ".validate": "newData.isString() && newData.val().length <= 50" },
+//         "type": { ".validate": "newData.val() === 'employer' || newData.val() === 'caregiver'" }
+//       }
+//     },
+//     "chats": {
+//       "$chatId": {
+//         ".read": "auth != null",
+//         ".write": "auth != null",
+//         "messages": {
+//           "$msgId": {
+//             ".validate": "newData.child('text').isString() && newData.child('text').val().length <= 1000"
+//           }
+//         }
+//       }
+//     },
+//     "banned": { ".read": true, ".write": "root.child('admins').child(auth.uid).exists()" },
+//     "reports": { ".read": "root.child('admins').child(auth.uid).exists()", ".write": "auth != null" }
+//   }
+// }
+//
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAJDflqlwcmW7WDeyIKdwbVExcdLxWs6-w",
   authDomain:        "yobocare-ad9ce.firebaseapp.com",
@@ -6042,7 +6090,7 @@ function renderMessages(chatId){
     } else if(msg.type === 'image'){
       bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '" style="padding:4px;max-width:200px">'
         + '<div style="font-size:10px;color:rgba(0,0,0,0.4);margin-bottom:3px">[' + escapeHtml(msg.imageLabel||'서류') + ']</div>'
-        + '<img src="' + msg.imageUrl + '" style="max-width:100%;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)"/>'
+        + '<img src="' + escapeHtml(msg.imageUrl||'') + '" style="max-width:100%;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)"/>'
         + '</div>';
     } else {
       bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '">' + escapeHtml(msg.text||'') + '</div>';
@@ -6144,6 +6192,8 @@ function sendMessage(){
   const input = document.getElementById('chat-input-text');
   const text = sanitizeInput(input.value);
   if(!text) return;
+  // ── 클라이언트 메시지 길이 검증 (Firebase Rules와 동기화) ──
+  if(text.length > 1000){ showToast('⚠️ 메시지는 1000자 이내로 입력해 주세요'); return; }
 
   // ── 보안: 개인정보(PII) 입력 감지 경고 ──
   var piiWarning = detectPII(input.value);
@@ -6953,9 +7003,9 @@ function renderEduRegionList(){
           <div style="width:52px;height:52px;background:linear-gradient(135deg,#FF6B35,#ff9a6c);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🏫</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:3px">${r}</div>
-            <div style="font-size:17px;font-weight:900;color:var(--text);margin-bottom:2px">${d.instName}</div>
-            <div style="font-size:13px;color:var(--text-sub)">${d.branch}${d.phone?` · ${d.phone}`:''}</div>
-            ${d.address?`<div style="font-size:12px;color:#aaa;margin-top:3px">📍 ${d.address}</div>`:''}
+            <div style="font-size:17px;font-weight:900;color:var(--text);margin-bottom:2px">${escapeHtml(d.instName)}</div>
+            <div style="font-size:13px;color:var(--text-sub)">${escapeHtml(d.branch)}${d.phone?` · ${escapeHtml(d.phone)}`:''}</div>
+            ${d.address?`<div style="font-size:12px;color:#aaa;margin-top:3px">📍 ${escapeHtml(d.address)}</div>`:''}
           </div>
           <div style="font-size:20px;color:#ccc">›</div>
         </div>`;
@@ -7202,12 +7252,12 @@ function renderEduRegionContent(){
     <div style="background:linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%);padding:22px 20px;color:#fff">
       <div style="font-size:12px;font-weight:700;opacity:.8;margin-bottom:3px">${selectedEduRegion}</div>
       <div style="font-size:21px;font-weight:900;margin-bottom:3px">${d.instName}</div>
-      <div style="font-size:14px;opacity:.85;margin-bottom:${d.address?'4px':'14px'}">${d.branch}</div>
-      ${d.address?`<div style="font-size:13px;opacity:.8;margin-bottom:14px">📍 ${d.address}</div>`:''}
+      <div style="font-size:14px;opacity:.85;margin-bottom:${d.address?'4px':'14px'}">${escapeHtml(d.branch)}</div>
+      ${d.address?`<div style="font-size:13px;opacity:.8;margin-bottom:14px">📍 ${escapeHtml(d.address)}</div>`:''}
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="tel:${d.phone}" style="text-decoration:none">
+        <a href="tel:${encodeURIComponent((d.phone||'').replace(/[^0-9-]/g,''))}" style="text-decoration:none">
           <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.2);border-radius:10px;padding:9px 15px;font-size:14px;font-weight:700">
-            📞 ${d.phone}
+            📞 ${escapeHtml(d.phone)}
           </div>
         </a>
         ${canEdit?`<div onclick="openInstInfoForm()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.2);border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer">✏️ 학원정보 수정</div>`:''}
@@ -7540,7 +7590,7 @@ function openCertApplyForm(schedIdx){
   currentApplyType = 'cert';
   currentApplyIdx = schedIdx;
   const info = document.getElementById('cert-apply-schedule-info');
-  if(info) info.innerHTML = `📋 ${d.instName} · ${s.date}<br>⏰ ${s.time}`;
+  if(info) info.innerHTML = `📋 ${escapeHtml(d.instName)} · ${escapeHtml(s.date)}<br>⏰ ${escapeHtml(s.time)}`;
   // 로그인한 사용자 정보 자동 입력
   const nameEl = document.getElementById('cert-apply-name');
   if(nameEl && state.user && state.user.name) nameEl.value = state.user.name;
@@ -7566,7 +7616,7 @@ function openRefresherApplyForm(schedIdx){
   // 사용자 이름 자동 입력
   if(state.user && state.user.name) refresherFormData.name = state.user.name;
   const info = document.getElementById('refresher-apply-schedule-info');
-  if(info) info.innerHTML = `🔄 ${d.instName} · ${s.date}<br>⏰ ${s.time}`;
+  if(info) info.innerHTML = `🔄 ${escapeHtml(d.instName)} · ${escapeHtml(s.date)}<br>⏰ ${escapeHtml(s.time)}`;
   renderRefresherStep();
   document.getElementById('modal-edu-refresher-apply').classList.add('open');
 }
@@ -7952,7 +8002,7 @@ function openApplicantsModal(type, idx){
           <div style="width:28px;height:28px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--primary);flex-shrink:0">${i+1}</div>
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;color:var(--text)">${escapeHtml(a.name)}</div>
-            <div style="font-size:12px;color:var(--text-sub)">${escapeHtml(a.phone)}${a.certNo?' · 자격: '+escapeHtml(a.certNo):''}${a.discount?' · 감면대상':''}${a.org?' · '+a.org:''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
+            <div style="font-size:12px;color:var(--text-sub)">${escapeHtml(a.phone)}${a.certNo?' · 자격: '+escapeHtml(a.certNo):''}${a.discount?' · 감면대상':''}${a.org?' · '+escapeHtml(a.org):''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
           </div>
           <div style="font-size:11px;color:#aaa;flex-shrink:0">${a.appliedDate||''}</div>
         </div>
@@ -8062,8 +8112,8 @@ function renderAdBanners(){
       <div style="font-size:26px">🏫</div>
       <div>
         <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:2px">${r} · 교육기관</div>
-        <div style="font-size:13px;font-weight:800;color:#fff">${d.instName} ${d.branch}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:2px">${d.phone} · 신청하기 →</div>
+        <div style="font-size:13px;font-weight:800;color:#fff">${escapeHtml(d.instName)} ${escapeHtml(d.branch)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:2px">${escapeHtml(d.phone)} · 신청하기 →</div>
       </div>
     </div>`;
   }).join('') + `
@@ -8397,7 +8447,7 @@ function renderAdminListings(){
       <div class="listing-card-compact" onclick="state.selectedListing=state.listings.find(l=>l.id=='${listing.id}');navigate('detail')">
         <div class="listing-title">${escapeHtml(listing.title)}</div>
         <div style="font-size:13px;color:var(--text-sub);margin-bottom:8px">
-          <div>📍 ${listing.area || '위치 미지정'} · ${statusBadge}</div>
+          <div>📍 ${escapeHtml(listing.area || '위치 미지정')} · ${statusBadge}</div>
           <div style="margin-top:4px">작성: ${escapeHtml(listing.postedBy || '미지정')}</div>
         </div>
         <button class="btn btn-outline" onclick="event.stopPropagation();adminDeleteListing('${listing.id}')" style="padding:6px 12px;font-size:12px;color:#E53935;border-color:#E53935;width:100%">
@@ -8441,8 +8491,8 @@ function renderMyListings(){
       <div style="background:#f9f9f9;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
         <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${escapeHtml(listing.title)}</div>
         <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px">
-          <div>📍 ${listing.area || '위치 미지정'}</div>
-          <div style="margin-top:2px">📅 ${posted.toLocaleDateString()} · <span style="color:${statusColor}">⏱️ ${statusText}</span></div>
+          <div>📍 ${escapeHtml(listing.area || '위치 미지정')}</div>
+          <div style="margin-top:2px">📅 ${posted.toLocaleDateString()} · <span style="color:${statusColor}">⏱️ ${escapeHtml(statusText)}</span></div>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn" style="flex:1;padding:8px;font-size:12px" onclick="openDetail(${listing.id})">
