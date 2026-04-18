@@ -245,8 +245,6 @@
     .toggle-switch.on .toggle-switch-dot{left:22px}
 
     /* Pull-to-refresh indicator */
-    .pull-indicator{text-align:center;padding:12px;color:var(--primary);font-size:13px;font-weight:600;display:none}
-    .pull-indicator.visible{display:block}
 
     /* Skeleton loading */
     @keyframes skeleton-pulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -642,7 +640,6 @@
 
   <!-- 목록 뷰 -->
   <div id="list-view" class="scroll-area" style="flex:1">
-    <div id="pull-indicator" class="pull-indicator">↻ 당겨서 새로고침</div>
     <div id="listing-list"></div>
   </div>
 
@@ -9293,53 +9290,6 @@ function updateProfileCompletion(){
   if(barEl) barEl.style.width = pct + '%';
 }
 
-// ============================================================
-//  Pull-to-refresh (당근마켓 스타일)
-// ============================================================
-let _pullRefreshCooldown = false;
-let _pullStartY = 0;
-let _pullTriggered = false;
-(function(){
-  var listView = document.getElementById('list-view');
-  if(!listView) return;
-  listView.addEventListener('touchstart', function(e){
-    // 홈 화면에서만 pull-to-refresh 활성화
-    if(state.currentScreen !== 'home') return;
-    if(listView.scrollTop <= 0){
-      _pullStartY = e.touches[0].clientY;
-      _pullTriggered = false;
-    }
-  }, {passive:true});
-  listView.addEventListener('touchmove', function(e){
-    // 홈 화면에서만 pull-to-refresh 활성화
-    if(state.currentScreen !== 'home') return;
-    if(_pullRefreshCooldown || _pullTriggered) return;
-    if(listView.scrollTop > 0) return;
-    var dy = e.touches[0].clientY - _pullStartY;
-    if(dy > 60){
-      _pullTriggered = true;
-      doPullRefresh();
-    }
-  }, {passive:true});
-})();
-function doPullRefresh(){
-  // 홈 화면에서만 동작
-  if(state.currentScreen !== 'home') return;
-  const indicator = document.getElementById('pull-indicator');
-  if(!indicator || _pullRefreshCooldown) return;
-  indicator.classList.add('visible');
-  indicator.textContent = '↻ 새로고침 중...';
-  _pullRefreshCooldown = true;
-  renderHomeScreen();
-  setTimeout(()=>{
-    indicator.textContent = '✅ 새로고침 완료';
-    setTimeout(()=>{
-      indicator.classList.remove('visible');
-      _pullRefreshCooldown = false;
-    }, 800);
-  }, 600);
-}
-// handlePullRefresh 제거됨 — 터치 기반으로 홈 화면에서만 동작
 
 // ============================================================
 //  스켈레톤 로딩 (인기 앱 참고)
