@@ -2210,8 +2210,8 @@ var SecureStorage = (function(){
       try {
         var encrypted = _xorEncrypt(JSON.stringify({
           data: value,
-          timestamp: Date.now(),
-          expiry: Date.now() + (365 * 24 * 60 * 60 * 1000) // 365일 만료 (어르신 편의성 - 영구 자동로그인)
+          timestamp: Date.now()
+          // 만료 없음 - 영구 저장 (어르신 편의성 최우선)
         }), _KEY);
         localStorage.setItem(key, encrypted);
       } catch(e){ console.warn('[SecureStorage] setItem 실패:', e); }
@@ -2223,11 +2223,7 @@ var SecureStorage = (function(){
         var decrypted = _xorDecrypt(raw, _KEY);
         if(!decrypted) return null;
         var obj = JSON.parse(decrypted);
-        // 만료 체크
-        if(obj.expiry && Date.now() > obj.expiry){
-          localStorage.removeItem(key);
-          return null;
-        }
+        // 만료 없음 - 영구 유지
         return obj.data;
       } catch(e){
         // 이전 평문 데이터 호환: 평문 JSON이면 그대로 반환
