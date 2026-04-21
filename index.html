@@ -423,7 +423,7 @@
         <div style="display:flex;align-items:flex-start;gap:8px;padding-left:4px">
           <input type="checkbox" id="agree-contact" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
           <label for="agree-contact" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
-            <span style="color:#767676;font-weight:700">[선택]</span> 연락처(전화번호) 수집 동의
+            <span style="color:var(--primary);font-weight:700">[필수]</span> 연락처(전화번호) 수집 동의
           </label>
         </div>
       </div>
@@ -2215,6 +2215,10 @@ var SecureStorage = (function(){
           expiry: Date.now() + (365 * 24 * 60 * 60 * 1000) // 365일 만료 (어르신 편의성 - 영구 자동로그인)
         }), _KEY);
         localStorage.setItem(key, encrypted);
+        // ★ 백업: 일반 JSON으로도 저장 (암호화 복호화 실패 대비)
+        if(key === 'carelink_profile'){
+          try { localStorage.setItem('cl_profile_backup', JSON.stringify(value)); } catch(eb){}
+        }
       } catch(e){ console.warn('[SecureStorage] setItem 실패:', e); }
     },
     getItem: function(key){
@@ -2241,6 +2245,10 @@ var SecureStorage = (function(){
     },
     removeItem: function(key){
       try { localStorage.removeItem(key); } catch(e){}
+      // 백업도 함께 삭제
+      if(key === 'carelink_profile'){
+        try { localStorage.removeItem('cl_profile_backup'); } catch(e){}
+      }
     },
     clear: function(){
       try { localStorage.clear(); } catch(e){}
@@ -2984,16 +2992,29 @@ function init(){
     }
   } catch(e){ console.log('[CareLink] Kakao Maps 미리 로드 실패:', e); }
   // Firebase onValue 리스너가 listings 채움
-  // ── SecureStorage 자동 로그인 (암호화 + 만료 체크) ──────────────────────────
-  // 자동 로그아웃 비활성화 — 로그인 영구 유지 (사용자가 직접 로그아웃만 가능)
+  // ── 자동 로그인 (영구 유지) ──────────────────────────
+  // SecureStorage → 일반 localStorage 순서로 시도 (이중 백업)
   // AutoLogout.init();
   try {
-    const saved_raw = SecureStorage.getItem('carelink_profile');
+    var saved_raw = SecureStorage.getItem('carelink_profile');
+    // SecureStorage 실패 시 일반 localStorage 백업에서 복구
+    if(!saved_raw){
+      try {
+        var backupStr = localStorage.getItem('cl_profile_backup');
+        if(backupStr){
+          saved_raw = JSON.parse(backupStr);
+          console.log('[CareLink] 백업 localStorage에서 프로필 복구');
+          // 복구된 데이터를 SecureStorage에 다시 저장
+          SecureStorage.setItem('carelink_profile', saved_raw);
+        }
+      } catch(e2){ console.warn('[CareLink] 백업 복구 실패:', e2); }
+    }
     if(saved_raw){
       const profile = (typeof saved_raw === 'string') ? JSON.parse(saved_raw) : saved_raw;
       if(profile && profile.kakaoId){
         state.user  = profile;
         state.role  = profile.role || 'caregiver';
+        console.log('[CareLink] 자동 로그인 성공:', profile.kakaoId);
         // 프로필 화면 반영
         const pName = document.getElementById('profile-name');
         const pType = document.getElementById('profile-type-label');
@@ -3256,9 +3277,11 @@ function doKakaoLogin(){
   // 카카오 로그인 버튼 클릭 시 필수 약관 자동 동의 처리
   var termsOk = document.getElementById('agree-terms');
   var privacyOk = document.getElementById('agree-privacy');
+  var contactOk = document.getElementById('agree-contact');
   var allCb = document.getElementById('agree-all');
   if(termsOk) termsOk.checked = true;
   if(privacyOk) privacyOk.checked = true;
+  if(contactOk) contactOk.checked = true;  // 연락처 수집 동의도 필수
   // 전체동의 체크박스도 동기화
   if(allCb){
     var all = document.querySelectorAll('.consent-cb');
@@ -3275,25 +3298,17 @@ function doKakaoLogin(){
   // 앱 WebView 감지 (UserAgent에 YoyangLinkApp 포함)
   var isInApp = navigator.userAgent.indexOf('YoyangLinkApp') !== -1;
 
-  if(isInApp){
-    // ★ WebView에서는 SDK authorize() 대신 직접 URL 리다이렉트
-    // SDK가 내부적으로 앱 기반 인증(intent://)을 유도할 수 있어
-    // 서버 302 리다이렉트 시 WebView가 빈 페이지 에러를 표시하는 문제 방지
-    window.location.href = 'https://kauth.kakao.com/oauth/authorize'
-      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
-      + '&redirect_uri=' + encodeURIComponent(redirectUri)
-      + '&response_type=code';
-  } else {
-    // 일반 브라우저에서는 SDK 사용
-    if(!window.Kakao || !Kakao.isInitialized()){
-      showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-      if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
-      return;
-    }
-    // 연락처 수집 동의 여부 저장
+  // 연락처 수집 동의 여부 저장
   try { localStorage.setItem('cl_contact_consent', document.getElementById('agree-contact').checked ? '1' : '0'); } catch(e){}
-  Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
+
+  if(!window.Kakao || !Kakao.isInitialized()){
+    showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
+    return;
   }
+
+  // ★ WebView/브라우저 모두 SDK 사용 + throughTalk으로 카카오톡 앱 로그인 유도
+  Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
 }
 
 // ============================================================
@@ -4095,7 +4110,7 @@ function openDetail(id){
           <div class="detail-section-title">경력</div>
           ${Object.entries(item.expData).map((e,i)=>`
             <div class="detail-info-row">
-              <span class="detail-info-icon">${['🏥','🏠','🚶','🏡'][i]||'📌'}</span>
+              <span class="detail-info-icon">${['🏥','🏠','����','🏡'][i]||'📌'}</span>
               <span class="detail-info-label" style="min-width:130px">${e[0]}</span>
               <span class="detail-info-value" style="color:var(--primary);font-weight:700">${e[1]}</span>
             </div>`).join('')}
@@ -4774,6 +4789,7 @@ function setPostType(type){
 }
 
 // ── 도로명주소 검색 (Daum Postcode API) ──
+window.openAddrSearch = openAddrSearch;
 function openAddrSearch(){
   // Daum Postcode SDK 로드 확인
   if(typeof daum === 'undefined' || !daum.Postcode){
