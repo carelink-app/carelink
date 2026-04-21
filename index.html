@@ -3048,6 +3048,8 @@ function init(){
         // 홈 화면 지역 라벨 업데이트
         var hArea = document.getElementById('home-area-label');
         if(hArea && profile.area) hArea.textContent = profile.area;
+        // ★ 자동 로그인 시 히스토리 초기화 (뒤로가기로 로그인 화면 돌아가기 방지)
+        history.replaceState({screen:'home', tab:'home'}, '', '#home');
         // 새로고침 시 현재 화면 유지 (hash 기반)
         var hashScreen = (window.location.hash || '').replace('#','') || 'home';
         // 유효한 화면인지 확인
@@ -3152,6 +3154,16 @@ function closeAnyOpenModal(){
 
 // 브라우저 뒤로가기 버튼 처리 — 모달 먼저 닫고, 탭 내 뒤로 이동
 window.addEventListener('popstate', function(e){
+  // ★ 로그인 상태에서 로그인/역할선택/프로필설정 화면으로 뒤로가기 차단
+  var blockedScreens = ['login','role','profile-setup'];
+  var poppedScreen = (e.state && e.state.screen) || (window.location.hash || '').replace('#','');
+  if(state.user && state.user.kakaoId && blockedScreens.indexOf(poppedScreen) !== -1){
+    // 로그인된 상태 → 홈으로 강제 이동
+    navigate('home', true);
+    history.replaceState({screen:'home', tab:'home'}, '', '#home');
+    return;
+  }
+
   // 열린 모달/팝업이 있으면 먼저 닫기
   if(closeAnyOpenModal()){
     history.pushState({screen:state.currentScreen, tab:_activeTab}, '', '#'+state.currentScreen);
@@ -3394,7 +3406,9 @@ document.addEventListener('DOMContentLoaded', function(){
         ensureNickname(function(){});
         showToast('🎉 ' + getDisplayName(saved) + '님, 어서오세요!');
         initHomePostType();
-        navigate('home');
+        // ★ 히스토리 초기화 후 홈으로 (뒤로가기로 로그인 화면 복귀 방지)
+        history.replaceState({screen:'home', tab:'home'}, '', '#home');
+        navigate('home', true);
         return;
       }
     } catch(e){}
@@ -3658,8 +3672,9 @@ function confirmSetup(){
   cleanupOldMessages();
   // 구인/구직 토글 초기화 (역할에 따라 기본값 설정)
   initHomePostType();
-  // 지역 선택 후 홈으로 이동
-  navigate('home');
+  // ★ 첫 로그인 완료: 히스토리 초기화 후 홈으로 (뒤로가기로 로그인 화면 복귀 방지)
+  history.replaceState({screen:'home', tab:'home'}, '', '#home');
+  navigate('home', true);
   setTimeout(function(){
     openAreaSelectModal(function(areaKey){
       // 지역 선택 완료
@@ -4110,7 +4125,7 @@ function openDetail(id){
           <div class="detail-section-title">경력</div>
           ${Object.entries(item.expData).map((e,i)=>`
             <div class="detail-info-row">
-              <span class="detail-info-icon">${['🏥','🏠','����','🏡'][i]||'📌'}</span>
+              <span class="detail-info-icon">${['🏥','🏠','🚶','🏡'][i]||'📌'}</span>
               <span class="detail-info-label" style="min-width:130px">${e[0]}</span>
               <span class="detail-info-value" style="color:var(--primary);font-weight:700">${e[1]}</span>
             </div>`).join('')}
