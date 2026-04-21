@@ -7117,5 +7117,2792 @@ function openEduRegionModal(){
 }
 
 function renderEduRegionModalList(){
-  const listEl  = docum
-Dismiss
+  const listEl  = document.getElementById('edu-region-modal-list');
+  const titleEl = document.getElementById('edu-region-modal-title');
+  const backEl  = document.getElementById('edu-region-modal-back');
+  if(!listEl) return;
+
+  const registered = getEduGroups(); // 등록된 기관 맵
+
+  /* ── 1단계: 시/도 전체 목록 ── */
+  if(!eduModalSido){
+    if(titleEl) titleEl.textContent = '📍 지역을 선택해 주세요';
+    if(backEl)  backEl.style.display = 'none';
+
+    listEl.innerHTML = `
+      <div style="font-size:13px;color:#aaa;text-align:center;margin-bottom:14px">시 · 도를 먼저 선택하세요</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${Object.keys(KOREA_ALL_REGIONS).map(sido => {
+          const cnt = (registered[sido] || []).length;
+          const hasCnt = cnt > 0;
+          return `<div onclick="selectEduSido('${sido}')"
+            style="flex:1;min-width:calc(33% - 6px);background:${hasCnt?'var(--primary-light)':'#fafafa'};border:2px solid ${hasCnt?'var(--primary)':'var(--border)'};border-radius:14px;padding:14px 8px;cursor:pointer;text-align:center;transition:all .15s"
+            ontouchstart="this.style.opacity='.7'" ontouchend="this.style.opacity='1'">
+            <div style="font-size:22px;margin-bottom:4px">${hasCnt?'🏫':'📍'}</div>
+            <div style="font-size:16px;font-weight:900;color:var(--text)">${sido}</div>
+            <div style="font-size:11px;margin-top:3px;font-weight:700;color:${hasCnt?'var(--primary)':'#bbb'}">${hasCnt?cnt+'개 기관':'없음'}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    return;
+  }
+
+  /* ── 2단계: 시/군/구 전체 목록 ── */
+  if(titleEl) titleEl.textContent = `📍 ${eduModalSido}`;
+  if(backEl)  backEl.style.display = '';
+
+  const allSubs   = KOREA_ALL_REGIONS[eduModalSido] || [];
+  const regSubs   = registered[eduModalSido] || [];
+  const regMap    = {};
+  regSubs.forEach(s => { regMap[s.sigungu] = s; });
+
+  listEl.innerHTML = allSubs.map(sigungu => {
+    const reg = regMap[sigungu]; // 등록된 기관 있으면 객체, 없으면 undefined
+    const key = `${eduModalSido} ${sigungu}`;
+    if(reg){
+      return `<div onclick="pickEduRegion('${key}')"
+        style="display:flex;align-items:center;gap:12px;background:var(--primary-light);border:2px solid var(--primary);border-radius:14px;padding:13px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s"
+        ontouchstart="this.style.opacity='.75'" ontouchend="this.style.opacity='1'">
+        <div style="width:42px;height:42px;background:linear-gradient(135deg,#FF6B35,#ff9a6c);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏫</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:900;color:var(--text)">${sigungu}</div>
+          <div style="font-size:13px;color:var(--primary);font-weight:700;margin-top:1px">${reg.d.instName} ${reg.d.branch}</div>
+          ${reg.d.address?`<div style="font-size:11px;color:#888;margin-top:1px">📍 ${reg.d.address}</div>`:''}
+        </div>
+        <div style="font-size:13px;font-weight:800;color:var(--primary);flex-shrink:0">선택 ›</div>
+      </div>`;
+    } else {
+      const isAdmin = state.user && state.user.kakaoId === ADMIN_KAKAO_ID;
+      return `<div style="display:flex;align-items:center;gap:12px;background:#f8f8f8;border:1.5px solid #e8e8e8;border-radius:14px;padding:13px 14px;margin-bottom:8px;${isAdmin?'':'opacity:.65;cursor:default'}">
+        <div style="width:42px;height:42px;background:#e0e0e0;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📍</div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;color:#888">${sigungu}</div>
+          <div style="font-size:12px;color:#bbb;margin-top:1px">${isAdmin?'탭해서 학원 추가':'등록된 교육기관 없음'}</div>
+        </div>
+        ${isAdmin?`<div onclick="openAddForRegion('${eduModalSido} ${sigungu}')" style="background:var(--primary);color:#fff;font-size:13px;font-weight:700;padding:7px 12px;border-radius:10px;cursor:pointer;flex-shrink:0">+ 추가</div>`:''}
+      </div>`;
+    }
+  }).join('');
+}
+
+function selectEduSido(sido){
+  eduModalSido = sido;
+  renderEduRegionModalList();
+  const listEl = document.getElementById('edu-region-modal-list');
+  if(listEl) listEl.scrollTop = 0;
+}
+
+function pickEduRegion(region){
+  closeModal('modal-edu-region-select');
+  selectEduRegion(region);
+}
+
+// ---- 좌석 표시 헬퍼 ----
+function renderSeatInfo(schedule, idx, type, canEdit){
+  const cap = schedule.capacity || 0;
+  if(!cap) return `<div style="font-size:13px;color:var(--text-sub)">${schedule.time} · ${schedule.seats}</div>`;
+  const region = selectedEduRegion;
+  const fbKey = btoa(unescape(encodeURIComponent(region+'_'+type+'_'+idx))).replace(/[^a-zA-Z0-9]/g,'_');
+  const countId = 'seat-count-'+fbKey;
+  // Load count from Firebase on render
+  setTimeout(()=>loadSeatCount(fbKey, countId, cap), 50);
+  return `<div style="font-size:13px;color:var(--text-sub)">${schedule.time}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+      <div style="font-size:13px;font-weight:700;color:${schedule.status==='모집중'?'#2E7D32':'#999'}">
+        정원 ${cap}명 · 잔여 <span id="${countId}" style="color:var(--primary);font-weight:900">${cap}</span>석
+      </div>
+      ${canEdit?`<button onclick="event.stopPropagation();openCapacityModal('${type}',${idx})" style="font-size:11px;background:#f0f0f0;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit;color:var(--text-sub)">정원수정</button>`:''}
+    </div>
+    <div class="edu-seat-bar"><div class="edu-seat-fill" id="seat-bar-${fbKey}" style="width:100%;background:#4CAF50"></div></div>`;
+}
+
+var _seatListeners = []; // 좌석 실시간 리스너 관리
+function loadSeatCount(fbKey, countElId, capacity){
+  if(!fbDB) return;
+  var ref = fbDB.ref('edu-applications/'+fbKey);
+  var cb = ref.on('value', function(snap){
+    var count = snap.numChildren();
+    var remaining = Math.max(0, capacity - count);
+    var el = document.getElementById(countElId);
+    if(el) el.textContent = remaining;
+    var bar = document.getElementById('seat-bar-'+fbKey);
+    if(bar){
+      var pct = capacity > 0 ? ((capacity - count)/capacity)*100 : 100;
+      bar.style.width = Math.max(0,pct)+'%';
+      bar.style.background = pct > 30 ? '#4CAF50' : pct > 10 ? '#FF9800' : '#F44336';
+    }
+  });
+  _seatListeners.push({ref:ref, cb:cb});
+}
+function cleanupSeatListeners(){
+  _seatListeners.forEach(function(l){ l.ref.off('value', l.cb); });
+  _seatListeners = [];
+}
+
+// ---- 지역별 내용 렌더링 ----
+function renderEduRegionContent(){
+  const container = document.getElementById('edu-region-content');
+  if(!container) return;
+  const d = regionEduData[selectedEduRegion];
+  if(!d){ container.innerHTML=`<div style="text-align:center;padding:40px;color:#aaa">등록된 교육기관이 없습니다</div>`; return; }
+  const isAdmin   = state.user && state.user.kakaoId === ADMIN_KAKAO_ID;
+  const isManager = state.user && d.managerId && state.user.kakaoId === d.managerId;
+  const canEdit   = isAdmin || isManager;
+  const editBtn   = (key,label) => canEdit
+    ? `<button class="edit-notice-btn" onclick="openEditModal('${key}')">${label}</button>`
+    : '';
+
+  container.innerHTML = `
+    <!-- 광고주 관리 모드 배너 -->
+    ${isManager && !isAdmin ? `
+    <div style="background:#FFF8E1;border-bottom:2px solid #FFE082;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#F57F17">
+      ✏️ 내 학원 관리 모드 — 수정 버튼을 눌러 내용을 바꿔보세요
+    </div>` : ''}
+
+    <!-- 기관 헤더 -->
+    <div style="background:linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%);padding:22px 20px;color:#fff">
+      <div style="font-size:12px;font-weight:700;opacity:.8;margin-bottom:3px">${selectedEduRegion}</div>
+      <div style="font-size:21px;font-weight:900;margin-bottom:3px">${escapeHtml(d.instName)}</div>
+      <div style="font-size:14px;opacity:.85;margin-bottom:${d.address?'4px':'14px'}">${escapeHtml(d.branch)}</div>
+      ${d.address?`<div style="font-size:13px;opacity:.8;margin-bottom:14px">📍 ${escapeHtml(d.address)}</div>`:''}
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="tel:${encodeURIComponent((d.phone||'').replace(/[^0-9-]/g,''))}" style="text-decoration:none">
+          <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.2);border-radius:10px;padding:9px 15px;font-size:14px;font-weight:700">
+            📞 ${escapeHtml(d.phone)}
+          </div>
+        </a>
+        ${canEdit?`<div onclick="openInstInfoForm()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.2);border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer">✏️ 학원정보 수정</div>`:''}
+        ${isAdmin?`<div onclick="openSetManagerModal()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.15);border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer">👤 광고주 설정</div>`:''}
+      </div>
+    </div>
+
+    <!-- 공지사항 -->
+    <div class="edu-section">
+      <div class="edu-section-title">📢 공지사항 ${editBtn('notice','수정')}</div>
+      <div style="font-size:15px;color:var(--text);line-height:1.8;white-space:pre-line">${d.notice}</div>
+    </div>
+
+    <!-- 자격증 과정 -->
+    <div class="edu-section">
+      <div class="edu-section-title">📋 요양보호사 교육 신청 ${editBtn('cert','일정수정')}</div>
+      <div style="background:var(--primary-light);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;color:var(--primary);line-height:1.7">${d.certInfo.replace(/\n/g,'<br>')}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 개강 일정 — 일정을 선택해서 신청하세요</div>
+      ${d.certSchedule.map((s,i)=>{
+        const region = selectedEduRegion;
+        const fbKey = btoa(unescape(encodeURIComponent(region+'_cert_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
+        return `
+        <div class="edu-schedule-card" onclick="${s.status==='모집중'?`openCertApplyForm(${i})`:''}">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span class="schedule-badge" style="background:${s.status==='모집중'?'#E8F5E9':'#F5F5F5'};color:${s.status==='모집중'?'#2E7D32':'#999'}">${s.status}</span>
+            <div style="flex:1">
+              <div style="font-weight:700">${s.date}</div>
+              ${renderSeatInfo(s, i, 'cert', canEdit)}
+            </div>
+            ${s.status==='모집중'?'<div style="font-size:13px;color:var(--primary);font-weight:800;flex-shrink:0">신청 ›</div>':''}
+          </div>
+          ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('cert',${i})">📋 신청자 보기</button>
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('cert',${i})">📥 엑셀</button>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- 보수교육 -->
+    <div class="edu-section">
+      <div class="edu-section-title">🔄 보수교육 신청 ${editBtn('refresher','일정수정')}</div>
+      <div style="background:#E8F5E9;border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;color:#2E7D32;line-height:1.7">${d.refresherInfo.replace(/\n/g,'<br>')}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 보수교육 일정 — 일정을 선택해서 신청하세요</div>
+      ${d.refresherSchedule.map((s,i)=>{
+        const region = selectedEduRegion;
+        const fbKey = btoa(unescape(encodeURIComponent(region+'_refresher_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
+        return `
+        <div class="edu-schedule-card" onclick="${s.status==='모집중'?`openRefresherApplyForm(${i})`:''}">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span class="schedule-badge" style="background:${s.status==='모집중'?'#E3F2FD':'#F5F5F5'};color:${s.status==='모집중'?'#1565C0':'#999'}">${s.status}</span>
+            <div style="flex:1">
+              <div style="font-weight:700">${s.date}</div>
+              ${renderSeatInfo(s, i, 'refresher', canEdit)}
+            </div>
+            ${s.status==='모집중'?'<div style="font-size:13px;color:#1565C0;font-weight:800;flex-shrink:0">신청 ›</div>':''}
+          </div>
+          ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('refresher',${i})">📋 신청자 보기</button>
+            <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('refresher',${i})">📥 엑셀</button>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- 결제 안내 & 환불 규정 -->
+    <div class="edu-section" style="padding:16px 20px">
+      <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:12px">💰 결제 안내 및 환불 규정</div>
+
+      <div style="background:#FFF8E1;border:1.5px solid #FFE082;border-radius:12px;padding:14px;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:800;color:#F57F17;margin-bottom:6px">💳 결제 안내</div>
+        <div style="font-size:13px;color:#795548;line-height:1.8">
+          수강료 입금(결제) 확인 후 수강이 확정됩니다.<br>
+          <b>카드결제</b>를 선택하신 경우, <b style="color:#E65100">교육 전 학원에 방문하여 사전 결제</b>를 완료해 주셔야 합니다.<br>
+          <span style="font-size:12px;color:#999">※ 4시간: 18,000원 / 8시간: 36,000원</span>
+        </div>
+      </div>
+
+      <div style="background:#FFEBEE;border:1.5px solid #EF9A9A;border-radius:12px;padding:14px">
+        <div style="font-size:14px;font-weight:800;color:#C62828;margin-bottom:6px">📋 환불 규정 (2025 보수교육지침)</div>
+        <div style="font-size:13px;color:#C62828;line-height:1.9">
+          <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">
+            <span style="background:#E8F5E9;color:#2E7D32;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0;margin-top:2px">전액 환불</span>
+            <span>교육 실시일 <b>3일 전</b>까지 취소 신청 시 (교육일·주말·공휴일 제외)</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">
+            <span style="background:#FFF8E1;color:#F57F17;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0;margin-top:2px">예외 환불</span>
+            <span>불가피한 상황(직계존비속 사망, 심각한 질병, 천재지변)에 한해 교육 시작 직전까지 가능</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px">
+            <span style="background:#FFEBEE;color:#C62828;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0;margin-top:2px">환불 불가</span>
+            <span>교육 당일 취소, 대리출석, 지각, 중간퇴실 등</span>
+          </div>
+          <div style="font-size:11px;color:#888;line-height:1.6;border-top:1px solid #EF9A9A;padding-top:6px;margin-top:2px">
+            ※ 카드 결제 건은 승인 취소 처리<br>
+            ※ 현금·계좌이체는 환불 신청서 + 통장 사본 제출<br>
+            ※ 환불 요청일로부터 7일 이내 처리
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${isAdmin?`
+    <!-- 관리자 전용: 광고주 설정 + 지역 삭제 -->
+    <div class="edu-section" style="display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1;font-size:14px;padding:12px" onclick="openSetManagerModal()">👤 광고주 카카오ID 설정</button>
+      <button class="btn btn-outline" style="flex:1;font-size:14px;padding:12px;color:#E53935;border-color:#E53935" onclick="deleteEduRegion('${selectedEduRegion}')">🗑️ 지역 삭제</button>
+    </div>`:''}
+  `;
+}
+
+function renderEduScreen(){
+  if(selectedEduRegion){
+    selectEduRegion(selectedEduRegion);
+  } else {
+    renderEduRegionList();
+  }
+}
+
+// ---- 관리자 UI ----
+function checkAdminUI(){
+  const isAdmin = state.user && state.user.kakaoId === ADMIN_KAKAO_ID;
+  const adminBtn = document.getElementById('edu-admin-btn');
+  const addBtn = document.getElementById('edu-add-btn');
+  if(adminBtn) adminBtn.style.display = isAdmin ? '' : 'none';
+  if(addBtn) addBtn.style.display = isAdmin ? '' : 'none';
+}
+function openEduAdmin(){
+  checkAdminUI();
+  renderEduRegionContent(); // 수정 버튼 포함 재렌더
+  showToast('관리자 모드 — 수정 버튼이 활성화되었습니다');
+}
+
+// ---- 광고주 카카오ID 설정 ----
+function openSetManagerModal(){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const display = document.getElementById('current-manager-display');
+  const input   = document.getElementById('manager-kakao-id-input');
+  if(display) display.textContent = d.managerId || '없음 (미설정)';
+  if(input)   input.value = d.managerId || '';
+  document.getElementById('modal-set-manager').classList.add('open');
+}
+function saveManagerId(){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const input = document.getElementById('manager-kakao-id-input');
+  d.managerId = (input?.value||'').trim();
+  closeModal('modal-set-manager');
+  renderEduRegionContent();
+  showToast(d.managerId ? `✅ 광고주 ID가 설정되었습니다` : '광고주 권한이 제거되었습니다');
+}
+
+// ---- 새 지역 추가 ----
+function openAddRegionModal(){
+  const modal = document.getElementById('modal-add-region');
+  if(modal) modal.classList.add('open');
+  ['new-region-name','new-region-inst','new-region-phone','new-region-address'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+}
+function openAddForRegion(regionKey){
+  // 지역 모달에서 미등록 지역의 + 추가 버튼 클릭 시
+  closeModal('modal-edu-region-select');
+  const modal = document.getElementById('modal-add-region');
+  if(modal) modal.classList.add('open');
+  const nameEl = document.getElementById('new-region-name');
+  if(nameEl){ nameEl.value = regionKey; nameEl.readOnly = true; nameEl.style.background='#f5f5f5'; }
+  ['new-region-inst','new-region-phone','new-region-address'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.value=''; el.readOnly=false; el.style.background=''; }
+  });
+}
+function addNewRegion(){
+  const region = (document.getElementById('new-region-name')||{}).value.trim();
+  const inst = (document.getElementById('new-region-inst')||{}).value.trim();
+  const phone = (document.getElementById('new-region-phone')||{}).value.trim();
+  const address = (document.getElementById('new-region-address')||{}).value.trim();
+  if(!region||!inst){showToast('지역명과 기관명을 입력해 주세요');return;}
+  if(regionEduData[region]){showToast('이미 등록된 지역입니다');return;}
+  regionEduData[region] = {
+    managerId: '', instName: inst, branch: '', phone: phone||'', address: address||'',
+    notice: '📌 공지사항을 입력해 주세요.',
+    certInfo: '✅ 자격증 과정 안내를 입력해 주세요.',
+    certSchedule: [{ date:'일정 미정', time:'-', status:'예정', seats:'-', capacity:30 }],
+    refresherInfo: '✅ 보수교육 안내를 입력해 주세요.',
+    refresherSchedule: [{ date:'일정 미정', time:'-', status:'예정', seats:'-', capacity:20 }],
+  };
+  selectedEduRegion = region;
+  selectEduRegion(region);
+  renderAdBanners();
+  // readOnly 상태였으면 해제
+  const nameEl = document.getElementById('new-region-name');
+  if(nameEl){ nameEl.readOnly=false; nameEl.style.background=''; }
+  closeModal('modal-add-region');
+  showToast(`✅ ${region} 지역이 추가되었습니다!`);
+}
+function deleteEduRegion(region){
+  if(!confirm(`'${region}' 지역을 삭제하시겠습니까?`)) return;
+  delete regionEduData[region];
+  selectedEduRegion = null;
+  renderEduRegionList();
+  renderAdBanners();
+  showToast('삭제되었습니다');
+}
+
+// ---- 수정 모달 열기 ----
+function openEditModal(key){
+  currentEditKey = key;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const modal = document.getElementById('modal-edu-edit');
+  const title = document.getElementById('edu-edit-modal-title');
+  const textarea = document.getElementById('edu-edit-textarea');
+  const hint = document.getElementById('edu-edit-hint');
+  const labels = {
+    notice:`📢 공지사항 수정 (${selectedEduRegion})`,
+    cert:`📋 자격증 일정 수정 (${selectedEduRegion})`,
+    refresher:`🔄 보수교육 일정 수정 (${selectedEduRegion})`,
+    instInfo:`🏫 기관정보 수정 (${selectedEduRegion})`,
+  };
+  if(title) title.textContent = labels[key]||'수정';
+  if(key==='notice'){
+    if(textarea) textarea.value = d.notice;
+    if(hint) hint.textContent = '공지사항 내용을 자유롭게 입력하세요.';
+  } else if(key==='cert'){
+    const lines = d.certSchedule.map(s=>`${s.date}|${s.time}|${s.status}|${s.seats}`).join('\n');
+    if(textarea) textarea.value = lines;
+    if(hint) hint.textContent = '한 줄에 하나씩: 날짜|시간|상태(모집중/예정)|잔여석';
+  } else if(key==='refresher'){
+    const lines = d.refresherSchedule.map(s=>`${s.date}|${s.time}|${s.status}|${s.seats}`).join('\n');
+    if(textarea) textarea.value = lines;
+    if(hint) hint.textContent = '한 줄에 하나씩: 날짜|시간|상태(모집중/예정)|잔여석';
+  } else if(key==='instInfo'){
+    if(textarea) textarea.value = `${d.instName}\n${d.branch}\n${d.phone}\n${d.address||''}\n---\n${d.certInfo}\n---\n${d.refresherInfo}`;
+    if(hint) hint.textContent = '1줄: 기관명 / 2줄: 지점명 / 3줄: 전화번호 / 4줄: 주소 / --- 다음 자격증과정 안내 / --- 다음 보수교육 안내';
+  }
+  modal.classList.add('open');
+}
+
+// ── 기관정보 수정 폼 (관리자 전용) ───────────────────────────────────
+function openInstInfoForm(){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  document.getElementById('edit-inst-name').value        = d.instName    || '';
+  document.getElementById('edit-inst-branch').value      = d.branch      || '';
+  document.getElementById('edit-inst-phone').value       = d.phone       || '';
+  document.getElementById('edit-inst-address').value     = d.address     || '';
+  document.getElementById('edit-inst-notice').value      = d.notice      || '';
+  document.getElementById('edit-inst-certinfo').value    = d.certInfo    || '';
+  document.getElementById('edit-inst-refresherinfo').value = d.refresherInfo || '';
+  document.getElementById('modal-edu-instinfo').classList.add('open');
+}
+function saveInstInfo(){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const name = document.getElementById('edit-inst-name').value.trim();
+  if(!name){ showToast('교육기관명을 입력해 주세요'); return; }
+  d.instName      = name;
+  d.branch        = document.getElementById('edit-inst-branch').value.trim();
+  d.phone         = document.getElementById('edit-inst-phone').value.trim();
+  d.address       = document.getElementById('edit-inst-address').value.trim();
+  d.notice        = document.getElementById('edit-inst-notice').value.trim()       || d.notice;
+  d.certInfo      = document.getElementById('edit-inst-certinfo').value.trim()     || d.certInfo;
+  d.refresherInfo = document.getElementById('edit-inst-refresherinfo').value.trim()|| d.refresherInfo;
+  closeModal('modal-edu-instinfo');
+  renderEduRegionContent();
+  renderAdBanners();
+  const titleEl = document.getElementById('edu-header-title');
+  if(titleEl && selectedEduRegion) titleEl.textContent = d.instName;
+  showToast('✅ 학원 정보가 저장되었습니다!');
+}
+
+function saveEduEdit(){
+  const textarea = document.getElementById('edu-edit-textarea');
+  if(!textarea) return;
+  const val = textarea.value.trim();
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  if(currentEditKey==='notice'){
+    d.notice = val;
+  } else if(currentEditKey==='cert'){
+    const oldCapacities = d.certSchedule.map(s=>s.capacity||30);
+    d.certSchedule = val.split('\n').filter(Boolean).map((line,i)=>{
+      const [date,time,status,seats] = line.split('|');
+      return {date:date?.trim()||'', time:time?.trim()||'', status:status?.trim()||'예정', seats:seats?.trim()||'', capacity:oldCapacities[i]||30};
+    });
+  } else if(currentEditKey==='refresher'){
+    const oldCapacities = d.refresherSchedule.map(s=>s.capacity||20);
+    d.refresherSchedule = val.split('\n').filter(Boolean).map((line,i)=>{
+      const [date,time,status,seats] = line.split('|');
+      return {date:date?.trim()||'', time:time?.trim()||'', status:status?.trim()||'예정', seats:seats?.trim()||'', capacity:oldCapacities[i]||20};
+    });
+  } else if(currentEditKey==='instInfo'){
+    const parts = val.split('\n---\n');
+    const basicLines = (parts[0]||'').split('\n');
+    d.instName = basicLines[0]?.trim()||d.instName;
+    d.branch = basicLines[1]?.trim()||d.branch;
+    d.phone = basicLines[2]?.trim()||d.phone;
+    d.address = basicLines[3]?.trim()||d.address||'';
+    if(parts[1]) d.certInfo = parts[1].trim();
+    if(parts[2]) d.refresherInfo = parts[2].trim();
+    // 헤더 타이틀 갱신
+    const titleEl = document.getElementById('edu-header-title');
+    if(titleEl && selectedEduRegion) titleEl.textContent = d.instName;
+    renderAdBanners();
+  }
+  renderEduRegionContent();
+  closeModal('modal-edu-edit');
+  showToast('✅ 저장되었습니다!');
+}
+
+// ============================================================
+//  교육 신청 시스템 (Firebase 연동)
+// ============================================================
+// 현재 신청하려는 일정 정보
+let currentApplyType = null; // 'cert' or 'refresher'
+let currentApplyIdx = null;
+
+function getEduFbKey(type, idx){
+  const region = selectedEduRegion;
+  return btoa(unescape(encodeURIComponent(region+'_'+type+'_'+idx))).replace(/[^a-zA-Z0-9]/g,'_');
+}
+
+// ---- 자격증 과정 신청 폼 열기 ----
+function openCertApplyForm(schedIdx){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const s = d.certSchedule[schedIdx];
+  if(!s) return;
+  currentApplyType = 'cert';
+  currentApplyIdx = schedIdx;
+  const info = document.getElementById('cert-apply-schedule-info');
+  if(info) info.innerHTML = `📋 ${escapeHtml(d.instName)} · ${escapeHtml(s.date)}<br>⏰ ${escapeHtml(s.time)}`;
+  // 로그인한 사용자 정보 자동 입력
+  const nameEl = document.getElementById('cert-apply-name');
+  if(nameEl && state.user && state.user.name) nameEl.value = state.user.name;
+  ['cert-apply-phone1','cert-apply-phone2','cert-apply-phone3'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('cert-apply-discount').checked = false;
+  document.getElementById('cert-apply-license').value = '';
+  document.getElementById('cert-license-select').style.display = 'none';
+  document.querySelectorAll('.cert-license-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.getElementById('modal-edu-cert-apply').classList.add('open');
+}
+
+// ---- 보수교육 신청 폼 열기 (단계별 위저드) ----
+function openRefresherApplyForm(schedIdx){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const s = d.refresherSchedule[schedIdx];
+  if(!s) return;
+  currentApplyType = 'refresher';
+  currentApplyIdx = schedIdx;
+  // 초기화
+  refresherStep = 0;
+  Object.keys(refresherFormData).forEach(k=> delete refresherFormData[k]);
+  // 사용자 이름 자동 입력
+  if(state.user && state.user.name) refresherFormData.name = state.user.name;
+  const info = document.getElementById('refresher-apply-schedule-info');
+  if(info) info.innerHTML = `🔄 ${escapeHtml(d.instName)} · ${escapeHtml(s.date)}<br>⏰ ${escapeHtml(s.time)}`;
+  renderRefresherStep();
+  document.getElementById('modal-edu-refresher-apply').classList.add('open');
+}
+
+// ---- 자격증 과정 신청 제출 ----
+function selectCertLicense(btn){
+  document.querySelectorAll('.cert-license-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('cert-apply-license').value = btn.textContent.trim();
+}
+
+function submitCertApply(){
+  const name = (document.getElementById('cert-apply-name')||{}).value?.trim();
+  const p1 = (document.getElementById('cert-apply-phone1')?.value||'').replace(/[^0-9]/g,'');
+  const p2 = (document.getElementById('cert-apply-phone2')?.value||'').replace(/[^0-9]/g,'');
+  const p3 = (document.getElementById('cert-apply-phone3')?.value||'').replace(/[^0-9]/g,'');
+  const phone = p1 + p2 + p3;
+  const discount = document.getElementById('cert-apply-discount')?.checked || false;
+  const license = (document.getElementById('cert-apply-license')||{}).value?.trim();
+  if(!name){ showToast('이름을 입력해 주세요'); return; }
+  if(!phone || phone.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
+  if(!fbDB){ showToast('Firebase가 연결되지 않았습니다'); return; }
+
+  const d = regionEduData[selectedEduRegion];
+  const s = d.certSchedule[currentApplyIdx];
+  const fbKey = getEduFbKey('cert', currentApplyIdx);
+
+  // 중복 신청 체크
+  const userId = (state.user&&state.user.kakaoId)||name+phone;
+  fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
+    if(snap.exists()){
+      showToast('이미 해당 일정에 신청하셨습니다');
+      return;
+    }
+    // 정원 체크
+    fbDB.ref('edu-applications/'+fbKey).once('value', allSnap=>{
+      const currentCount = allSnap.numChildren();
+      const capacity = s.capacity || 30;
+      if(currentCount >= capacity){
+        showToast('정원이 마감되었습니다');
+        return;
+      }
+      // 저장
+      const appData = {
+        type: 'cert',
+        region: selectedEduRegion,
+        instName: d.instName,
+        scheduleDate: s.date,
+        scheduleTime: s.time,
+        name: name,
+        phone: phone,
+        discount: discount,
+        license: license || '',
+        userId: userId,
+        appliedAt: Date.now(),
+        appliedDate: new Date().toLocaleDateString('ko-KR')
+      };
+      fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
+        if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
+        closeModal('modal-edu-cert-apply');
+        showToast('✅ 교육 신청이 완료되었습니다!');
+        renderEduRegionContent();
+      });
+    });
+  });
+}
+
+// ============================================================
+//  보수교육 신청 — 단계별 위저드
+// ============================================================
+let refresherStep = 0;
+const refresherFormData = {};
+
+const REFRESHER_STEPS = [
+  { key:'name', label:'성명', required:true, type:'text',
+    placeholder:'실명을 입력해 주세요',
+    hint:'정확한 실명을 입력해 주세요.' },
+  { key:'phone', label:'연락처', required:true, type:'tel',
+    placeholder:'010-0000-0000',
+    hint:'각 칸에 숫자를 입력하면 자동으로 다음 칸으로 넘어갑니다.' },
+];
+
+function renderRefresherStep(){
+  const container = document.getElementById('refresher-step-container');
+  const indicator = document.getElementById('refresher-step-indicator');
+  const progressBar = document.getElementById('refresher-progress-bar');
+  const prevBtn = document.getElementById('refresher-prev-btn');
+  const nextBtn = document.getElementById('refresher-next-btn');
+  if(!container) return;
+
+  const total = REFRESHER_STEPS.length;
+  const step = REFRESHER_STEPS[refresherStep];
+  const isLast = refresherStep === total - 1;
+  const isFirst = refresherStep === 0;
+
+  if(indicator) indicator.textContent = `${refresherStep+1} / ${total}`;
+  if(progressBar) progressBar.style.width = ((refresherStep+1)/total*100)+'%';
+  if(prevBtn) prevBtn.textContent = isFirst ? '취소' : '← 이전';
+  if(nextBtn){
+    nextBtn.textContent = isLast ? '신청하기' : '다음 →';
+    nextBtn.className = isLast ? 'btn btn-green' : 'btn btn-primary';
+    nextBtn.style.flex = '1';
+    nextBtn.style.fontSize = '15px';
+  }
+
+  let html = `<div style="margin-bottom:4px">
+    <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:6px">${step.label} ${step.required?'<span style="color:var(--primary)">*</span>':''}</div>`;
+
+  // Warning (for 소속기관)
+  if(step.warning){
+    html += `<div style="background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:#E65100;line-height:1.7;font-weight:600">${step.warning}</div>`;
+  }
+
+  // Input field
+  const currentVal = refresherFormData[step.key] || '';
+  if(step.key === 'ssn'){
+    const ssnFront = currentVal.replace(/[^0-9]/g,'').slice(0,6);
+    const ssnBack = currentVal.replace(/[^0-9]/g,'').slice(6,13);
+    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <input id="refresher-ssn-front" class="form-input" type="tel" inputmode="numeric" maxlength="6" placeholder="앞 6자리" value="${ssnFront}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6);if(this.value.length===6)document.getElementById('refresher-ssn-back').focus()" onkeydown="if(event.key==='Enter'&&this.value.length===6)document.getElementById('refresher-ssn-back').focus()"/>
+      <span style="font-size:28px;font-weight:900;color:var(--text)">-</span>
+      <input id="refresher-ssn-back" class="form-input" type="tel" inputmode="numeric" maxlength="7" placeholder="뒤 7자리" value="${ssnBack}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,7)" onkeydown="if(event.key==='Enter')refresherStepNext();if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('refresher-ssn-front').focus()}"/>
+    </div>`;
+  } else if(step.key === 'phone' && step.type === 'tel'){
+    const digits = currentVal.replace(/[^0-9]/g,'');
+    const ph1 = digits.slice(0,3);
+    const ph2 = digits.slice(3,7);
+    const ph3 = digits.slice(7,11);
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+      <input id="refresher-phone1" class="form-input" type="tel" inputmode="numeric" maxlength="3" placeholder="010" value="${ph1}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3);if(this.value.length===3)document.getElementById('refresher-phone2').focus()"/>
+      <span style="font-size:28px;font-weight:900;color:var(--text)">-</span>
+      <input id="refresher-phone2" class="form-input" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" value="${ph2}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);if(this.value.length===4)document.getElementById('refresher-phone3').focus()" onkeydown="if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('refresher-phone1').focus()}"/>
+      <span style="font-size:28px;font-weight:900;color:var(--text)">-</span>
+      <input id="refresher-phone3" class="form-input" type="tel" inputmode="numeric" maxlength="4" placeholder="0000" value="${ph3}" style="flex:1;font-size:20px;padding:16px;border-radius:14px;text-align:center;letter-spacing:3px" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" onkeydown="if(event.key==='Enter')refresherStepNext();if(event.key==='Backspace'&&this.value.length<=1){event.preventDefault();this.value='';document.getElementById('refresher-phone2').focus()}"/>
+    </div>`;
+  } else if(step.type === 'text' || step.type === 'tel'){
+    html += `<input id="refresher-wizard-input" class="form-input" type="${step.type}" ${step.type==='tel'?'inputmode="numeric"':''} placeholder="${step.placeholder}" value="${currentVal}" ${step.maxlength?'maxlength="'+step.maxlength+'"':''} style="font-size:18px;padding:16px;border-radius:14px;margin-bottom:8px" onkeydown="if(event.key==='Enter')refresherStepNext()"/>`;
+  } else if(step.type === 'radio'){
+    html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">`;
+    step.options.forEach(opt=>{
+      const selected = currentVal === opt.val;
+      html += `<div onclick="refresherFormData['${step.key}']='${opt.val}';renderRefresherStep()" style="display:flex;align-items:center;gap:12px;padding:16px;background:${selected?'var(--primary-light)':'#f9f9f9'};border:2px solid ${selected?'var(--primary)':'var(--border)'};border-radius:14px;cursor:pointer;transition:all .15s">
+        <div style="width:24px;height:24px;border-radius:50%;border:2.5px solid ${selected?'var(--primary)':'#ccc'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected?'<div style="width:12px;height:12px;border-radius:50%;background:var(--primary)"></div>':''}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${opt.text}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  } else if(step.type === 'select'){
+    html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px">`;
+    step.options.forEach(opt=>{
+      const selected = currentVal === opt.val;
+      html += `<div onclick="refresherFormData['${step.key}']='${opt.val}';renderRefresherStep()" style="display:flex;align-items:center;gap:12px;padding:16px;background:${selected?'var(--primary-light)':'#f9f9f9'};border:2px solid ${selected?'var(--primary)':'var(--border)'};border-radius:14px;cursor:pointer;transition:all .15s">
+        <div style="width:24px;height:24px;border-radius:50%;border:2.5px solid ${selected?'var(--primary)':'#ccc'};display:flex;align-items:center;justify-content:center;flex-shrink:0">${selected?'<div style="width:12px;height:12px;border-radius:50%;background:var(--primary)"></div>':''}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${opt.text}</div>
+      </div>`;
+    });
+    html += `</div>`;
+    // 결제 단계에서 카드결제 안내 + 환불규정 표시
+    html += `
+      <div style="background:#FFF8E1;border:1.5px solid #FFE082;border-radius:12px;padding:12px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:800;color:#F57F17;margin-bottom:4px">💳 카드결제 안내</div>
+        <div style="font-size:12px;color:#795548;line-height:1.7">카드결제 선택 시, <b>교육 전 학원에 방문하여 사전 결제</b>를 완료해 주셔야 합니다. 수강료 입금(결제) 확인 후 수강이 확정됩니다.</div>
+      </div>
+      <div style="background:#FFEBEE;border:1.5px solid #EF9A9A;border-radius:12px;padding:12px">
+        <div style="font-size:13px;font-weight:800;color:#C62828;margin-bottom:4px">📋 환불 규정</div>
+        <div style="font-size:11px;color:#C62828;line-height:1.8">
+          <b>전액 환불</b>: 교육 3일 전까지 취소 신청 시 (교육일·주말·공휴일 제외)<br>
+          <b>예외 환불</b>: 불가피한 상황에 한해 교육 시작 직전까지<br>
+          <b>환불 불가</b>: 교육 당일 취소, 대리출석, 지각, 중간퇴실<br>
+          <span style="color:#888;font-size:10px">※ 카드→승인취소 / 현금·계좌이체→환불신청서+통장사본 제출</span>
+        </div>
+      </div>`;
+  }
+
+  // Hint
+  if(step.hint){
+    html += `<div style="font-size:12px;color:#999;line-height:1.5;margin-top:4px">${step.hint}</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // 텍스트 입력 필드에 자동 포커스
+  if(step.key === 'ssn'){
+    setTimeout(()=>{
+      const inp = document.getElementById('refresher-ssn-front');
+      if(inp) inp.focus();
+    }, 100);
+  } else if(step.key === 'phone'){
+    setTimeout(()=>{
+      const inp = document.getElementById('refresher-phone1');
+      if(inp) inp.focus();
+    }, 100);
+  } else if(step.type === 'text' || step.type === 'tel'){
+    setTimeout(()=>{
+      const inp = document.getElementById('refresher-wizard-input');
+      if(inp) inp.focus();
+    }, 100);
+  }
+}
+
+function refresherStepNext(){
+  const step = REFRESHER_STEPS[refresherStep];
+  // 텍스트 입력값 저장
+  if(step.key === 'ssn'){
+    const front = (document.getElementById('refresher-ssn-front')?.value||'').replace(/[^0-9]/g,'');
+    const back = (document.getElementById('refresher-ssn-back')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = front + back;
+  } else if(step.key === 'phone'){
+    const p1 = (document.getElementById('refresher-phone1')?.value||'').replace(/[^0-9]/g,'');
+    const p2 = (document.getElementById('refresher-phone2')?.value||'').replace(/[^0-9]/g,'');
+    const p3 = (document.getElementById('refresher-phone3')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = p1 + p2 + p3;
+  } else if(step.type === 'text' || step.type === 'tel'){
+    const inp = document.getElementById('refresher-wizard-input');
+    refresherFormData[step.key] = (inp?.value||'').trim().replace(step.type==='tel'?/[^0-9]/g:/$/,'');
+  }
+  // 유효성 검사
+  const val = refresherFormData[step.key] || '';
+  if(step.required && !val){
+    showToast(`${step.label}을(를) 입력해 주세요`);
+    return;
+  }
+  if(step.key==='ssn' && val.length < 13){ showToast('주민등록번호 13자리를 입력해 주세요'); return; }
+  if(step.key==='phone' && val.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
+  if(step.key==='certNo' && val.length < 5){ showToast('자격번호를 정확히 입력해 주세요'); return; }
+
+  // 마지막 단계 → 제출
+  if(refresherStep === REFRESHER_STEPS.length - 1){
+    submitRefresherApply();
+    return;
+  }
+  refresherStep++;
+  renderRefresherStep();
+}
+
+function refresherStepPrev(){
+  if(refresherStep === 0){
+    closeModal('modal-edu-refresher-apply');
+    return;
+  }
+  // 현재 입력값 저장
+  const step = REFRESHER_STEPS[refresherStep];
+  if(step.key === 'ssn'){
+    const front = (document.getElementById('refresher-ssn-front')?.value||'').replace(/[^0-9]/g,'');
+    const back = (document.getElementById('refresher-ssn-back')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = front + back;
+  } else if(step.key === 'phone'){
+    const p1 = (document.getElementById('refresher-phone1')?.value||'').replace(/[^0-9]/g,'');
+    const p2 = (document.getElementById('refresher-phone2')?.value||'').replace(/[^0-9]/g,'');
+    const p3 = (document.getElementById('refresher-phone3')?.value||'').replace(/[^0-9]/g,'');
+    refresherFormData[step.key] = p1 + p2 + p3;
+  } else if(step.type === 'text' || step.type === 'tel'){
+    const inp = document.getElementById('refresher-wizard-input');
+    refresherFormData[step.key] = (inp?.value||'').trim().replace(step.type==='tel'?/[^0-9]/g:/$/,'');
+  }
+  refresherStep--;
+  renderRefresherStep();
+}
+
+// ---- 보수교육 신청 제출 (간소화: 이름+연락처만) ----
+function submitRefresherApply(){
+  const fd = refresherFormData;
+  const name = fd.name || '';
+  const phone = (fd.phone || '').replace(/[^0-9]/g,'');
+
+  if(!name){ showToast('성명을 입력해 주세요'); return; }
+  if(!phone || phone.length < 10){ showToast('연락처를 정확히 입력해 주세요'); return; }
+  if(!fbDB){ showToast('Firebase가 연결되지 않았습니다'); return; }
+
+  const d = regionEduData[selectedEduRegion];
+  const s = d.refresherSchedule[currentApplyIdx];
+  const fbKey = getEduFbKey('refresher', currentApplyIdx);
+
+  const userId = (state.user&&state.user.kakaoId)||name+phone;
+  fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
+    if(snap.exists()){
+      showToast('이미 해당 일정에 신청하셨습니다');
+      return;
+    }
+    fbDB.ref('edu-applications/'+fbKey).once('value', allSnap=>{
+      const currentCount = allSnap.numChildren();
+      const capacity = s.capacity || 20;
+      if(currentCount >= capacity){
+        showToast('정원이 마감되었습니다');
+        return;
+      }
+      const appData = {
+        type: 'refresher',
+        region: selectedEduRegion,
+        instName: d.instName,
+        scheduleDate: s.date,
+        scheduleTime: s.time,
+        name: name,
+        phone: phone,
+        userId: userId,
+        appliedAt: Date.now(),
+        appliedDate: new Date().toLocaleDateString('ko-KR')
+      };
+      fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
+        if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
+        closeModal('modal-edu-refresher-apply');
+        showToast('✅ 보수교육 신청이 완료되었습니다!\n담당자가 연락드리겠습니다.');
+        renderEduRegionContent();
+      });
+    });
+  });
+}
+
+// ---- 정원 설정 모달 ----
+let capacityEditType = null;
+let capacityEditIdx = null;
+
+function openCapacityModal(type, idx){
+  capacityEditType = type;
+  capacityEditIdx = idx;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const sched = type==='cert' ? d.certSchedule[idx] : d.refresherSchedule[idx];
+  if(!sched) return;
+  const titleEl = document.getElementById('capacity-modal-title');
+  if(titleEl) titleEl.textContent = `👥 정원 설정 — ${sched.date}`;
+  const input = document.getElementById('capacity-input');
+  if(input) input.value = sched.capacity || 20;
+  document.getElementById('modal-edu-capacity').classList.add('open');
+}
+
+function adjustCapacity(delta){
+  const input = document.getElementById('capacity-input');
+  if(!input) return;
+  let v = parseInt(input.value)||20;
+  v = Math.max(1, Math.min(200, v+delta));
+  input.value = v;
+}
+
+function saveCapacity(){
+  const input = document.getElementById('capacity-input');
+  const val = parseInt(input?.value)||20;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  if(capacityEditType==='cert' && d.certSchedule[capacityEditIdx]){
+    d.certSchedule[capacityEditIdx].capacity = val;
+  } else if(capacityEditType==='refresher' && d.refresherSchedule[capacityEditIdx]){
+    d.refresherSchedule[capacityEditIdx].capacity = val;
+  }
+  closeModal('modal-edu-capacity');
+  renderEduRegionContent();
+  showToast(`✅ 정원이 ${val}명으로 설정되었습니다`);
+}
+
+// ---- 신청자 목록 보기 (기관용) ----
+let currentViewType = null;
+let currentViewIdx = null;
+
+function openApplicantsModal(type, idx){
+  currentViewType = type;
+  currentViewIdx = idx;
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const sched = type==='cert' ? d.certSchedule[idx] : d.refresherSchedule[idx];
+  if(!sched) return;
+  const titleEl = document.getElementById('applicants-modal-title');
+  if(titleEl) titleEl.textContent = `📋 ${type==='cert'?'교육':'보수교육'} 신청자 — ${sched.date}`;
+  const fbKey = getEduFbKey(type, idx);
+  if(!fbDB){ showToast('Firebase 미연결'); return; }
+
+  fbDB.ref('edu-applications/'+fbKey).once('value', snap=>{
+    const list = [];
+    snap.forEach(child=>{ list.push({key:child.key, ...child.val()}); });
+    const capacity = sched.capacity || (type==='cert'?30:20);
+    const remaining = Math.max(0, capacity - list.length);
+
+    document.getElementById('applicants-count').textContent = list.length;
+    document.getElementById('applicants-remaining').textContent = remaining;
+
+    const listEl = document.getElementById('applicants-list');
+    if(!list.length){
+      listEl.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:14px">아직 신청자가 없습니다</div>`;
+    } else {
+      const payLabels = {'0':'현금','1':'카드','2':'계좌이체'};
+      listEl.innerHTML = list.map((a,i)=>`
+        <div class="edu-applicant-row">
+          <div style="width:28px;height:28px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--primary);flex-shrink:0">${i+1}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;color:var(--text)">${escapeHtml(a.name)}</div>
+            <div style="font-size:12px;color:var(--text-sub)">${escapeHtml(a.phone)}${a.certNo?' · 자격: '+escapeHtml(a.certNo):''}${a.discount?' · 감면대상':''}${a.org?' · '+escapeHtml(a.org):''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
+          </div>
+          <div style="font-size:11px;color:#aaa;flex-shrink:0">${a.appliedDate||''}</div>
+        </div>
+      `).join('');
+    }
+    document.getElementById('modal-edu-applicants').classList.add('open');
+  });
+}
+
+// ---- 엑셀 다운로드 ----
+function downloadApplicantsExcel(){
+  downloadApplicantsForSchedule(currentViewType, currentViewIdx);
+}
+
+function downloadApplicantsForSchedule(type, idx){
+  const d = regionEduData[selectedEduRegion];
+  if(!d) return;
+  const sched = type==='cert' ? d.certSchedule[idx] : d.refresherSchedule[idx];
+  if(!sched) return;
+  const fbKey = getEduFbKey(type, idx);
+  if(!fbDB){ showToast('Firebase 미연결'); return; }
+
+  fbDB.ref('edu-applications/'+fbKey).once('value', snap=>{
+    const list = [];
+    snap.forEach(child=>{ list.push(child.val()); });
+    if(!list.length){ showToast('신청자가 없습니다'); return; }
+
+    let wsData;
+    const payMethodLabel = {'0':'현금','1':'카드','2':'계좌이체'};
+    if(type === 'cert'){
+      wsData = [['번호','이름','연락처','감면대상','소지자격증','신청일']];
+      list.forEach((a,i)=>{
+        wsData.push([i+1, a.name, a.phone, a.discount?'O':'', a.license||'', a.appliedDate||'']);
+      });
+    } else {
+      // 보수교육: 원본 엑셀 양식과 동일한 컬럼 구조
+      wsData = [[
+        'NO\n(1 부터 ~ 등록 개수)',
+        '성명',
+        '주민등록번호\n(숫자만입력)\n(셀서식 : 텍스트)',
+        '연락처\n(숫자만 입력)',
+        '자격번호\n(숫자만입력)',
+        '소속 장기요양기관',
+        '기관 연락처\n(숫자만입력)',
+        '교육 희망일\n(예:20250101)',
+        '교육시간\n(4 또는 8)',
+        '금액\n(18000 또는 36000)',
+        '수납여부\n(Y/N)',
+        '결제방법\n(현금:0/카드:1/계좌이체:2)'
+      ]];
+      list.forEach((a,i)=>{
+        wsData.push([
+          i+1,
+          a.name||'',
+          a.ssn||'',
+          a.phone||'',
+          a.certNo||'',
+          a.org||'',
+          a.orgPhone||'',
+          a.eduDate||'',
+          a.hours||'',
+          a.amount||'',
+          a.paymentStatus||'N',
+          a.payment||''
+        ]);
+      });
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      // 열 너비 설정
+      if(type==='cert'){
+        ws['!cols'] = [{wch:5},{wch:12},{wch:15},{wch:8},{wch:15},{wch:12}];
+      } else {
+        ws['!cols'] = [{wch:8},{wch:10},{wch:16},{wch:13},{wch:14},{wch:18},{wch:13},{wch:14},{wch:8},{wch:10},{wch:8},{wch:12}];
+        // 주민등록번호 컬럼(C)을 텍스트로 설정
+        for(let r=1;r<=list.length+1;r++){
+          const cell = ws[XLSX.utils.encode_cell({r:r,c:2})];
+          if(cell) cell.t = 's'; // 텍스트 타입
+        }
+      }
+      const sheetName = type==='cert' ? '교육신청자' : '보수교육 수강신청 등록';
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      const fileName = `${d.instName}_${type==='cert'?'교육':'보수교육'}_${sched.date}_신청자.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      showToast('📥 엑셀 파일이 다운로드되었습니다');
+    } catch(e){
+      console.error('Excel download error:', e);
+      showToast('엑셀 다운로드 중 오류 발생');
+    }
+  });
+}
+
+// ============================================================
+//  홈 화면 광고 배너 렌더링 (지역별 교육기관)
+// ============================================================
+function renderAdBanners(){
+  const area = document.getElementById('ad-banner-area');
+  if(!area) return;
+  const regions = Object.keys(regionEduData);
+  if(!regions.length){ area.style.display='none'; return; }
+  area.style.display='flex';
+  area.innerHTML = regions.map(r=>{
+    const d = regionEduData[r];
+    return `<div class="ad-banner-card" onclick="state._keepEduRegion=true;selectEduRegion('${r}');switchTab('edu')">
+      <div style="font-size:26px">🏫</div>
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:2px">${r} · 교육기관</div>
+        <div style="font-size:13px;font-weight:800;color:#fff">${escapeHtml(d.instName)} ${escapeHtml(d.branch)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:2px">${escapeHtml(d.phone)} · 신청하기 →</div>
+      </div>
+    </div>`;
+  }).join('') + `
+    <div class="ad-banner-card" style="background:linear-gradient(135deg,#37474F,#607D8B);min-width:220px" onclick="showToast('광고 문의: tkddnr5949@gmail.com')">
+      <div style="font-size:26px">📣</div>
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:2px">광고 슬롯 · 지역당 1곳</div>
+        <div style="font-size:14px;font-weight:800;color:#fff">여기에 광고하세요</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">tkddnr5949@gmail.com 문의</div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+//  ADMIN & NEW FEATURES
+// ============================================================
+
+// 관리자 확인 함수
+function isAdmin(){
+  return state.user && state.user.kakaoId === ADMIN_KAKAO_ID;
+}
+
+// 프로필 화면 진입 시 관리자 UI 업데이트
+function updateAdminUI(){
+  const isAdminUser = isAdmin();
+  const adminBadge = document.getElementById('admin-badge');
+  const adminMenu = document.getElementById('admin-dashboard-menu');
+  if(adminBadge) adminBadge.style.display = isAdminUser ? '' : 'none';
+  if(adminMenu) adminMenu.style.display = isAdminUser ? '' : 'none';
+}
+
+// 통계 업데이트 함수 (Firebase 실제 데이터)
+function updateAdminStats(){
+  const allListings = state.listings;
+  const activeListings = allListings.filter(l => l.status === 'active').length;
+
+  // 기본 공고 통계 즉시 표시
+  var el1 = document.getElementById('stat-total-listings');
+  var el2 = document.getElementById('stat-active-listings');
+  if(el1) el1.textContent = allListings.length;
+  if(el2) el2.textContent = activeListings;
+
+  // Firebase에서 실제 회원 수 및 오늘 신규 가입 조회
+  if(fbDB){
+    var el3 = document.getElementById('stat-total-users');
+    var el4 = document.getElementById('stat-today-new');
+    if(el3) el3.textContent = '...';
+    if(el4) el4.textContent = '...';
+    fbDB.ref('users').once('value').then(function(snap){
+      var users = snap.val() || {};
+      var keys = Object.keys(users);
+      var totalUsers = keys.length;
+      var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+      var todayNew = keys.filter(function(k){
+        return users[k].joinedAt && users[k].joinedAt >= todayStart.getTime();
+      }).length;
+
+      var el3 = document.getElementById('stat-total-users');
+      var el4 = document.getElementById('stat-today-new');
+      if(el3) el3.textContent = totalUsers;
+      if(el4) el4.textContent = todayNew;
+    }).catch(function(err){
+      console.error('[요양링크] 회원 통계 로드 실패:', err);
+      var el3 = document.getElementById('stat-total-users');
+      var el4 = document.getElementById('stat-today-new');
+      if(el3) el3.textContent = '-';
+      if(el4) el4.textContent = '-';
+    });
+  }
+}
+
+// 홈 화면 전체 렌더링
+function renderHomeScreen(){
+  renderAdBanners();
+  renderListings();
+}
+
+// 헤더 UI 업데이트 (로그인 사용자 반영)
+function updateHeaderUI(){
+  const pName = document.getElementById('profile-name');
+  const pType = document.getElementById('profile-type-label');
+  if(pName && state.user) pName.textContent = getDisplayName(state.user);
+  if(pType && state.user){
+    const roleLabel = (state.role === 'employer' ? '구인자' : '요양보호사');
+    const genderLabel = state.user.gender ? ' · ' + (state.user.gender === 'male' ? '남성' : '여성') : '';
+    const birthLabel = state.user.birth ? ' · ' + state.user.birth : '';
+    pType.textContent = roleLabel + genderLabel + birthLabel;
+  }
+}
+
+// 공고 검색 함수 (디바운싱 적용)
+let _searchTimer = null;
+function searchListings(){
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(function(){
+    const input = document.getElementById('home-search-input');
+    const query = (input ? input.value : '').trim().toLowerCase();
+    state.searchQuery = query;
+
+    const clearBtn = document.getElementById('search-clear-btn');
+    if(clearBtn) clearBtn.style.display = query ? '' : 'none';
+
+    renderHomeScreen();
+  }, 200);
+}
+
+// 검색 초기화
+function clearSearch(){
+  const input = document.getElementById('home-search-input');
+  if(input) input.value = '';
+  const clearBtn = document.getElementById('search-clear-btn');
+  if(clearBtn) clearBtn.style.display = 'none';
+  state.searchQuery = '';
+  renderHomeScreen();
+}
+
+// 공지 모달 열기
+function openNoticeModal(){
+  const modal = document.getElementById('modal-notice');
+  const textarea = document.getElementById('notice-textarea');
+  const deleteBtn = document.getElementById('delete-notice-btn');
+  if(textarea) textarea.value = state.appNotice || '';
+  if(deleteBtn) deleteBtn.style.display = state.appNotice ? '' : 'none';
+  if(modal) modal.classList.add('open');
+}
+
+// 공지 저장
+function saveNotice(){
+  const textarea = document.getElementById('notice-textarea');
+  if(!textarea) return;
+  state.appNotice = textarea.value.trim();
+  closeModal('modal-notice');
+  renderAppNotice();
+  showToast('✅ 공지가 저장되었습니다');
+}
+
+// 공지 삭제
+function deleteNotice(){
+  if(!confirm('공지를 삭제하시겠습니까?')) return;
+  state.appNotice = '';
+  closeModal('modal-notice');
+  renderAppNotice();
+  showToast('삭제되었습니다');
+}
+
+// 앱 공지 렌더링
+function renderAppNotice(){
+  const banner = document.getElementById('app-notice-banner');
+  const text = document.getElementById('app-notice-text');
+  if(!banner) return;
+  if(state.appNotice){
+    banner.style.display = 'flex';
+    if(text) text.textContent = state.appNotice;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// 공지 배너 닫기
+function closeNoticeBanner(){
+  const banner = document.getElementById('app-notice-banner');
+  if(banner) banner.style.display = 'none';
+}
+
+// 신고 모달 열기
+function openReportModal(listingId){
+  if(!listingId) return;
+  window._currentReportListingId = listingId;
+  window._selectedReason = null;
+  document.querySelectorAll('.report-reason-btn').forEach(btn => btn.classList.remove('selected'));
+  const modal = document.getElementById('modal-report');
+  if(modal) modal.classList.add('open');
+}
+
+// 신고 사유 선택
+function selectReason(reason, el){
+  window._selectedReason = reason;
+  document.querySelectorAll('.report-reason-btn').forEach(btn => btn.classList.remove('selected'));
+  if(el) el.classList.add('selected');
+}
+
+// 신고 제출
+function submitReport(){
+  if(!rateLimit('report', 3)){
+    showToast('신고는 1분에 3회까지 가능합니다.');
+    return;
+  }
+  if(!window._selectedReason){
+    showToast('신고 사유를 선택해 주세요');
+    return;
+  }
+  if(!state.reports) state.reports = [];
+  const reportData = {
+    listingId: window._currentReportListingId,
+    reason: window._selectedReason,
+    reporterKakaoId: (state.user&&state.user.kakaoId)||'',
+    time: Date.now(),
+    timeStr: new Date().toLocaleString(),
+  };
+  if(fbDB){
+    // Firebase에 저장 → onValue 리스너가 state.reports 자동 갱신
+    fbDB.ref('reports').push(reportData)
+      .catch(err=>{
+        console.error('신고 전송 실패:', err);
+        showToast('⚠️ 신고 접수 실패. 잠시 후 다시 시도해주세요.');
+      });
+  } else {
+    reportData.id = Date.now();
+    state.reports.push(reportData);
+  }
+  closeModal('modal-report');
+  checkAutoHideByReports();
+  renderListings();
+  showToast('신고가 접수되었습니다. 검토 후 처리하겠습니다.');
+}
+
+// 관리자 신고 목록 모달 열기
+function openAdminReportsModal(){
+  if(!isAdmin()) return;
+  const modal = document.getElementById('modal-admin-reports');
+  const list = document.getElementById('admin-reports-list');
+  const countEl = document.getElementById('admin-reports-count');
+  if(!state.reports) state.reports = [];
+
+  if(countEl) countEl.textContent = `${state.reports.length}개 신고`;
+
+  if(!list) return;
+  if(state.reports.length === 0){
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#aaa">신고가 없습니다.</div>';
+  } else {
+    list.innerHTML = state.reports.map(report => {
+      const listing = state.listings.find(l => l.id === report.listingId);
+      const title = listing ? listing.title : '삭제된 공고';
+      const reasonLabels = {
+        fake: '허위/사기 공고',
+        inappropriate: '부적절한 내용',
+        abusive: '욕설/비방',
+        duplicate: '중복 게시',
+        other: '기타',
+      };
+      return `
+        <div style="background:#fafafa;padding:14px;border-radius:10px;margin-bottom:10px">
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${escapeHtml(title)}</div>
+          <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px">
+            <div>🚨 ${reasonLabels[report.reason]}</div>
+            <div style="margin-top:2px;color:#aaa">${report.timeStr || new Date(report.time).toLocaleString()}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px" onclick="adminDeleteListing('${report.listingId}')">공고 삭제</button>
+            <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px;color:#E53935;border-color:#E53935" onclick="adminBanFromReport('${report.listingId}')">🚫 유저 영구밴</button>
+            <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px" onclick="ignoreReport('${report.id}')">무시</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  if(modal) modal.classList.add('open');
+}
+
+// 신고 무시
+function ignoreReport(reportId){
+  if(!state.reports) return;
+  if(fbDB){
+    fbDB.ref('reports/'+reportId).remove();
+  }
+  state.reports = state.reports.filter(r => r.id !== reportId);
+  openAdminReportsModal();
+  showToast('신고가 제거되었습니다');
+}
+
+// 공고 삭제 (관리자)
+function adminDeleteListing(listingId){
+  const listing = state.listings.find(l => l.id == listingId);
+  if(!listing) return;
+  if(!confirm(`'${listing.title}' 공고를 삭제하시겠습니까?`)) return;
+  if(fbDB && listing.fbKey){
+    fbDB.ref('listings/'+listing.fbKey).remove();
+  } else {
+    state.listings = state.listings.filter(l => l.id !== listingId);
+    renderAdminListings();
+  }
+  // 관련 신고도 Firebase에서 삭제
+  if(fbDB){
+    (state.reports||[]).filter(r=>r.listingId==listingId).forEach(r=>{
+      fbDB.ref('reports/'+r.id).remove();
+    });
+  }
+  state.reports = (state.reports || []).filter(r => r.listingId !== listingId);
+  openAdminReportsModal();
+  showToast('공고가 삭제되었습니다');
+}
+
+// 관리자 공고 목록 필터링
+function filterAdminListings(el, status){
+  document.querySelectorAll('#admin-listings-container').forEach(container => {
+    container.querySelectorAll('.tag')?.forEach(t => t.classList.remove('active'));
+  });
+  const tagsContainer = el.parentElement;
+  if(tagsContainer){
+    tagsContainer.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  }
+  el.classList.add('active');
+  window._adminListingsFilter = status;
+  renderAdminListings();
+}
+
+// 관리자 공고 목록 렌더링
+function renderAdminListings(){
+  if(!isAdmin()) return;
+  const container = document.getElementById('admin-listings-container');
+  if(!container) return;
+  const status = window._adminListingsFilter || 'all';
+  let filtered = state.listings;
+  if(status !== 'all'){
+    filtered = filtered.filter(l => l.status === status);
+  }
+
+  if(filtered.length === 0){
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa">공고가 없습니다.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(listing => {
+    const statusBadge = {
+      active: '<span class="listing-status active">활성</span>',
+      matched: '<span class="listing-status completed">매칭완료</span>',
+      expired: '<span class="listing-status expired">만료</span>',
+    }[listing.status] || '';
+
+    return `
+      <div class="listing-card-compact" onclick="state.selectedListing=state.listings.find(l=>l.id=='${listing.id}');navigate('detail')">
+        <div class="listing-title">${escapeHtml(listing.title)}</div>
+        <div style="font-size:13px;color:var(--text-sub);margin-bottom:8px">
+          <div>📍 ${escapeHtml(listing.area || '위치 미지정')} · ${statusBadge}</div>
+          <div style="margin-top:4px">작성: ${escapeHtml(listing.postedBy || '미지정')}</div>
+        </div>
+        <button class="btn btn-outline" onclick="event.stopPropagation();adminDeleteListing('${listing.id}')" style="padding:6px 12px;font-size:12px;color:#E53935;border-color:#E53935;width:100%">
+          🗑️ 삭제
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+// 내가 올린 공고 렌더링 (개선)
+function renderMyListings(){
+  const area = document.getElementById('my-listings-area');
+  if(!area || !state.user) return;
+
+  const myListings = state.listings.filter(l => l.postedByKakaoId === state.user.kakaoId || l.postedBy === state.user.name || l.postedBy === state.user.nickname);
+  if(myListings.length === 0){
+    area.innerHTML = `
+      <div style="text-align:center;padding:20px;color:#aaa;line-height:1.6">
+        아직 올린 공고가 없어요.<br>
+        글쓰기로 공고를 올려보세요!
+      </div>
+      <button class="btn" style="width:100%;margin-top:12px" onclick="switchTab('post')">
+        글쓰기 이동하기 →
+      </button>
+    `;
+    return;
+  }
+
+  area.innerHTML = myListings.map(listing => {
+    const posted = new Date(listing.createdAt || Date.now());
+    const now = new Date();
+    const daysPassed = Math.floor((now - posted) / (1000 * 60 * 60 * 24));
+    const daysLeft = Math.max(0, 14 - daysPassed);
+    const statusColors = { active:'var(--primary)', matched:'#9E9E9E', expired:'#E53935' };
+    const statusLabels = { active:`${daysLeft}일 남음`, matched:'매칭완료', expired:'만료됨' };
+    const statusText = statusLabels[listing.status] || `${daysLeft}일 남음`;
+    const statusColor = statusColors[listing.status] || 'var(--primary)';
+
+    return `
+      <div style="background:#f9f9f9;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${escapeHtml(listing.title)}</div>
+        <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px">
+          <div>📍 ${escapeHtml(listing.area || '위치 미지정')}</div>
+          <div style="margin-top:2px">📅 ${posted.toLocaleDateString()} · <span style="color:${statusColor}">⏱️ ${escapeHtml(statusText)}</span></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1;padding:8px;font-size:12px" onclick="openDetail(${listing.id})">
+            상세보기
+          </button>
+          <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px;color:#E53935;border-color:#E53935" onclick="deleteMyListing(${listing.id})">
+            🗑️ 삭제
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 내 공고 삭제
+function deleteMyListing(listingId){
+  const listing = state.listings.find(l => l.id == listingId);
+  if(!listing) return;
+  if(!confirm(`'${listing.title}' 공고를 삭제하시겠습니까?`)) return;
+  if(fbDB && listing.fbKey){
+    fbDB.ref('listings/'+listing.fbKey).remove();
+    // onValue 리스너가 자동으로 renderMyListings() 호출
+  } else {
+    state.listings = state.listings.filter(l => l.id !== listingId);
+    renderMyListings();
+  }
+  showToast('공고가 삭제되었습니다');
+}
+
+// 설정 화면 업데이트
+function updateSettingsScreen(){
+  const areaEl = document.getElementById('settings-area');
+  const roleEl = document.getElementById('settings-role');
+  if(areaEl) areaEl.textContent = state.user?.area || '지역 미설정';
+  if(roleEl) roleEl.textContent = state.role || '요양보호사';
+}
+
+// 토글 스위치
+function toggleSwitch(el){
+  el.classList.toggle('on');
+}
+
+// 관리자 사용자 통계
+function showAdminUserStats(){
+  if(!fbDB) { showToast('Firebase 미연결'); return; }
+  fbDB.ref('users').once('value', snap => {
+    const users = snap.val() || {};
+    const keys = Object.keys(users);
+    const total = keys.length;
+    const roles = {};
+    keys.forEach(k => {
+      const r = users[k].role || '미지정';
+      roles[r] = (roles[r]||0) + 1;
+    });
+    const roleStr = Object.entries(roles).map(([k,v])=> k+': '+v+'명').join('\n');
+    alert(`전체 회원: ${total}명\n\n${roleStr}`);
+  });
+}
+
+// ============================================================
+//  Firebase 유저 프로필 저장 (관리자 회원관리용)
+// ============================================================
+function saveUserToFirebase(){
+  if(!fbDB || !state.user || !state.user.kakaoId) return;
+  var u = state.user;
+  var userData = {
+    name: u.name || '',
+    nickname: u.nickname || '',
+    role: u.role || state.role || '',
+    area: u.area || '',
+    phone: u.phone || '',
+    gender: u.gender || '',
+    birth: u.birth || '',
+    profileImg: u.profileImg || '',
+    lastLogin: Date.now()
+  };
+  // 가입일은 최초 1회만 기록 (update는 기존 값 유지)
+  fbDB.ref('users/' + u.kakaoId).once('value', function(snap){
+    var existing = snap.val();
+    if(!existing){
+      userData.joinedAt = Date.now();
+    }
+    fbDB.ref('users/' + u.kakaoId).update(userData).catch(err=>{
+      console.error('사용자 정보 저장 실패:', err);
+    });
+  });
+}
+
+// ============================================================
+//  별명(닉네임) 시스템
+// ============================================================
+// 공개 표시용 이름 반환: 별명 > 실명
+function getDisplayName(user){
+  if(!user) return '사용자';
+  if(user.nickname) return user.nickname;
+  return user.name || '사용자';
+}
+// 현재 로그인 사용자의 공개 이름
+function getMyDisplayName(){
+  return getDisplayName(state.user);
+}
+
+// 임시 별명 자동 생성 (기존 사용자 중 별명 없는 경우)
+var _tempNicknameAdjectives = ['따뜻한','성실한','밝은','다정한','부지런한','꼼꼼한','상냥한','활발한','차분한','든든한','정성스런','유쾌한','친절한','꾸준한','건강한'];
+var _tempNicknameNouns = ['해바라기','별빛','산들바람','봄날','햇살','꽃향기','소나무','들꽃','바다','하늘','다람쥐','토끼','무지개','새벽','달빛'];
+
+function generateTempNickname(){
+  var adj = _tempNicknameAdjectives[Math.floor(Math.random()*_tempNicknameAdjectives.length)];
+  var noun = _tempNicknameNouns[Math.floor(Math.random()*_tempNicknameNouns.length)];
+  var num = Math.floor(Math.random()*900) + 100; // 100~999
+  return adj + noun + num;
+}
+
+// 기존 사용자 로그인 시 별명 없으면 자동 부여
+function ensureNickname(callback){
+  if(!state.user || !state.user.kakaoId) { if(callback) callback(); return; }
+  // 이미 별명 있으면 스킵
+  if(state.user.nickname) { if(callback) callback(); return; }
+  // Firebase에서 사용자 데이터 확인
+  fbRestGet('users/' + state.user.kakaoId).then(function(data){
+    if(data && data.nickname) {
+      state.user.nickname = data.nickname;
+      try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+      if(callback) callback();
+      return;
+    }
+    // 별명 없음 → 고유한 임시 별명 생성
+    generateUniqueNickname(function(nick){
+      state.user.nickname = nick;
+      try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+      // Firebase에 저장
+      if(fbDB){
+        fbDB.ref('users/' + state.user.kakaoId + '/nickname').set(nick).catch(function(){});
+      }
+      console.log('[요양링크] 임시 별명 자동 부여:', nick);
+      if(callback) callback();
+    });
+  }).catch(function(){
+    // REST 실패 시 그냥 임시 별명 생성
+    var nick = generateTempNickname();
+    state.user.nickname = nick;
+    try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+    if(callback) callback();
+  });
+}
+
+// 별명 중복 확인 후 고유한 닉네임 반환
+function generateUniqueNickname(callback, attempt){
+  attempt = attempt || 0;
+  if(attempt > 10) { callback(generateTempNickname()); return; } // 10회 초과 시 그냥 사용
+  var nick = generateTempNickname();
+  checkNicknameExists(nick, function(exists){
+    if(!exists) { callback(nick); }
+    else { generateUniqueNickname(callback, attempt + 1); }
+  });
+}
+
+// Firebase에서 별명 중복 확인
+function checkNicknameExists(nickname, callback){
+  fbRestGet('users').then(function(data){
+    if(!data) { callback(false); return; }
+    var exists = Object.keys(data).some(function(k){
+      return data[k].nickname && data[k].nickname === nickname;
+    });
+    callback(exists);
+  }).catch(function(){ callback(false); });
+}
+
+// 별명 변경 모달
+function showNicknameEditModal(){
+  var input = document.getElementById('edit-nickname-input');
+  if(input) input.value = (state.user && state.user.nickname) || '';
+  var status = document.getElementById('edit-nickname-status');
+  if(status) status.textContent = '';
+  openModal('modal-edit-nickname');
+  checkEditNicknameReady();
+}
+function checkEditNicknameReady(){
+  var input = document.getElementById('edit-nickname-input');
+  var btn = document.getElementById('btn-save-nickname');
+  var status = document.getElementById('edit-nickname-status');
+  if(!input || !btn) return;
+  var v = input.value.trim();
+  var ok = v.length >= 2 && v.length <= 12;
+  btn.style.opacity = ok ? '1' : '0.4';
+  btn.style.pointerEvents = ok ? 'auto' : 'none';
+  if(status){
+    if(v.length === 0) status.textContent = '';
+    else if(v.length < 2) status.textContent = '2자 이상 입력해 주세요';
+    else status.textContent = '✅ 사용 가능한 길이에요';
+    status.style.color = ok ? '#4CAF50' : '#E53935';
+  }
+}
+function saveEditedNickname(){
+  var input = document.getElementById('edit-nickname-input');
+  if(!input) return;
+  var nick = sanitizeInput(input.value);
+  if(nick.length < 2 || nick.length > 12) { showToast('별명은 2~12자로 입력해 주세요'); return; }
+  // 부적절 표현 필터링
+  var nickFilter = checkContentFilter(nick);
+  if(nickFilter){ showToast('별명에 부적절한 표현이 포함되어 있습니다'); return; }
+  // 중복 확인 후 저장
+  var btn = document.getElementById('btn-save-nickname');
+  if(btn) { btn.textContent = '확인 중...'; btn.style.pointerEvents = 'none'; }
+  checkNicknameExists(nick, function(exists){
+    if(exists && nick !== (state.user && state.user.nickname)){
+      showToast('이미 사용 중인 별명이에요');
+      if(btn) { btn.textContent = '저장'; btn.style.pointerEvents = 'auto'; }
+      return;
+    }
+    state.user.nickname = nick;
+    try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+    if(fbDB && state.user.kakaoId){
+      fbDB.ref('users/' + state.user.kakaoId + '/nickname').set(nick).catch(function(){});
+    }
+    // UI 업데이트
+    var pName = document.getElementById('profile-name');
+    if(pName) pName.textContent = nick;
+    var pNickDisplay = document.getElementById('profile-nickname-display');
+    if(pNickDisplay) pNickDisplay.textContent = nick;
+    closeModal('modal-edit-nickname');
+    showToast('✅ 별명이 변경되었습니다');
+    if(btn) { btn.textContent = '저장'; btn.style.pointerEvents = 'auto'; }
+  });
+}
+
+// 프로필 화면 진입 시 별명 표시 업데이트
+function updateProfileNicknameDisplay(){
+  var el = document.getElementById('profile-nickname-display');
+  if(el && state.user){
+    el.textContent = state.user.nickname || '별명 미설정';
+  }
+  // 유형 업데이트
+  var pType = document.getElementById('profile-type-label');
+  if(pType && state.user) pType.textContent = state.user.role==='employer'?'구인자(기관)':'요양보호사';
+  // 성별/생년월일 업데이트
+  var pGender = document.getElementById('profile-gender-birth-label');
+  if(pGender && state.user){
+    var parts = [];
+    if(state.user.gender) parts.push(state.user.gender==='male'?'남성':'여성');
+    if(state.user.birth) parts.push(state.user.birth);
+    pGender.textContent = parts.length > 0 ? parts.join(' / ') : '성별/생년월일 미설정';
+  }
+  // 지역 업데이트
+  var pArea = document.getElementById('profile-area-label');
+  if(pArea && state.user) pArea.textContent = state.user.area || '지역 미설정';
+}
+
+// 프로필 정보 수정 모달
+function showProfileEditModal(field){
+  if(!state.user) { showToast('로그인이 필요합니다'); return; }
+
+  if(field === 'type'){
+    // 유형 변경: 요양보호사/구인자 선택
+    var curRole = state.user.role || 'caregiver';
+    var html = '<div style="padding:20px">';
+    html += '<div style="font-size:18px;font-weight:800;margin-bottom:16px;text-align:center">유형 변경</div>';
+    ['caregiver','employer'].forEach(function(r){
+      var label = r==='caregiver'?'요양보호사':'구인자(기관)';
+      var sel = curRole===r;
+      html += '<div onclick="saveProfileField(\'role\',\''+r+'\')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:8px;background:'+(sel?'var(--primary-light)':'#f9f9f9')+';border:2px solid '+(sel?'var(--primary)':'var(--border)')+';border-radius:12px;cursor:pointer">';
+      html += '<div style="width:22px;height:22px;border-radius:50%;border:2.5px solid '+(sel?'var(--primary)':'#ccc')+';display:flex;align-items:center;justify-content:center">'+(sel?'<div style="width:11px;height:11px;border-radius:50%;background:var(--primary)"></div>':'')+'</div>';
+      html += '<div style="font-size:15px;font-weight:600">'+label+'</div></div>';
+    });
+    html += '</div>';
+    var modal = document.getElementById('modal-profile-edit');
+    if(modal){ modal.querySelector('.modal-body').innerHTML = html; openModal('modal-profile-edit'); }
+
+  } else if(field === 'gender'){
+    // 성별 + 생년월일 변경
+    var curGender = state.user.gender || '';
+    var curBirth = state.user.birth || '';
+    var html = '<div style="padding:20px">';
+    html += '<div style="font-size:18px;font-weight:800;margin-bottom:16px;text-align:center">성별 / 생년월일</div>';
+    html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px">성별</div>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:16px">';
+    ['female','male'].forEach(function(g){
+      var label = g==='female'?'여성':'남성';
+      var sel = curGender===g;
+      html += '<div onclick="document.getElementById(\'pe-gender\').value=\''+g+'\';this.parentElement.querySelectorAll(\'div\').forEach(function(d){d.style.border=\'2px solid var(--border)\';d.style.background=\'#f9f9f9\'});this.style.border=\'2px solid var(--primary)\';this.style.background=\'var(--primary-light)\'" style="flex:1;text-align:center;padding:12px;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;border:2px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'var(--primary-light)':'#f9f9f9')+'">'+label+'</div>';
+    });
+    html += '</div><input type="hidden" id="pe-gender" value="'+curGender+'"/>';
+    html += '<div style="font-size:14px;font-weight:700;margin-bottom:8px">생년월일</div>';
+    html += '<input id="pe-birth" class="form-input" type="text" placeholder="예: 1985.03.15" value="'+curBirth+'" style="font-size:16px;padding:12px;border-radius:12px;margin-bottom:16px"/>';
+    html += '<button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px" onclick="saveProfileField(\'gender_birth\',{gender:document.getElementById(\'pe-gender\').value,birth:document.getElementById(\'pe-birth\').value.trim()})">저장</button>';
+    html += '</div>';
+    var modal = document.getElementById('modal-profile-edit');
+    if(modal){ modal.querySelector('.modal-body').innerHTML = html; openModal('modal-profile-edit'); }
+
+  } else if(field === 'area'){
+    // 지역 변경 — 기존 지역 선택 모달 사용
+    openAreaSelectModal(function(){
+      var pArea = document.getElementById('profile-area-label');
+      if(pArea && state.user) pArea.textContent = state.user.area || '지역 미설정';
+      var sArea = document.getElementById('settings-area');
+      if(sArea && state.user) sArea.textContent = state.user.area || '미설정';
+    });
+  }
+}
+
+function saveProfileField(field, value){
+  if(!state.user) return;
+  if(field === 'role'){
+    state.user.role = value;
+    state.role = value;
+    try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+    if(fbDB && state.user.kakaoId) fbDB.ref('users/'+state.user.kakaoId+'/role').set(value).catch(function(){});
+    closeModal('modal-profile-edit');
+    updateProfileNicknameDisplay();
+    showToast('유형이 변경되었습니다');
+  } else if(field === 'gender_birth'){
+    if(value.gender) state.user.gender = value.gender;
+    if(value.birth) state.user.birth = value.birth;
+    try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+    if(fbDB && state.user.kakaoId){
+      var updates = {};
+      if(value.gender) updates.gender = value.gender;
+      if(value.birth) updates.birth = value.birth;
+      fbDB.ref('users/'+state.user.kakaoId).update(updates).catch(function(){});
+    }
+    closeModal('modal-profile-edit');
+    updateProfileNicknameDisplay();
+    showToast('정보가 변경되었습니다');
+  }
+}
+
+// ============================================================
+//  영구밴 시스템
+// ============================================================
+state.bannedUsers = {}; // { kakaoId: { reason, bannedAt, bannedBy } }
+
+// Firebase에서 밴 목록 로드
+function loadBannedUsers(){
+  if(!fbDB) return;
+  fbDB.ref('banned_users').on('value', snap => {
+    state.bannedUsers = snap.val() || {};
+    const cnt = Object.keys(state.bannedUsers).length;
+    const el = document.getElementById('admin-ban-count');
+    if(el) el.textContent = '차단된 회원 ' + cnt + '명';
+
+    // 현재 로그인된 사용자가 밴 당했는지 사후 체크
+    if(state.user && state.user.kakaoId && isUserBanned(state.user.kakaoId)){
+      var banInfo = state.bannedUsers[state.user.kakaoId] || {};
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n사유: ' + (banInfo.reason || '관리자 판단에 의한 차단') + '\n\n문의: tkddnr5949@gmail.com');
+      try {
+        SecureStorage.removeItem('carelink_profile');
+        localStorage.removeItem('carelink_nickname');
+        localStorage.removeItem('carelink_chatLastRead');
+        TokenManager.clearToken();
+        sessionStorage.clear();
+      } catch(e){}
+      state.user = null;
+      state.role = '';
+      navigate('login');
+    }
+  });
+}
+
+// 밴 여부 체크 (로그인 시 호출)
+function isUserBanned(kakaoId){
+  return !!(state.bannedUsers && state.bannedUsers[kakaoId]);
+}
+
+// 유저 영구밴 실행 (관리자 전용)
+function adminBanUser(kakaoId, userName, reason){
+  if(!isAdmin()) return;
+  if(!kakaoId) { showToast('밴할 수 없는 사용자입니다'); return; }
+  if(kakaoId === (state.user && state.user.kakaoId)){ showToast('자기 자신을 밴할 수 없습니다'); return; }
+
+  var reasonText = reason || '관리자 판단에 의한 영구 차단';
+  if(!confirm('⚠️ 영구밴 확인\n\n대상: ' + (userName||kakaoId) + '\n사유: ' + reasonText + '\n\n이 사용자의 모든 공고와 채팅이 삭제되고\n다시는 로그인할 수 없게 됩니다.\n\n정말 진행하시겠습니까?')) return;
+
+  // 1. banned_users에 기록
+  fbDB.ref('banned_users/' + kakaoId).set({
+    name: userName || '',
+    reason: reasonText,
+    bannedAt: Date.now(),
+    bannedBy: state.user.kakaoId || 'admin'
+  }).catch(err=>{
+    console.error('사용자 차단 저장 실패:', err);
+    showToast('⚠️ 사용자 차단 저장 실패. 다시 시도해주세요.');
+  });
+
+  // 2. 해당 유저의 모든 공고 삭제
+  deleteAllUserData(kakaoId, userName);
+
+  showToast('🚫 ' + (userName||kakaoId) + ' 님이 영구 차단되었습니다');
+  renderAdminUsers();
+}
+
+// 유저의 모든 데이터 삭제 (밴 또는 탈퇴 시 공통 사용)
+function deleteAllUserData(kakaoId, userName){
+  if(!fbDB) return;
+
+  // 1. 공고 삭제
+  var myListings = state.listings.filter(function(l){
+    return l.postedByKakaoId === kakaoId || l.postedBy === userName;
+  });
+  myListings.forEach(function(l){
+    if(l.fbKey) fbDB.ref('listings/' + l.fbKey).remove().catch(err=>{
+      console.error('공고 삭제 실패:', err);
+    });
+  });
+
+  // 2. 채팅 삭제 (해당 유저가 참여한 모든 채팅방)
+  var myId = (kakaoId || userName || 'user').replace(/\s/g, '_');
+  fbDB.ref('chats').once('value', function(snap){
+    var chats = snap.val() || {};
+    Object.keys(chats).forEach(function(chatId){
+      // support_ 채팅 또는 유저ID가 포함된 채팅방 삭제
+      if(chatId.indexOf(myId.replace(/\s/g,'')) !== -1 || chatId === 'support_' + myId){
+        fbDB.ref('chats/' + chatId).remove().catch(err=>{
+          console.error('채팅방 삭제 실패:', err);
+        });
+      }
+    });
+  });
+
+  // 3. 유저 프로필 삭제
+  fbDB.ref('users/' + kakaoId).remove().catch(err=>{
+    console.error('사용자 프로필 삭제 실패:', err);
+  });
+
+  // 4. 해당 유저 신고 기록 정리
+  (state.reports || []).filter(function(r){
+    var listing = state.listings.find(function(l){ return l.id === r.listingId; });
+    return listing && (listing.postedByKakaoId === kakaoId);
+  }).forEach(function(r){
+    fbDB.ref('reports/' + r.id).remove().catch(err=>{
+      console.error('신고 기록 삭제 실패:', err);
+    });
+  });
+}
+
+// 밴 해제 (관리자 전용)
+function adminUnbanUser(kakaoId){
+  if(!isAdmin()) return;
+  var banned = state.bannedUsers[kakaoId];
+  var name = banned ? banned.name : kakaoId;
+  if(!confirm(name + ' 님의 차단을 해제하시겠습니까?')) return;
+
+  fbDB.ref('banned_users/' + kakaoId).remove().catch(err=>{
+    console.error('사용자 차단 해제 실패:', err);
+    showToast('⚠️ 차단 해제 실패. 다시 시도해주세요.');
+    return;
+  });
+  showToast('✅ ' + name + ' 님의 차단이 해제되었습니다');
+  renderAdminUsers();
+}
+
+// 관리자: 유저 실명 직접 수정
+function adminEditUserName(kakaoId, currentName){
+  if(!isAdmin()) return;
+  var newName = prompt('실명을 수정하세요:', currentName);
+  if(newName === null) return; // 취소
+  newName = newName.trim();
+  if(newName.length < 1) { showToast('이름을 입력해 주세요'); return; }
+  fbDB.ref('users/' + kakaoId + '/name').set(newName).then(function(){
+    showToast('✅ ' + kakaoId + ' 님의 실명이 변경되었습니다');
+    renderAdminUsers();
+  }).catch(function(err){
+    console.error('실명 변경 실패:', err);
+    showToast('⚠️ 실명 변경 실패');
+  });
+}
+
+// 관리자: 유저 별명 직접 수정
+function adminEditUserNickname(kakaoId, currentNick){
+  if(!isAdmin()) return;
+  var newNick = prompt('별명을 수정하세요 (2~12자):', currentNick);
+  if(newNick === null) return; // 취소
+  newNick = newNick.trim();
+  if(newNick.length > 0 && (newNick.length < 2 || newNick.length > 12)){
+    showToast('별명은 2~12자로 입력해 주세요'); return;
+  }
+  fbDB.ref('users/' + kakaoId + '/nickname').set(newNick).then(function(){
+    showToast('✅ ' + kakaoId + ' 님의 별명이 변경되었습니다');
+    renderAdminUsers();
+  }).catch(function(err){
+    console.error('별명 변경 실패:', err);
+    showToast('⚠️ 별명 변경 실패');
+  });
+}
+
+// 관리자: 강제 회원 탈퇴
+function adminForceWithdraw(kakaoId, userName){
+  if(!isAdmin()) return;
+  if(!confirm('⚠️ 정말 ' + (userName||kakaoId) + ' 님을 강제 탈퇴시키겠습니까?\n\n이 회원의 모든 공고, 채팅, 프로필 데이터가\n즉시 삭제됩니다. 되돌릴 수 없습니다.')) return;
+  if(!confirm('🔴 최종 확인: ' + (userName||kakaoId) + ' 님을 정말 강제 탈퇴합니까?')) return;
+
+  deleteAllUserData(kakaoId, userName);
+  showToast('⛔ ' + (userName||kakaoId) + ' 님이 강제 탈퇴 처리되었습니다');
+  setTimeout(function(){ renderAdminUsers(); }, 1000);
+}
+
+// 신고 모달에서 바로 밴
+function adminBanFromReport(listingId){
+  if(!isAdmin()) return;
+  var listing = state.listings.find(function(l){ return l.id == listingId; });
+  if(!listing) { showToast('공고를 찾을 수 없습니다'); return; }
+  var kakaoId = listing.postedByKakaoId;
+  var userName = listing.postedBy;
+  if(!kakaoId) { showToast('이 공고의 작성자 정보를 찾을 수 없습니다'); return; }
+
+  adminBanUser(kakaoId, userName, '신고 누적에 의한 영구 차단');
+  closeModal('modal-admin-reports');
+}
+
+// ---- 회원 관리 화면 렌더링 ----
+var _adminUserTab = 'all';
+
+function switchAdminUserTab(tab){
+  _adminUserTab = tab;
+  document.getElementById('au-tab-all').classList.toggle('active', tab === 'all');
+  document.getElementById('au-tab-banned').classList.toggle('active', tab === 'banned');
+  renderAdminUsers();
+}
+
+function renderAdminUsers(){
+  if(!isAdmin()) return;
+  var container = document.getElementById('admin-users-container');
+  if(!container) return;
+  var searchTerm = (document.getElementById('admin-user-search')?.value || '').trim().toLowerCase();
+
+  if(_adminUserTab === 'banned'){
+    // 차단 목록
+    var banned = state.bannedUsers || {};
+    var bkeys = Object.keys(banned);
+    if(searchTerm){
+      bkeys = bkeys.filter(function(k){
+        var b = banned[k];
+        return k.toLowerCase().indexOf(searchTerm) !== -1 || (b.name||'').toLowerCase().indexOf(searchTerm) !== -1;
+      });
+    }
+    if(bkeys.length === 0){
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">차단된 회원이 없습니다</div>';
+      return;
+    }
+    container.innerHTML = bkeys.map(function(kakaoId){
+      var b = banned[kakaoId];
+      var dt = b.bannedAt ? new Date(b.bannedAt).toLocaleDateString('ko-KR') : '';
+      return '<div style="background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:10px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+        + '<div style="font-size:15px;font-weight:700;color:#E53935">🚫 ' + escapeHtml(b.name||kakaoId) + '</div>'
+        + '<div style="font-size:11px;color:#aaa">' + dt + '</div>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#888;margin-bottom:8px">사유: ' + escapeHtml(b.reason||'') + '</div>'
+        + '<div style="font-size:11px;color:#bbb;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
+        + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">차단 해제</button>'
+        + '</div>';
+    }).join('');
+  } else {
+    // 전체 회원 — Firebase users에서 로드
+    if(!fbDB){
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">Firebase 미연결</div>';
+      return;
+    }
+    container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa"><div class="shimmer-line" style="width:60%;margin:0 auto 12px"></div><div class="shimmer-line" style="width:40%;margin:0 auto"></div><div style="margin-top:12px;font-size:13px">회원 정보 불러오는 중...</div></div>';
+    var _adminLoadTimer = setTimeout(function(){
+      if(container.innerHTML.indexOf('불러오는 중') !== -1){
+        container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">로딩 시간이 초과되었습니다<br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
+      }
+    }, 10000);
+    fbDB.ref('users').once('value').then(function(snap){
+      clearTimeout(_adminLoadTimer);
+      var users = snap.val() || {};
+      var keys = Object.keys(users);
+      if(searchTerm){
+        keys = keys.filter(function(k){
+          var u = users[k];
+          return k.toLowerCase().indexOf(searchTerm) !== -1 || (u.name||'').toLowerCase().indexOf(searchTerm) !== -1;
+        });
+      }
+      if(keys.length === 0){
+        container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">회원이 없습니다</div>';
+        return;
+      }
+      // 각 유저의 공고 수 계산
+      var postCounts = {};
+      (state.listings||[]).forEach(function(l){
+        if(l.postedByKakaoId){
+          postCounts[l.postedByKakaoId] = (postCounts[l.postedByKakaoId]||0) + 1;
+        }
+      });
+
+      container.innerHTML = keys.map(function(kakaoId){
+        var u = users[kakaoId];
+        var isBanned = isUserBanned(kakaoId);
+        var isMe = state.user && state.user.kakaoId === kakaoId;
+        var roleLabel = u.role === 'employer' ? '구인자' : u.role === 'caregiver' ? '요양보호사' : (u.role||'미지정');
+        var genderLabel = u.gender === 'male' ? '남성' : u.gender === 'female' ? '여성' : '';
+        var joinDate = u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('ko-KR') : '';
+        var lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('ko-KR') : '';
+        var posts = postCounts[kakaoId] || 0;
+        var displayNick = u.nickname ? escapeHtml(u.nickname) : '<span style="color:#ccc">별명 없음</span>';
+
+        return '<div style="background:#fff;border:1px solid ' + (isBanned?'#ffcdd2':'#eee') + ';border-radius:12px;padding:14px;margin-bottom:10px">'
+          // 이름 + 별명 + 역할
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+          + '<div style="font-size:15px;font-weight:700;color:' + (isBanned?'#E53935':'var(--text)') + '">'
+          + (isBanned ? '🚫 ' : '') + escapeHtml(u.name||kakaoId) + (isMe ? ' <span style="font-size:11px;color:var(--primary)">(나)</span>' : '')
+          + '</div>'
+          + '<div style="font-size:12px;font-weight:600;color:#fff;background:' + (u.role==='employer'?'#FF6B35':'#1565C0') + ';padding:2px 8px;border-radius:8px">' + roleLabel + '</div>'
+          + '</div>'
+          // 별명 표시
+          + '<div style="font-size:12px;color:#1565C0;margin-bottom:6px">🏷️ ' + displayNick + '</div>'
+          // 상세 정보
+          + '<div style="font-size:12px;color:#888;line-height:1.8;margin-bottom:8px">'
+          + (u.area ? '📍 ' + escapeHtml(u.area) : '')
+          + (genderLabel ? ' · ' + genderLabel : '')
+          + (u.birth ? ' · ' + escapeHtml(u.birth) : '') + '<br>'
+          + (u.phone ? '📞 ' + escapeHtml(u.phone) + '<br>' : '')
+          + '📝 공고 ' + posts + '개'
+          + (joinDate ? ' · 가입 ' + joinDate : '')
+          + (lastLogin ? ' · 최근 ' + lastLogin : '')
+          + '</div>'
+          + '<div style="font-size:10px;color:#ccc;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
+          // 관리 버튼들
+          + (isMe ? '' : '<div style="display:flex;flex-direction:column;gap:6px">'
+            // 이름 수정 버튼
+            + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminEditUserName(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">✏️ 실명 수정</button>'
+            // 별명 수정 버튼
+            + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminEditUserNickname(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.nickname||'') + '\')">🏷️ 별명 수정</button>'
+            + (isBanned
+              ? '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#4CAF50;border-color:#4CAF50" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">✅ 차단 해제</button>'
+              : '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#E53935;border-color:#E53935" onclick="adminBanUser(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">🚫 영구밴</button>'
+            )
+            // 강제 탈퇴 버튼
+            + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px;color:#fff;background:#E53935;border-color:#E53935" onclick="adminForceWithdraw(\'' + escapeHtml(kakaoId) + '\',\'' + escapeHtml(u.name||'') + '\')">⛔ 강제 탈퇴</button>'
+            + '</div>'
+          )
+          + '</div>';
+      }).join('');
+    }).catch(function(err){
+      console.error('[요양링크] 회원 목록 로드 실패:', err);
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">회원 목록을 불러올 수 없습니다<br><span style="font-size:12px;color:#aaa">Firebase 권한을 확인하세요</span><br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
+    });
+  }
+}
+
+// 회원 탈퇴 확인 (개인정보보호법 준수 - 탈퇴 시 Firebase 데이터 완전 삭제)
+function confirmWithdraw(){
+  if(!confirm('정말 탈퇴하시겠습니까?\n\n모든 데이터가 삭제됩니다.\n(프로필, 공고, 채팅 내역 등)\n\n이 작업은 되돌릴 수 없습니다.')) return;
+
+  const user = state.user;
+  if(!user) { doLogout(); return; }
+
+  showToast('데이터 삭제 중...');
+
+  // 1. Firebase에서 사용자 관련 데이터 완전 삭제 (공통 함수 사용)
+  if(fbDB){
+    deleteAllUserData(user.kakaoId, user.name);
+  }
+
+  // 2. 카카오 연결 해제 (unlink) — JavaScript SDK 사용
+  try {
+    var kakaoToken = TokenManager.getToken() || (Kakao.Auth && Kakao.Auth.getAccessToken());
+    if(window.Kakao && Kakao.isInitialized() && kakaoToken){
+      // localStorage에서 토큰 복원
+      if(!Kakao.Auth.getAccessToken() && kakaoToken){
+        Kakao.Auth.setAccessToken(kakaoToken);
+      }
+      Kakao.API.request({
+        url: '/v1/user/unlink',
+        success: function(){
+          console.log('[CareLink] 카카오 연결 해제(unlink) 완료');
+        },
+        fail: function(err){
+          console.warn('[CareLink] 카카오 연결 해제 실패:', err);
+          // 실패해도 로컬 데이터는 삭제 진행
+        }
+      });
+    }
+  } catch(e){ console.warn('[CareLink] 카카오 unlink 오류:', e); }
+
+  // 3. 모든 저장소 완전 삭제 (localStorage + sessionStorage)
+  TokenManager.clearToken();
+  try { localStorage.clear(); } catch(e){}
+  try { sessionStorage.clear(); } catch(e){}
+
+  setTimeout(function(){
+    // 4. 상태 초기화 및 로그인 화면으로 이동
+    state.user = null;
+    state.role = null;
+    showToast('탈퇴가 완료되었습니다. 카카오 연동이 해제되었습니다.');
+    navigate('login');
+  }, 1200);
+}
+
+// ============================================================
+//  데이터 삭제 요청 제출 (Google Play 요구사항)
+// ============================================================
+function submitDeleteRequest(){
+  var nickname = sanitizeInput((document.getElementById('delete-req-nickname')||{}).value||'');
+  var phone = (document.getElementById('delete-req-phone')||{}).value||'';
+  var reason = sanitizeInput((document.getElementById('delete-req-reason')||{}).value||'');
+
+  if(!nickname || nickname.length < 1){
+    showToast('카카오 닉네임을 입력해 주세요');
+    return;
+  }
+
+  if(!fbDB){
+    showToast('서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+
+  // 1. 삭제 요청 기록 저장
+  var requestData = {
+    nickname: nickname,
+    phone: phone.trim(),
+    reason: reason,
+    requestedAt: Date.now(),
+    status: 'processing'
+  };
+
+  fbDB.ref('delete_requests/' + Date.now()).set(requestData).then(function(){
+    // 2. 해당 닉네임으로 등록된 사용자 데이터 검색 및 삭제
+    return fbDB.ref('users').orderByChild('nickname').equalTo(nickname).once('value');
+  }).then(function(snapshot){
+    var promises = [];
+    snapshot.forEach(function(child){
+      var uid = child.key;
+      // 사용자 데이터 삭제
+      promises.push(fbDB.ref('users/' + uid).remove());
+      // 해당 사용자의 공고 삭제
+      promises.push(
+        fbDB.ref('listings').orderByChild('userId').equalTo(uid).once('value').then(function(ls){
+          var lp = []; ls.forEach(function(l){ lp.push(fbDB.ref('listings/' + l.key).remove()); });
+          return Promise.all(lp);
+        })
+      );
+      // 해당 사용자의 채팅 참여 삭제
+      promises.push(
+        fbDB.ref('chats').orderByChild('participants/' + uid).equalTo(true).once('value').then(function(cs){
+          var cp = []; cs.forEach(function(c){ cp.push(fbDB.ref('chats/' + c.key + '/participants/' + uid).remove()); });
+          return Promise.all(cp);
+        })
+      );
+    });
+    return Promise.all(promises);
+  }).then(function(){
+    // 3. 로컬 데이터 정리
+    try { localStorage.clear(); } catch(e){}
+    showToast('데이터 삭제가 완료되었습니다.');
+    // 폼 초기화
+    var el1 = document.getElementById('delete-req-nickname'); if(el1) el1.value='';
+    var el2 = document.getElementById('delete-req-phone'); if(el2) el2.value='';
+    var el3 = document.getElementById('delete-req-reason'); if(el3) el3.value='';
+  }).catch(function(err){
+    console.error('삭제 처리 실패:', err);
+    showToast('삭제 처리 중 오류가 발생했습니다. 이메일(tkddnr5949@gmail.com)로 문의해 주세요.');
+  });
+}
+
+// ============================================================
+//  글자수 카운터 (당근마켓 스타일)
+// ============================================================
+function updateCharCounter(){
+  const desc = document.getElementById('post-desc');
+  const counter = document.getElementById('post-char-counter');
+  if(!desc || !counter) return;
+  const len = desc.value.length;
+  counter.textContent = len.toLocaleString() + ' / 1,000자';
+  counter.className = 'char-counter' + (len > 900 ? ' warn' : len > 100 ? ' ok' : '');
+}
+function updateTitleCounter(){
+  const title = document.getElementById('post-title');
+  const counter = document.getElementById('post-title-counter');
+  if(!title || !counter) return;
+  const len = title.value.length;
+  counter.textContent = len + ' / 50자';
+  counter.className = 'char-counter' + (len > 45 ? ' warn' : len > 10 ? ' ok' : '');
+}
+
+// ============================================================
+//  프로필 완성도 계산 (케어닥 참고)
+// ============================================================
+function updateProfileCompletion(){
+  if(!state.user) return;
+  const u = state.user;
+  let total = 5, done = 0; // 기본: 이름, 역할, 지역, 연락처, 자격증/사업자
+  if(u.name) done++;
+  if(state.role) done++;
+  if(u.area) done++;
+  if(u.phone) done++;
+  if(u.certPhoto) done++;
+  // 추가 항목
+  if(state.role !== 'employer'){
+    total += 2; // 경력, 이력서
+    if(u.careerPhoto) done++;
+    if(u.healthPhoto) done++;
+  }
+  const pct = Math.round((done/total)*100);
+  const pctEl = document.getElementById('profile-completion-pct');
+  const barEl = document.getElementById('profile-completion-bar');
+  if(pctEl) pctEl.textContent = pct + '%';
+  if(barEl) barEl.style.width = pct + '%';
+}
+
+
+// ============================================================
+//  Pull-to-refresh (당근마켓 스타일)
+// ============================================================
+let _pullRefreshCooldown = false;
+let _pullStartY = 0;
+let _pullTriggered = false;
+(function(){
+  var listView = document.getElementById('list-view');
+  if(!listView) return;
+  listView.addEventListener('touchstart', function(e){
+    // 앱 WebView에서는 pull-to-refresh 비활성화 (네이티브 오버스크롤 사용)
+    if(window.__DISABLE_PULL_REFRESH__) return;
+    // 홈 화면에서만 pull-to-refresh 활성화
+    if(state.currentScreen !== 'home') return;
+    if(listView.scrollTop <= 0){
+      _pullStartY = e.touches[0].clientY;
+      _pullTriggered = false;
+    }
+  }, {passive:true});
+  listView.addEventListener('touchmove', function(e){
+    // 앱 WebView에서는 pull-to-refresh 비활성화
+    if(window.__DISABLE_PULL_REFRESH__) return;
+    // 홈 화면에서만 pull-to-refresh 활성화
+    if(state.currentScreen !== 'home') return;
+    if(_pullRefreshCooldown || _pullTriggered) return;
+    if(listView.scrollTop > 0) return;
+    var dy = e.touches[0].clientY - _pullStartY;
+    if(dy > 60){
+      _pullTriggered = true;
+      doPullRefresh();
+    }
+  }, {passive:true});
+})();
+function doPullRefresh(){
+  // 앱 WebView에서는 동작하지 않음
+  if(window.__DISABLE_PULL_REFRESH__) return;
+  // 홈 화면에서만 동작
+  if(state.currentScreen !== 'home') return;
+  const indicator = document.getElementById('pull-indicator');
+  if(!indicator || _pullRefreshCooldown) return;
+  indicator.classList.add('visible');
+  indicator.textContent = '↻ 새로고침 중...';
+  _pullRefreshCooldown = true;
+  renderHomeScreen();
+  setTimeout(()=>{
+    indicator.textContent = '✅ 새로고침 완료';
+    setTimeout(()=>{
+      indicator.classList.remove('visible');
+      _pullRefreshCooldown = false;
+    }, 800);
+  }, 600);
+}
+
+// ============================================================
+//  스켈레톤 로딩 (인기 앱 참고)
+// ============================================================
+function showSkeletonLoading(){
+  const container = document.getElementById('listing-list');
+  if(!container) return;
+  let html = '';
+  for(let i=0; i<4; i++){
+    html += `<div class="skeleton-card">
+      <div class="skeleton skeleton-line title"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <div class="skeleton" style="width:60px;height:22px;border-radius:12px"></div>
+        <div class="skeleton" style="width:60px;height:22px;border-radius:12px"></div>
+      </div>
+      <div class="skeleton skeleton-line medium"></div>
+      <div class="skeleton skeleton-line short"></div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+// ============================================================
+//  PWA 설치 지원 (홈 화면 추가)
+// ============================================================
+let _deferredPWAPrompt = null;
+
+// PWA manifest 동적 생성
+function initPWAManifest(){
+  const manifest = {
+    name: '요양링크 - 요양보호사 구인구직',
+    short_name: '요양링크',
+    description: '요양보호사 구인구직 매칭 앱',
+    start_url: window.location.href,
+    display: 'standalone',
+    background_color: '#F5F5F5',
+    theme_color: '#FF6B35',
+    icons: [{
+      src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">👵🏻</text></svg>',
+      sizes: '192x192',
+      type: 'image/svg+xml'
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const manifestEl = document.getElementById('pwa-manifest');
+  if(manifestEl) manifestEl.href = URL.createObjectURL(blob);
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredPWAPrompt = e;
+  // 배너 표시 (한 번 닫았으면 다시 안 보여줌)
+  if(!localStorage.getItem('carelink_pwa_dismissed')){
+    const banner = document.getElementById('pwa-install-banner');
+    if(banner) banner.classList.add('show');
+  }
+});
+
+function installPWA(){
+  if(_deferredPWAPrompt){
+    _deferredPWAPrompt.prompt();
+    _deferredPWAPrompt.userChoice.then(result => {
+      if(result.outcome === 'accepted') showToast('홈 화면에 추가되었습니다! 📱');
+      _deferredPWAPrompt = null;
+      closePWABanner();
+    });
+  } else {
+    showToast('브라우저 메뉴에서 "홈 화면에 추가"를 눌러주세요 📱');
+    closePWABanner();
+  }
+}
+function closePWABanner(){
+  const banner = document.getElementById('pwa-install-banner');
+  if(banner) banner.classList.remove('show');
+  try { localStorage.setItem('carelink_pwa_dismissed','1'); } catch(e){}
+}
+
+// ============================================================
+//  네트워크 상태 표시 (오프라인 알림)
+// ============================================================
+window.addEventListener('online', ()=>showToast('인터넷에 연결되었습니다 ✅'));
+window.addEventListener('offline', ()=>showToast('⚠️ 인터넷 연결이 끊어졌습니다. 일부 기능이 제한됩니다.'));
+
+// (뒤로가기는 탭별 독립 히스토리 시스템에서 처리 — 상단 navigate/popstate 참조)
+
+// ============================================================
+//  입력 접근성 개선 (키보드 올라올 때 스크롤)
+// ============================================================
+document.addEventListener('focusin', function(e){
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA'){
+    setTimeout(()=>e.target.scrollIntoView({behavior:'smooth',block:'center'}), 300);
+  }
+});
+
+// ============================================================
+//  START
+// =======================================================
+document.addEventListener('DOMContentLoaded', function() {
+  initPWAManifest();
+  initFirebase();
+  init();
+  // 초기 스켈레톤 로딩 (Firebase 로드 전)
+  if(!state._firebaseLoaded) showSkeletonLoading();
+});
+
+// ============================================================
+//  면접 약속 & 채용 시스템 (당근마켓 스타일)
+// ============================================================
+var pendingInterviewData = {};
+
+function openInterviewModal(){
+  if(!state.activeChatId) return;
+  // 기본값: 내일 날짜
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  var dateStr = tomorrow.toISOString().split('T')[0];
+  var dateInput = document.getElementById('iv-date');
+  if(dateInput) dateInput.value = dateStr;
+  if(dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+  openModal('modal-interview');
+}
+
+function confirmInterviewTime(){
+  var dateVal = (document.getElementById('iv-date')||{}).value;
+  var hourVal = (document.getElementById('iv-hour')||{}).value;
+  var minVal = (document.getElementById('iv-min')||{}).value || '00';
+  if(!dateVal || !hourVal){
+    showToast('날짜와 시간을 모두 선택해주세요');
+    return;
+  }
+  var ivTime = new Date(dateVal + 'T' + hourVal + ':' + minVal + ':00');
+  if(ivTime <= new Date()){
+    showToast('현재 시간 이후로 선택해주세요');
+    return;
+  }
+  pendingInterviewData = {
+    date: dateVal,
+    hour: hourVal,
+    min: minVal,
+    timestamp: ivTime.getTime(),
+    displayText: dateVal.replace(/-/g,'.') + ' ' + hourVal + ':' + minVal
+  };
+  closeModal('modal-interview');
+  // 서류 선택 모달 열기
+  openModal('modal-docs');
+}
+
+function toggleDocItem(el){
+  var cb = el.querySelector('input[type=checkbox]');
+  if(cb){
+    // el.classList.toggle('checked', cb.checked); // checkbox handles its own state
+    setTimeout(function(){ el.classList.toggle('checked', cb.checked); }, 10);
+  }
+}
+
+function toggleDocEtc(){
+  var cb = document.getElementById('doc-etc-cb');
+  var wrap = document.getElementById('doc-etc-input-wrap');
+  if(cb && wrap){
+    wrap.style.display = cb.checked ? 'block' : 'none';
+    if(cb.checked){
+      var input = document.getElementById('doc-etc-text');
+      if(input) setTimeout(function(){ input.focus(); }, 100);
+    }
+  }
+}
+
+function sendInterviewRequest(){
+  var chatId = state.activeChatId;
+  if(!chatId || !pendingInterviewData.timestamp) return;
+  var chat = state.chats[chatId];
+  if(!chat) return;
+
+  // 선택된 서류 수집
+  var docs = [];
+  document.querySelectorAll('#doc-checklist input[type=checkbox]:checked').forEach(function(cb){
+    if(cb.value === '기타'){
+      var etcText = (document.getElementById('doc-etc-text')||{}).value || '';
+      if(etcText.trim()) docs.push('기타: ' + etcText.trim());
+    } else {
+      docs.push(cb.value);
+    }
+  });
+  if(docs.length === 0){
+    showToast('서류를 1개 이상 선택해주세요');
+    return;
+  }
+
+  closeModal('modal-docs');
+
+  var myName = getMyDisplayName();
+  var myId = (state.user && state.user.kakaoId) || '';
+  var ivData = pendingInterviewData;
+
+  // Firebase에 면접 정보 저장
+  if(fbDB){
+    var interviewInfo = {
+      scheduledAt: ivData.timestamp,
+      scheduledBy: myId,
+      scheduledByName: myName,
+      docs: docs,
+      status: 'scheduled', // scheduled → completed → hired/not_hired
+      createdAt: Date.now()
+    };
+    fbDB.ref('chats/'+chatId+'/meta/interview').set(interviewInfo);
+
+    // 공고 상태를 '면접중'으로 변경
+    var listingId = chat.listingId;
+    if(listingId){
+      var listing = state.listings.find(function(l){ return l.id == listingId; });
+      if(listing && listing.fbKey){
+        fbDB.ref('listings/'+listing.fbKey).update({ status: 'interviewing', interviewChatId: chatId });
+        listing.status = 'interviewing';
+      }
+    }
+
+    // 면접 약속 시스템 메시지 보내기
+    var ivMsg = {
+      sender: '시스템',
+      senderId: 'system',
+      type: 'interview_scheduled',
+      text: '📅 면접 약속이 잡혔습니다!\n\n🗓 ' + ivData.displayText + '\n\n📎 준비 서류:\n' + docs.map(function(d){ return '  ✓ ' + d; }).join('\n') + '\n\n면접 화이팅! 💪',
+      time: Date.now(),
+      interviewTime: ivData.timestamp,
+      interviewDocs: docs
+    };
+    fbDB.ref('chats/'+chatId+'/messages').push(ivMsg);
+    fbDB.ref('chats/'+chatId+'/meta').update({
+      lastMsg: '📅 면접 약속: ' + ivData.displayText,
+      lastTime: Date.now(),
+      lastSenderId: myId
+    });
+  }
+
+  showToast('📅 면접 약속이 전달되었습니다!');
+  updateChatroomBanners(chatId);
+  pendingInterviewData = {};
+}
+
+// 채팅방 배너 업데이트
+function updateChatroomBanners(chatId){
+  if(!chatId) chatId = state.activeChatId;
+  if(!chatId) return;
+  var chat = state.chats[chatId];
+
+  var ivBanner = document.getElementById('chatroom-interview-banner');
+  var matchBanner = document.getElementById('chatroom-matched-banner');
+  var actionsDiv = document.getElementById('chatroom-actions');
+  var ivTimeEl = document.getElementById('chatroom-iv-time');
+
+  // 배너 초기화
+  if(ivBanner) ivBanner.style.display = 'none';
+  if(matchBanner) matchBanner.style.display = 'none';
+  if(actionsDiv) actionsDiv.style.display = 'none';
+
+  if(!fbDB || !chatId) return;
+
+  // 면접 정보 확인
+  fbDB.ref('chats/'+chatId+'/meta/interview').once('value', function(snap){
+    var iv = snap.val();
+
+    // 매칭 완료 상태 확인
+    var listing = chat && chat.listingId ? state.listings.find(function(l){ return l.id == chat.listingId; }) : null;
+    var isMatched = listing && listing.status === 'matched';
+    var isInterviewing = listing && listing.status === 'interviewing';
+    var isEmployer = listing && listing.postedByKakaoId === (state.user && state.user.kakaoId);
+
+    if(isMatched){
+      if(matchBanner) matchBanner.style.display = 'flex';
+    } else if(iv && iv.status === 'scheduled'){
+      if(ivBanner){
+        ivBanner.style.display = 'flex';
+        var d = new Date(iv.scheduledAt);
+        var month = d.getMonth()+1;
+        var day = d.getDate();
+        var h = d.getHours();
+        var m = d.getMinutes();
+        if(ivTimeEl) ivTimeEl.textContent = month+'/'+day+' '+(h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+      }
+    } else if(isEmployer && !iv){
+      // 구인자이고 면접 약속이 없으면 약속잡기 버튼 표시
+      if(actionsDiv) actionsDiv.style.display = 'block';
+    }
+  });
+}
+
+function openInterviewDetail(){
+  // 면접 상세 - 간단하게 토스트로 알림
+  showToast('면접 시간은 배너에 표시되어 있습니다');
+}
+
+// 채용 확인 체크 (앱 진입 시)
+function checkHireConfirmation(){
+  if(!fbDB || !state.user || !state.user.kakaoId) return;
+  var myId = state.user.kakaoId;
+
+  // 내가 참여한 채팅 중 면접 예정인 것 확인
+  Object.keys(state.chats).forEach(function(chatId){
+    var chat = state.chats[chatId];
+    if(!chat || !chat.listingId) return;
+
+    fbDB.ref('chats/'+chatId+'/meta/interview').once('value', function(snap){
+      var iv = snap.val();
+      if(!iv || iv.status !== 'scheduled') return;
+
+      // 면접 시간 + 1시간이 지났는지 확인
+      var now = Date.now();
+      var oneHourAfter = iv.scheduledAt + (60 * 60 * 1000);
+      if(now < oneHourAfter) return;
+
+      // 이미 확인한 면접인지 체크
+      var confirmKey = 'carelink_hireChecked_' + chatId;
+      if(localStorage.getItem(confirmKey)) return;
+
+      // 확인 모달 표시
+      state._hireConfirmChatId = chatId;
+      setTimeout(function(){
+        openModal('modal-hire-confirm');
+      }, 1500); // 앱 로딩 후 1.5초 뒤 표시
+    });
+  });
+}
+
+function confirmHire(hired){
+  closeModal('modal-hire-confirm');
+  var chatId = state._hireConfirmChatId;
+  if(!chatId) return;
+  var chat = state.chats[chatId];
+
+  // 다시 안 물어보도록 체크
+  localStorage.setItem('carelink_hireChecked_' + chatId, '1');
+
+  if(hired){
+    // 매칭 완료 처리
+    if(fbDB){
+      fbDB.ref('chats/'+chatId+'/meta/interview').update({ status: 'hired' });
+
+      // 공고 상태 업데이트
+      if(chat && chat.listingId){
+        var listing = state.listings.find(function(l){ return l.id == chat.listingId; });
+        if(listing){
+          if(listing.fbKey) fbDB.ref('listings/'+listing.fbKey).update({ status: 'matched' });
+          listing.status = 'matched';
+        }
+      }
+
+      // 매칭 완료 시스템 메시지
+      var matchMsg = {
+        sender: '시스템',
+        senderId: 'system',
+        type: 'matched',
+        text: '🤝 채용이 확정되었습니다!\n\n축하드립니다! 서로 좋은 인연이 되길 바랍니다 😊',
+        time: Date.now()
+      };
+      fbDB.ref('chats/'+chatId+'/messages').push(matchMsg);
+      fbDB.ref('chats/'+chatId+'/meta').update({
+        lastMsg: '🤝 채용 확정!',
+        lastTime: Date.now(),
+        lastSenderId: 'system'
+      });
+    }
+    showToast('🤝 매칭 완료! 축하드립니다!');
+    updateChatroomBanners(chatId);
+    renderListings();
+  } else {
+    showToast('확인했습니다. 좋은 결과 있길 바랍니다!');
+  }
+  state._hireConfirmChatId = null;
+}
+
+// ============================================================
+//  이모티콘 시스템 (요양링크 커스텀 스티커)
+// ============================================================
+var STICKERS = {
+  greet: [
+    { id:'s_hi', label:'안녕하세요', svg:'<img src="stickers/hello.png" alt="안녕하세요"/>' },
+    { id:'s_bow', label:'감사합니다', svg:'<img src="stickers/thanks.png" alt="감사합니다"/>' },
+    { id:'s_wave', label:'반가워요', svg:'<img src="stickers/nice.png" alt="반가워요"/>' },
+    { id:'s_bye', label:'수고하세요', svg:'<img src="stickers/goodbye.png" alt="수고하세요"/>' },
+    { id:'s_please', label:'잘 부탁드립니다', svg:'<img src="stickers/please.png" alt="잘 부탁드립니다"/>' },
+  ],
+  emotion: [
+    { id:'s_hi2', label:'안녕하세요!', svg:'<img src="stickers/hi.png" alt="안녕하세요!"/>' },
+    { id:'s_grateful', label:'고맙습니다', svg:'<img src="stickers/grateful.png" alt="고맙습니다"/>' },
+    { id:'s_sorry', label:'죄송합니다', svg:'<img src="stickers/sorry.png" alt="죄송합니다"/>' },
+    { id:'s_apologize', label:'미안합니다', svg:'<img src="stickers/apologize.png" alt="미안합니다"/>' },
+  ],
+  work: [
+  ]
+};
+
+var currentStickerTab = 'greet';
+
+function toggleStickerPanel(){
+  var panel = document.getElementById('sticker-panel');
+  if(!panel) return;
+  var attachMenu = document.getElementById('chat-attach-menu');
+  if(attachMenu) attachMenu.style.display = 'none';
+  if(panel.classList.contains('open')){
+    panel.classList.remove('open');
+  } else {
+    panel.classList.add('open');
+    renderStickerGrid(currentStickerTab);
+  }
+}
+
+function switchStickerTab(el, tab){
+  currentStickerTab = tab;
+  document.querySelectorAll('.sticker-tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  renderStickerGrid(tab);
+}
+
+function renderStickerGrid(tab){
+  var grid = document.getElementById('sticker-grid');
+  if(!grid) return;
+  var stickers = STICKERS[tab] || [];
+  var html = '';
+  stickers.forEach(function(s){
+    html += '<button class="sticker-item" onclick="sendSticker(\'' + s.id + '\')" title="' + escapeHtml(s.label) + '">' + s.svg + '</button>';
+  });
+  grid.innerHTML = html;
+}
+
+function sendSticker(stickerId){
+  var chatId = state.activeChatId;
+  if(!chatId) return;
+  if(!rateLimit('chat_send', 20)){
+    showToast('너무 빠르게 보내고 있습니다');
+    return;
+  }
+
+  // 이모티콘 패널 닫기
+  var panel = document.getElementById('sticker-panel');
+  if(panel) panel.classList.remove('open');
+
+  var myName = getMyDisplayName();
+  var msg = {
+    sender: myName,
+    senderId: (state.user&&state.user.kakaoId)||'me',
+    type: 'sticker',
+    stickerId: stickerId,
+    time: Date.now()
+  };
+
+  // 스티커 라벨 찾기 (lastMsg용)
+  var stickerLabel = '(스티커)';
+  Object.keys(STICKERS).forEach(function(tab){
+    STICKERS[tab].forEach(function(s){
+      if(s.id === stickerId) stickerLabel = s.label;
+    });
+  });
+
+  if(fbDB){
+    fbDB.ref('chats/'+chatId+'/messages').push(msg).catch(function(err){
+      console.error('스티커 전송 실패:', err);
+    });
+    // 채팅 목록 업데이트
+    var chat = state.chats[chatId];
+    if(chat){
+      var metaUpdate = {
+        lastMsg: '😊 ' + stickerLabel,
+        lastTime: Date.now(),
+        lastSenderId: (state.user&&state.user.kakaoId)||'me'
+      };
+      fbDB.ref('chats/'+chatId+'/meta').update(metaUpdate);
+    }
+  } else {
+    // 데모 모드
+    if(!state.chats[chatId].messages) state.chats[chatId].messages = [];
+    state.chats[chatId].messages.push({...msg, id:'local_'+Date.now()});
+    renderMessages(chatId);
+  }
+}
+
+function getStickerSvg(stickerId){
+  var found = null;
+  Object.keys(STICKERS).forEach(function(tab){
+    STICKERS[tab].forEach(function(s){
+      if(s.id === stickerId) found = s.svg;
+    });
+  });
+  return found;
+}
+</script>
+<script>
+// ============================================================
+//  앱 보안 초기화
+// ============================================================
+// 드래그 방지
+document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+// 키보드 단축키 차단 (Ctrl+S, Ctrl+U 등)
+document.addEventListener('keydown', function(e){
+  if((e.ctrlKey || e.metaKey) && ['s','u','p'].indexOf(e.key.toLowerCase()) !== -1){
+    e.preventDefault();
+  }
+  // F12 차단
+  if(e.key === 'F12') e.preventDefault();
+});
+// 콘솔 경고
+console.log('%c⛔ 주의!', 'font-size:40px;font-weight:bold;color:red');
+console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 여기에 무언가를 붙여넣으라고 했다면,\n그것은 사기이며 요양링크 계정에 대한 접근 권한을 줄 수 있습니다.', 'font-size:14px;color:#333');
+// ============================================================
+// 스크롤 시 상단 헤더(광고+검색창) 숨기기/보이기
+// ============================================================
+(function(){
+  var listView = document.getElementById('list-view');
+  if(!listView) return;
+  // CSS 클래스로 숨기기 (인라인 스타일 건드리지 않음)
+  var style = document.createElement('style');
+  style.textContent = '.scroll-hidden{max-height:0!important;overflow:hidden!important;padding-top:0!important;padding-bottom:0!important;margin-top:0!important;margin-bottom:0!important;border-width:0!important;opacity:0;transition:all .25s ease}.scroll-shown{transition:all .25s ease}';
+  document.head.appendChild(style);
+
+  var lastScroll = 0;
+  var hidden = false;
+  var animating = false;
+  var targetIds = ['app-notice-banner','ad-banner-area'];
+
+  function getTargets(){
+    var arr = [];
+    targetIds.forEach(function(id){ var el=document.getElementById(id); if(el) arr.push(el); });
+    var si = document.getElementById('home-search-input');
+    if(si && si.parentElement) arr.push(si.parentElement);
+    return arr;
+  }
+
+  // 배너가 접힐 때 scrollTop이 자동으로 줄어드는 현상을 "위로 스크롤"로 오인해
+  // 무한 진동(깜빡임)이 발생하던 버그를 animating 쿨다운으로 방지한다.
+  listView.addEventListener('scroll', function(){
+    var st = listView.scrollTop;
+    if(animating){ lastScroll = st; return; }
+
+    if(st > 80 && st > lastScroll + 5 && !hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
+      hidden = true;
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 320);
+    } else if(hidden && (st < 20 || st < lastScroll - 40)){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 320);
+    }
+    lastScroll = st;
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
