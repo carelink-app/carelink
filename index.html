@@ -2215,9 +2215,11 @@ var SecureStorage = (function(){
           expiry: Date.now() + (365 * 24 * 60 * 60 * 1000) // 365일 만료 (어르신 편의성 - 영구 자동로그인)
         }), _KEY);
         localStorage.setItem(key, encrypted);
-        // ★ 백업: 일반 JSON으로도 저장 (암호화 복호화 실패 대비)
+        // ★ 백업1: 일반 JSON으로도 저장 (암호화 복호화 실패 대비)
         if(key === 'carelink_profile'){
           try { localStorage.setItem('cl_profile_backup', JSON.stringify(value)); } catch(eb){}
+          // ★ 백업2: Android 네이티브 저장소 (localStorage 초기화 방지)
+          try { if(window.NativeStorage) NativeStorage.saveProfile(JSON.stringify(value)); } catch(en){}
         }
       } catch(e){ console.warn('[SecureStorage] setItem 실패:', e); }
     },
@@ -2248,6 +2250,8 @@ var SecureStorage = (function(){
       // 백업도 함께 삭제
       if(key === 'carelink_profile'){
         try { localStorage.removeItem('cl_profile_backup'); } catch(e){}
+        // ★ Android 네이티브 저장소도 삭제
+        try { if(window.NativeStorage) NativeStorage.clearProfile(); } catch(e){}
       }
     },
     clear: function(){
@@ -2263,12 +2267,26 @@ var TokenManager = {
   _tokenKey: 'cl_kakao_token',
   setToken: function(token){
     try { localStorage.setItem(this._tokenKey, token); } catch(e){}
+    // ★ Android 네이티브 백업
+    try { if(window.NativeStorage) NativeStorage.saveToken(token); } catch(e){}
   },
   getToken: function(){
-    try { return localStorage.getItem(this._tokenKey); } catch(e){ return null; }
+    try {
+      var t = localStorage.getItem(this._tokenKey);
+      // localStorage 비어있으면 네이티브에서 복구
+      if(!t && window.NativeStorage){
+        try {
+          t = NativeStorage.loadToken();
+          if(t) localStorage.setItem(this._tokenKey, t);
+        } catch(e2){}
+      }
+      return t;
+    } catch(e){ return null; }
   },
   clearToken: function(){
     try { localStorage.removeItem(this._tokenKey); } catch(e){}
+    // Android 네이티브도 클리어
+    try { if(window.NativeStorage) NativeStorage.clearToken(); } catch(e){}
     // Kakao SDK 토큰도 클리어
     try { if(window.Kakao && Kakao.Auth) Kakao.Auth.setAccessToken(null); } catch(e){}
   }
@@ -2993,7 +3011,7 @@ function init(){
   } catch(e){ console.log('[CareLink] Kakao Maps 미리 로드 실패:', e); }
   // Firebase onValue 리스너가 listings 채움
   // ── 자동 로그인 (영구 유지) ──────────────────────────
-  // SecureStorage → 일반 localStorage 순서로 시도 (이중 백업)
+  // SecureStorage → localStorage 백업 → Android 네이티브 순서로 시도 (3중 백업)
   // AutoLogout.init();
   try {
     var saved_raw = SecureStorage.getItem('carelink_profile');
@@ -3004,10 +3022,20 @@ function init(){
         if(backupStr){
           saved_raw = JSON.parse(backupStr);
           console.log('[CareLink] 백업 localStorage에서 프로필 복구');
-          // 복구된 데이터를 SecureStorage에 다시 저장
           SecureStorage.setItem('carelink_profile', saved_raw);
         }
-      } catch(e2){ console.warn('[CareLink] 백업 복구 실패:', e2); }
+      } catch(e2){ console.warn('[CareLink] localStorage 백업 복구 실패:', e2); }
+    }
+    // ★ localStorage도 실패 시 Android 네이티브 저장소에서 복구
+    if(!saved_raw && window.NativeStorage){
+      try {
+        var nativeStr = NativeStorage.loadProfile();
+        if(nativeStr && nativeStr.length > 2){
+          saved_raw = JSON.parse(nativeStr);
+          console.log('[CareLink] Android 네이티브에서 프로필 복구');
+          SecureStorage.setItem('carelink_profile', saved_raw);
+        }
+      } catch(e3){ console.warn('[CareLink] 네이티브 복구 실패:', e3); }
     }
     if(saved_raw){
       const profile = (typeof saved_raw === 'string') ? JSON.parse(saved_raw) : saved_raw;
