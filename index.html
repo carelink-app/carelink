@@ -3356,8 +3356,8 @@ function doKakaoLogin(){
     return;
   }
 
-  // ★ WebView/브라우저 모두 SDK 사용 + throughTalk으로 카카오톡 앱 로그인 유도
-  Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
+  // ★ WebView에서는 throughTalk 비활성화 (커스텀 URL 스킴 처리 불가), 브라우저에서는 카카오톡 앱 유도
+  Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: !isInApp });
 }
 
 // ============================================================
