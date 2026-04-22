@@ -3443,7 +3443,55 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     } catch(e){}
 
-    // 신규 사용자 → 역할 선택 (실명은 비워둠. 카카오에서 실명이 오면 자동 채움, 아니면 설정에서 입력)
+    // ★ Firebase에서 기존 회원 데이터 확인 (SecureStorage 버그로 로컬 저장이 안 된 기존 사용자 복구)
+    if(fbDB){
+      fbDB.ref('users/' + kakaoId).once('value', function(snap){
+        var fbUser = snap.val();
+        if(fbUser && fbUser.role){
+          // ★ 기존 회원 발견! Firebase 데이터로 프로필 복구 → 자동 로그인
+          console.log('[CareLink] Firebase에서 기존 회원 복구:', kakaoId);
+          var restored = {
+            kakaoId: kakaoId,
+            name: fbUser.name || kakaoRealName,
+            nickname: fbUser.nickname || '',
+            kakaoNickname: kakaoNickname,
+            role: fbUser.role,
+            area: fbUser.area || '',
+            phone: fbUser.phone || '',
+            gender: fbUser.gender || '',
+            birth: fbUser.birth || '',
+            profileImg: fbUser.profileImg || profileImg
+          };
+          state.user = restored;
+          state.role = restored.role;
+          SecureStorage.setItem('carelink_profile', restored);
+          saveUserToFirebase();
+          updateHeaderUI();
+          startChatNotificationListener();
+          checkHireConfirmation();
+          cleanupOldMessages();
+          ensureNickname(function(){});
+          showToast('🎉 ' + getDisplayName(restored) + '님, 어서오세요!');
+          initHomePostType();
+          history.replaceState({screen:'home', tab:'home'}, '', '#home');
+          navigate('home', true);
+          return;
+        }
+        // Firebase에도 없으면 진짜 신규 사용자 → 역할 선택
+        state.user = {
+          kakaoId: kakaoId,
+          name: kakaoRealName,
+          kakaoNickname: kakaoNickname,
+          profileImg: profileImg,
+          birthyear: kakaoBirthyear,
+          birthday: kakaoBirthday
+        };
+        navigate('role');
+      });
+      return; // Firebase 조회 대기 (비동기)
+    }
+
+    // Firebase 미연결 시 신규 사용자 처리
     state.user = {
       kakaoId: kakaoId,
       name: kakaoRealName,              // ✅ 실명만. 없으면 빈 문자열
