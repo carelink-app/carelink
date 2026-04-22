@@ -2187,10 +2187,14 @@ var SecureStorage = (function(){
 
   function _xorEncrypt(text, key){
     if(!text) return '';
+    // ★ 한글 등 멀티바이트 문자를 UTF-8 바이트로 변환 (btoa 호환)
+    var bytes = unescape(encodeURIComponent(text));
     var result = [];
-    for(var i = 0; i < text.length; i++){
-      result.push(String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length)));
+    for(var i = 0; i < bytes.length; i++){
+      result.push(String.fromCharCode(bytes.charCodeAt(i) ^ key.charCodeAt(i % key.length)));
     }
+    return btoa(result.join(''));
+  }
     return btoa(result.join(''));
   }
 
@@ -2202,25 +2206,28 @@ var SecureStorage = (function(){
       for(var i = 0; i < text.length; i++){
         result.push(String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length)));
       }
+      // ★ UTF-8 바이트를 다시 한글 문자열로 복원
+      return decodeURIComponent(escape(result.join('')));
+    } catch(e){ return ''; }
+  }
       return result.join('');
     } catch(e){ return ''; }
   }
 
   return {
     setItem: function(key, value){
+      // ★ 백업을 먼저 저장 (암호화 실패해도 백업은 반드시 성공)
+      if(key === 'carelink_profile'){
+        try { localStorage.setItem('cl_profile_backup', JSON.stringify(value)); } catch(eb){}
+        try { if(window.NativeStorage) NativeStorage.saveProfile(JSON.stringify(value)); } catch(en){}
+      }
       try {
         var encrypted = _xorEncrypt(JSON.stringify({
           data: value,
           timestamp: Date.now(),
-          expiry: Date.now() + (365 * 24 * 60 * 60 * 1000) // 365일 만료 (어르신 편의성 - 영구 자동로그인)
+          expiry: Date.now() + (365 * 24 * 60 * 60 * 1000)
         }), _KEY);
         localStorage.setItem(key, encrypted);
-        // ★ 백업1: 일반 JSON으로도 저장 (암호화 복호화 실패 대비)
-        if(key === 'carelink_profile'){
-          try { localStorage.setItem('cl_profile_backup', JSON.stringify(value)); } catch(eb){}
-          // ★ 백업2: Android 네이티브 저장소 (localStorage 초기화 방지)
-          try { if(window.NativeStorage) NativeStorage.saveProfile(JSON.stringify(value)); } catch(en){}
-        }
       } catch(e){ console.warn('[SecureStorage] setItem 실패:', e); }
     },
     getItem: function(key){
