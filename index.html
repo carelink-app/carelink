@@ -3357,7 +3357,7 @@ function doKakaoLogin(){
   }
 
   // ★ WebView에서는 throughTalk 비활성화 (커스텀 URL 스킴 처리 불가), 브라우저에서는 카카오톡 앱 유도
-  Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: !isInApp });
+  if(isInApp){ window.location.href = 'https://kauth.kakao.com/oauth/authorize?client_id=caab60a0d7759feab93abb6cb6a8b331&redirect_uri=' + encodeURIComponent(redirectUri) + '&response_type=code'; } else { Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true }); }
 }
 
 // ============================================================
