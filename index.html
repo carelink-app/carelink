@@ -3090,6 +3090,13 @@ function init(){
       }
     }
   } catch(e){}
+  // ★ 카카오 콜백이 비동기 처리 중이면 로그인 화면 대신 로딩 상태 유지
+  if(window._kakaoCallbackProcessing){
+    console.log('[CareLink] 카카오 로그인 처리 중 → 로그인 화면 표시 보류');
+    var _kcBtn = document.getElementById('kakao-btn');
+    if(_kcBtn){ _kcBtn.disabled=true; _kcBtn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 처리 중...'; }
+    return;
+  }
   // 저장된 프로필 없음 → 로그인 화면 유지
   history.replaceState({screen:'login'}, '', '#login');
 }
@@ -3363,6 +3370,9 @@ document.addEventListener('DOMContentLoaded', function(){
   const code = urlParams.get('code');
   if(!code) return;
 
+  // ★ 카카오 콜백 처리 중 플래그 (init()에서 로그인 화면 표시 방지)
+  window._kakaoCallbackProcessing = true;
+
   // URL에서 code 파라미터 제거 (히스토리 정리)
   window.history.replaceState({}, document.title, window.location.pathname);
 
@@ -3387,6 +3397,7 @@ document.addEventListener('DOMContentLoaded', function(){
   .then(function(r){ return r.json(); })
   .then(function(data){
     if(data.error) throw new Error(data.error_description || data.error);
+    console.log('[CareLink] 카카오 토큰 교환 성공');
     // 토큰을 localStorage에 안전하게 저장 (영구 자동로그인)
     Kakao.Auth.setAccessToken(data.access_token);
     TokenManager.setToken(data.access_token);
@@ -3395,6 +3406,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }).then(function(r){ return r.json(); });
   })
   .then(function(res){
+    console.log('[CareLink] 카카오 사용자 정보 수신 완료');
     const kakaoId = String(res.id);
     const account = res.kakao_account || {};
     const profile = account.profile || {};
@@ -3417,9 +3429,12 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     try {
+      console.log('[CareLink] SecureStorage 프로필 확인 중...');
       const saved_data = SecureStorage.getItem('carelink_profile');
       const saved = (typeof saved_data === 'string') ? JSON.parse(saved_data) : saved_data;
       if(saved && saved.kakaoId === kakaoId && saved.role){
+        window._kakaoCallbackProcessing = false;
+        console.log('[CareLink] SecureStorage에서 프로필 복구 성공:', kakaoId);
         // 실명은 본인이 입력한 것만 사용 (카카오 별명은 절대 실명 대체 금지)
         if(!saved.name && kakaoRealName) saved.name = kakaoRealName;
         if(kakaoNickname) saved.kakaoNickname = kakaoNickname; // 별명은 따로 보관
@@ -3441,69 +3456,104 @@ document.addEventListener('DOMContentLoaded', function(){
         navigate('home', true);
         return;
       }
-    } catch(e){}
+      console.log('[CareLink] SecureStorage 프로필 없음 → Firebase 조회로 진행');
+    } catch(e){ console.warn('[CareLink] SecureStorage 조회 오류:', e); }
 
     // ★ Firebase에서 기존 회원 데이터 확인 (SecureStorage 버그로 로컬 저장이 안 된 기존 사용자 복구)
-    if(fbDB){
-      fbDB.ref('users/' + kakaoId).once('value', function(snap){
-        var fbUser = snap.val();
-        if(fbUser && fbUser.role){
-          // ★ 기존 회원 발견! Firebase 데이터로 프로필 복구 → 자동 로그인
-          console.log('[CareLink] Firebase에서 기존 회원 복구:', kakaoId);
-          var restored = {
-            kakaoId: kakaoId,
-            name: fbUser.name || kakaoRealName,
-            nickname: fbUser.nickname || '',
-            kakaoNickname: kakaoNickname,
-            role: fbUser.role,
-            area: fbUser.area || '',
-            phone: fbUser.phone || '',
-            gender: fbUser.gender || '',
-            birth: fbUser.birth || '',
-            profileImg: fbUser.profileImg || profileImg
-          };
-          state.user = restored;
-          state.role = restored.role;
-          SecureStorage.setItem('carelink_profile', restored);
-          saveUserToFirebase();
-          updateHeaderUI();
-          startChatNotificationListener();
-          checkHireConfirmation();
-          cleanupOldMessages();
-          ensureNickname(function(){});
-          showToast('🎉 ' + getDisplayName(restored) + '님, 어서오세요!');
-          initHomePostType();
-          history.replaceState({screen:'home', tab:'home'}, '', '#home');
-          navigate('home', true);
-          return;
-        }
-        // Firebase에도 없으면 진짜 신규 사용자 → 역할 선택
-        state.user = {
-          kakaoId: kakaoId,
-          name: kakaoRealName,
-          kakaoNickname: kakaoNickname,
-          profileImg: profileImg,
-          birthyear: kakaoBirthyear,
-          birthday: kakaoBirthday
-        };
-        navigate('role');
-      });
-      return; // Firebase 조회 대기 (비동기)
+    // 신규 사용자 공통 처리 함수
+    function _goToNewUserFlow(){
+      window._kakaoCallbackProcessing = false;
+      console.log('[CareLink] 신규 사용자 → 역할 선택 화면');
+      state.user = {
+        kakaoId: kakaoId,
+        name: kakaoRealName,
+        kakaoNickname: kakaoNickname,
+        profileImg: profileImg,
+        birthyear: kakaoBirthyear,
+        birthday: kakaoBirthday
+      };
+      navigate('role');
     }
 
-    // Firebase 미연결 시 신규 사용자 처리
-    state.user = {
-      kakaoId: kakaoId,
-      name: kakaoRealName,              // ✅ 실명만. 없으면 빈 문자열
-      kakaoNickname: kakaoNickname,     // 카카오 별명은 별도 필드
-      profileImg: profileImg,
-      birthyear: kakaoBirthyear,
-      birthday: kakaoBirthday
-    };
-    navigate('role');
+    // 기존 회원 복구 공통 처리 함수
+    function _restoreExistingUser(fbUser){
+      window._kakaoCallbackProcessing = false;
+      try {
+        console.log('[CareLink] Firebase에서 기존 회원 복구:', kakaoId);
+        var restored = {
+          kakaoId: kakaoId,
+          name: fbUser.name || kakaoRealName,
+          nickname: fbUser.nickname || '',
+          kakaoNickname: kakaoNickname,
+          role: fbUser.role,
+          area: fbUser.area || '',
+          phone: fbUser.phone || '',
+          gender: fbUser.gender || '',
+          birth: fbUser.birth || '',
+          profileImg: fbUser.profileImg || profileImg
+        };
+        state.user = restored;
+        state.role = restored.role;
+        SecureStorage.setItem('carelink_profile', restored);
+        saveUserToFirebase();
+        updateHeaderUI();
+        startChatNotificationListener();
+        checkHireConfirmation();
+        cleanupOldMessages();
+        ensureNickname(function(){});
+        showToast('🎉 ' + getDisplayName(restored) + '님, 어서오세요!');
+        initHomePostType();
+        history.replaceState({screen:'home', tab:'home'}, '', '#home');
+        navigate('home', true);
+      } catch(restoreErr){
+        console.error('[CareLink] 회원 복구 중 오류:', restoreErr);
+        _goToNewUserFlow();
+      }
+    }
+
+    if(fbDB){
+      console.log('[CareLink] Firebase 회원 조회 시작:', kakaoId);
+      var _fbQueryDone = false;
+      var _fbTimeout = setTimeout(function(){
+        if(!_fbQueryDone){
+          _fbQueryDone = true;
+          console.warn('[CareLink] Firebase 조회 타임아웃 (5초) → 신규 사용자 처리');
+          _goToNewUserFlow();
+        }
+      }, 5000);
+
+      fbDB.ref('users/' + kakaoId).once('value', function(snap){
+        if(_fbQueryDone) return;
+        _fbQueryDone = true;
+        clearTimeout(_fbTimeout);
+        try {
+          var fbUser = snap.val();
+          console.log('[CareLink] Firebase 조회 결과:', fbUser ? '회원 존재' : '신규 사용자');
+          if(fbUser && fbUser.role){
+            _restoreExistingUser(fbUser);
+          } else {
+            _goToNewUserFlow();
+          }
+        } catch(fbErr){
+          console.error('[CareLink] Firebase 콜백 오류:', fbErr);
+          _goToNewUserFlow();
+        }
+      }, function(fbError){
+        if(_fbQueryDone) return;
+        _fbQueryDone = true;
+        clearTimeout(_fbTimeout);
+        console.error('[CareLink] Firebase 조회 실패:', fbError);
+        _goToNewUserFlow();
+      });
+      return;
+    }
+
+    console.log('[CareLink] fbDB 미연결 → 신규 사용자 처리');
+    _goToNewUserFlow();
   })
   .catch(function(err){
     console.error('카카오 로그인 처리 오류:', err);
+    window._kakaoCallbackProcessing = false;
     if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
     showToast('카카오 로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
   });
@@ -5796,6 +5846,7 @@ function initFirebase(){
 var _origRef = null;
 function enableRestFallback(){
   if(_origRef) return; // 이미 활성화됨
+  if(!fbDB){ console.warn('[요양링크] fbDB 없음 → REST 폴백 건너뛰'); return; }
   _origRef = fbDB.ref.bind(fbDB);
 
   fbDB.ref = function(path){
@@ -6048,7 +6099,7 @@ function loadMessages(chatId){
     });
     state.chatUnsubscribe = function(){ query.off('value', handler); };
   } else {
-    if(!state.chats[chatId].messages.length){
+    if(!state.chats[chatId].messages || !state.chats[chatId].messages.length){
       var item = state.listings.find(function(l){ return l.id==state.chats[chatId].listingId; });
       if(item){
         state.chats[chatId].messages=[{
