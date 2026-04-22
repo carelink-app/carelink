@@ -3511,45 +3511,24 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     }
 
-    if(fbDB){
-      console.log('[CareLink] Firebase 회원 조회 시작:', kakaoId);
-      var _fbQueryDone = false;
-      var _fbTimeout = setTimeout(function(){
-        if(!_fbQueryDone){
-          _fbQueryDone = true;
-          console.warn('[CareLink] Firebase 조회 타임아웃 (5초) → 신규 사용자 처리');
+    // ★ Firebase REST API로 직접 회원 조회 (실시간 연결이 불안정하므로 REST 사용)
+    console.log('[CareLink] Firebase REST 회원 조회 시작:', kakaoId);
+    fbRestGet('users/' + kakaoId).then(function(fbUser){
+      try {
+        console.log('[CareLink] Firebase 조회 결과:', fbUser ? '회원 존재' : '신규 사용자');
+        if(fbUser && fbUser.role){
+          _restoreExistingUser(fbUser);
+        } else {
           _goToNewUserFlow();
         }
-      }, 5000);
-
-      fbDB.ref('users/' + kakaoId).once('value', function(snap){
-        if(_fbQueryDone) return;
-        _fbQueryDone = true;
-        clearTimeout(_fbTimeout);
-        try {
-          var fbUser = snap.val();
-          console.log('[CareLink] Firebase 조회 결과:', fbUser ? '회원 존재' : '신규 사용자');
-          if(fbUser && fbUser.role){
-            _restoreExistingUser(fbUser);
-          } else {
-            _goToNewUserFlow();
-          }
-        } catch(fbErr){
-          console.error('[CareLink] Firebase 콜백 오류:', fbErr);
-          _goToNewUserFlow();
-        }
-      }, function(fbError){
-        if(_fbQueryDone) return;
-        _fbQueryDone = true;
-        clearTimeout(_fbTimeout);
-        console.error('[CareLink] Firebase 조회 실패:', fbError);
+      } catch(fbErr){
+        console.error('[CareLink] Firebase 콜백 오류:', fbErr);
         _goToNewUserFlow();
-      });
-      return;
-    }
-
-    console.log('[CareLink] fbDB 미연결 → 신규 사용자 처리');
-    _goToNewUserFlow();
+      }
+    }).catch(function(fbError){
+      console.error('[CareLink] Firebase REST 조회 실패:', fbError);
+      _goToNewUserFlow();
+    });
   })
   .catch(function(err){
     console.error('카카오 로그인 처리 오류:', err);
@@ -8727,7 +8706,7 @@ function showAdminUserStats(){
 //  Firebase 유저 프로필 저장 (관리자 회원관리용)
 // ============================================================
 function saveUserToFirebase(){
-  if(!fbDB || !state.user || !state.user.kakaoId) return;
+  if(!state.user || !state.user.kakaoId) return;
   var u = state.user;
   var userData = {
     name: u.name || '',
@@ -8740,15 +8719,15 @@ function saveUserToFirebase(){
     profileImg: u.profileImg || '',
     lastLogin: Date.now()
   };
-  // 가입일은 최초 1회만 기록 (update는 기존 값 유지)
-  fbDB.ref('users/' + u.kakaoId).once('value', function(snap){
-    var existing = snap.val();
+  // ★ REST API 직접 사용 (실시간 연결 불안정 대응)
+  var userPath = 'users/' + u.kakaoId;
+  fbRestGet(userPath).then(function(existing){
     if(!existing){
       userData.joinedAt = Date.now();
     }
-    fbDB.ref('users/' + u.kakaoId).update(userData).catch(err=>{
-      console.error('사용자 정보 저장 실패:', err);
-    });
+    return fbRestUpdate(userPath, userData);
+  }).catch(function(err){
+    console.error('사용자 정보 저장 실패:', err);
   });
 }
 
@@ -8997,13 +8976,12 @@ state.bannedUsers = {}; // { kakaoId: { reason, bannedAt, bannedBy } }
 
 // Firebase에서 밴 목록 로드
 function loadBannedUsers(){
-  if(!fbDB) return;
-  fbDB.ref('banned_users').on('value', snap => {
-    state.bannedUsers = snap.val() || {};
-    const cnt = Object.keys(state.bannedUsers).length;
-    const el = document.getElementById('admin-ban-count');
+  // ★ REST API로 즉시 로드 (실시간 연결 불안정 대응)
+  fbRestGet('banned_users').then(function(data){
+    state.bannedUsers = data || {};
+    var cnt = Object.keys(state.bannedUsers).length;
+    var el = document.getElementById('admin-ban-count');
     if(el) el.textContent = '차단된 회원 ' + cnt + '명';
-
     // 현재 로그인된 사용자가 밴 당했는지 사후 체크
     if(state.user && state.user.kakaoId && isUserBanned(state.user.kakaoId)){
       var banInfo = state.bannedUsers[state.user.kakaoId] || {};
@@ -9019,7 +8997,13 @@ function loadBannedUsers(){
       state.role = '';
       navigate('login');
     }
-  });
+  }).catch(function(e){ console.warn('[요양링크] 차단 목록 로드 실패:', e); });
+  // 실시간 리스너도 등록 (REST 폴백 활성화 후 동작)
+  if(fbDB){
+    fbDB.ref('banned_users').on('value', function(snap){
+      state.bannedUsers = snap.val() || {};
+    });
+  }
 }
 
 // 밴 여부 체크 (로그인 시 호출)
