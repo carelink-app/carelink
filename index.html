@@ -2195,8 +2195,6 @@ var SecureStorage = (function(){
     }
     return btoa(result.join(''));
   }
-    return btoa(result.join(''));
-  }
 
   function _xorDecrypt(encoded, key){
     if(!encoded) return '';
@@ -2208,9 +2206,6 @@ var SecureStorage = (function(){
       }
       // ★ UTF-8 바이트를 다시 한글 문자열로 복원
       return decodeURIComponent(escape(result.join('')));
-    } catch(e){ return ''; }
-  }
-      return result.join('');
     } catch(e){ return ''; }
   }
 
