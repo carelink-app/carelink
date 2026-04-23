@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+h<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- 보안 메타태그 -->
@@ -3357,7 +3357,7 @@ function doKakaoLogin(){
   }
 
   // ★ WebView에서는 직접 OAuth URL 사용 (SDK authorize는 WebView에서 불가) (커스텀 URL 스킴 처리 불가), 브라우저에서는 카카오톡 앱 유도
-  if(isInApp){ window.location.href = 'https://kauth.kakao.com/oauth/authorize?client_id=caab60a0d7759feab93abb6cb6a8b331&redirect_uri=' + encodeURIComponent(redirectUri) + '&response_type=code'; } else { Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true }); }
+  if(isInApp){ if(window.__KAKAO_INTENT_SUPPORT__){ Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true }); } else { window.location.href = 'https://kauth.kakao.com/oauth/authorize?client_id=caab60a0d7759feab93abb6cb6a8b331&redirect_uri=' + encodeURIComponent(redirectUri) + '&response_type=code'; } } else { Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true }); }
 }
 
 // ============================================================
