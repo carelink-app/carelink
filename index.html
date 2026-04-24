@@ -1,4 +1,4 @@
-h<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- 보안 메타태그 -->
@@ -2220,7 +2220,7 @@ var SecureStorage = (function(){
         var encrypted = _xorEncrypt(JSON.stringify({
           data: value,
           timestamp: Date.now(),
-          expiry: Date.now() + (365 * 24 * 60 * 60 * 1000)
+          expiry: Date.now() + (365 * 24 * 60 * 60 * 1000) // 365일 만료 (어르신 편의성 - 영구 자동로그인)
         }), _KEY);
         localStorage.setItem(key, encrypted);
       } catch(e){ console.warn('[SecureStorage] setItem 실패:', e); }
@@ -3093,6 +3093,7 @@ function init(){
   // ★ 카카오 콜백이 비동기 처리 중이면 로그인 화면 대신 로딩 상태 유지
   if(window._kakaoCallbackProcessing){
     console.log('[CareLink] 카카오 로그인 처리 중 → 로그인 화면 표시 보류');
+    // 로그인 버튼을 "처리 중" 상태로 표시
     var _kcBtn = document.getElementById('kakao-btn');
     if(_kcBtn){ _kcBtn.disabled=true; _kcBtn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 처리 중...'; }
     return;
@@ -3356,8 +3357,36 @@ function doKakaoLogin(){
     return;
   }
 
-  // ★ WebView에서는 직접 OAuth URL 사용 (SDK authorize는 WebView에서 불가) (커스텀 URL 스킴 처리 불가), 브라우저에서는 카카오톡 앱 유도
-  if(isInApp){ if(window.__KAKAO_INTENT_SUPPORT__){ Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true }); } else { window.location.href = 'https://kauth.kakao.com/oauth/authorize?client_id=caab60a0d7759feab93abb6cb6a8b331&redirect_uri=' + encodeURIComponent(redirectUri) + '&response_type=code'; } } else { Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true }); }
+  if(isInApp){
+    // ★ 앱 WebView: Chrome Custom Tab으로 카카오 인증 페이지 열기
+    // WebView UA에 "wv" 마커가 있어 카카오 서버가 카카오톡 앱 연동을 차단함.
+    // Chrome Custom Tab은 Chrome UA를 사용하므로 카카오톡 간편로그인이 정상 작동.
+    // 인증 완료 후 redirect_uri(carelink-app.github.io)로 돌아올 때
+    // App Links intent-filter가 앱으로 복귀시킴.
+    console.log('[CareLink] WebView 감지 → Chrome Custom Tab으로 카카오 로그인');
+
+    var authUrl = 'https://kauth.kakao.com/oauth/authorize'
+      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=code';
+
+    try {
+      if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
+        // Chrome Custom Tab으로 열기 (카카오톡 앱 간편로그인 지원)
+        NativeStorage.openInCustomTab(authUrl);
+      } else {
+        // NativeStorage 없으면 (구버전 앱) SDK 폴백
+        console.warn('[CareLink] openInCustomTab 미지원 → SDK authorize 폴백');
+        Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
+      }
+    } catch(e){
+      console.warn('[CareLink] Custom Tab 실패 → 직접 URL 이동:', e);
+      window.location.href = authUrl;
+    }
+  } else {
+    // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
+    Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
+  }
 }
 
 // ============================================================
@@ -3424,6 +3453,8 @@ document.addEventListener('DOMContentLoaded', function(){
     // ── 영구밴 체크 ──
     if(isUserBanned(kakaoId)){
       var banInfo = state.bannedUsers[kakaoId] || {};
+      window._kakaoCallbackProcessing = false; // ★ 플래그 해제 (버튼 복구)
+      if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
       alert('⚠️ 이용이 제한된 계정입니다.\n\n사유: ' + (banInfo.reason || '관리자 판단에 의한 차단') + '\n\n문의: tkddnr5949@gmail.com');
       return;
     }
@@ -3433,7 +3464,7 @@ document.addEventListener('DOMContentLoaded', function(){
       const saved_data = SecureStorage.getItem('carelink_profile');
       const saved = (typeof saved_data === 'string') ? JSON.parse(saved_data) : saved_data;
       if(saved && saved.kakaoId === kakaoId && saved.role){
-        window._kakaoCallbackProcessing = false;
+        window._kakaoCallbackProcessing = false; // ★ 플래그 해제
         console.log('[CareLink] SecureStorage에서 프로필 복구 성공:', kakaoId);
         // 실명은 본인이 입력한 것만 사용 (카카오 별명은 절대 실명 대체 금지)
         if(!saved.name && kakaoRealName) saved.name = kakaoRealName;
@@ -3462,7 +3493,7 @@ document.addEventListener('DOMContentLoaded', function(){
     // ★ Firebase에서 기존 회원 데이터 확인 (SecureStorage 버그로 로컬 저장이 안 된 기존 사용자 복구)
     // 신규 사용자 공통 처리 함수
     function _goToNewUserFlow(){
-      window._kakaoCallbackProcessing = false;
+      window._kakaoCallbackProcessing = false; // ★ 플래그 해제
       console.log('[CareLink] 신규 사용자 → 역할 선택 화면');
       state.user = {
         kakaoId: kakaoId,
@@ -3477,7 +3508,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     // 기존 회원 복구 공통 처리 함수
     function _restoreExistingUser(fbUser){
-      window._kakaoCallbackProcessing = false;
+      window._kakaoCallbackProcessing = false; // ★ 플래그 해제
       try {
         console.log('[CareLink] Firebase에서 기존 회원 복구:', kakaoId);
         var restored = {
@@ -3532,7 +3563,7 @@ document.addEventListener('DOMContentLoaded', function(){
   })
   .catch(function(err){
     console.error('카카오 로그인 처리 오류:', err);
-    window._kakaoCallbackProcessing = false;
+    window._kakaoCallbackProcessing = false; // ★ 플래그 해제
     if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
     showToast('카카오 로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
   });
@@ -5825,7 +5856,7 @@ function initFirebase(){
 var _origRef = null;
 function enableRestFallback(){
   if(_origRef) return; // 이미 활성화됨
-  if(!fbDB){ console.warn('[요양링크] fbDB 없음 → REST 폴백 건너뛰'); return; }
+  if(!fbDB){ console.warn('[요양링크] fbDB 없음 → REST 폴백 건너뜀'); return; }
   _origRef = fbDB.ref.bind(fbDB);
 
   fbDB.ref = function(path){
