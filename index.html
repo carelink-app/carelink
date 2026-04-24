@@ -3,7 +3,7 @@
 <head>
   <!-- 보안 메타태그 -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net https://t1.daumcdn.net https://*.daumcdn.net https://*.daum.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https: https://*.openstreetmap.org; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://dapi.kakao.com https://*.cloudflare.com https://nominatim.openstreetmap.org https://*.openstreetmap.org https://*.daum.net https://*.daumcdn.net wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src 'self' https://*.daumcdn.net https://*.daum.net https://postcode.map.daum.net; font-src 'self' https://cdnjs.cloudflare.com; base-uri 'self'; form-action 'self' https://kauth.kakao.com; object-src 'none'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://t1.kakaocdn.net https://dapi.kakao.com https://www.gstatic.com https://cdn.jsdelivr.net https://t1.daumcdn.net https://*.daumcdn.net https://*.daum.net https://postcode.map.kakao.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https: https://*.openstreetmap.org; connect-src 'self' https://*.firebaseio.com https://*.firebasedatabase.app https://kauth.kakao.com https://kapi.kakao.com https://dapi.kakao.com https://*.cloudflare.com https://nominatim.openstreetmap.org https://*.openstreetmap.org https://*.daum.net https://*.daumcdn.net https://postcode.map.kakao.com wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src 'self' https://*.daumcdn.net https://*.daum.net https://postcode.map.daum.net https://postcode.map.kakao.com; font-src 'self' https://cdnjs.cloudflare.com; base-uri 'self'; form-action 'self' https://kauth.kakao.com; object-src 'none'"/>
   <meta http-equiv="X-Frame-Options" content="DENY"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
@@ -3158,6 +3158,13 @@ function navigate(screen, skipHistory){
 
 // 탭 내 뒤로가기 함수 (← 버튼에서 사용)
 function goBack(){
+  // ★ 미로그인 상태에서 뒤로가기 → 항상 로그인 화면으로 (삭제요청/개인정보처리방침 등에서 바이패스 방지)
+  if(!state.user || !state.user.kakaoId){
+    navigate('login', true);
+    history.replaceState({screen:'login'}, '', '#login');
+    return;
+  }
+
   var tab = _activeTab;
   var stack = _tabHistory[tab];
   if(stack && stack.length > 1){
@@ -3199,6 +3206,15 @@ window.addEventListener('popstate', function(e){
     // 로그인된 상태 → 홈으로 강제 이동
     navigate('home', true);
     history.replaceState({screen:'home', tab:'home'}, '', '#home');
+    return;
+  }
+
+  // ★ 미로그인 상태에서 로그인 필수 화면으로 뒤로가기 차단 (삭제요청 → 뒤로가기 바이패스 방지)
+  var publicScreens = ['login','role','profile-setup','privacy','delete-request'];
+  if((!state.user || !state.user.kakaoId) && publicScreens.indexOf(poppedScreen) === -1){
+    // 로그인 안 된 상태 + 로그인 필수 화면으로 이동 시도 → 로그인 화면으로 강제 이동
+    navigate('login', true);
+    history.replaceState({screen:'login'}, '', '#login');
     return;
   }
 
@@ -3580,17 +3596,12 @@ function checkNicknameReady(){
   if(hint) hint.textContent=ok?'✅ 준비됐어요!':'2글자 이상 입력해 주세요';
 }
 function confirmNicknameLogin(){
-  const nickname=sanitizeInput((document.getElementById('nickname-login-input').value||''));
-  if(nickname.length<2){showToast('닉네임을 2글자 이상 입력해 주세요');return;}
-  let userId=localStorage.getItem('carelink_user_id');
-  if(!userId){
-    userId='user_'+Date.now()+'_'+Math.random().toString(36).substr(2,8);
-    localStorage.setItem('carelink_user_id',userId);
-  }
-  state.user={name:nickname, kakaoId:userId};
-  localStorage.setItem('carelink_nickname',nickname);
-  document.getElementById('modal-nickname-login').classList.remove('open');
-  navigate('role');
+  // ★ 보안: 카카오 로그인 우회 방지 — 이 함수는 더 이상 사용되지 않음
+  // 기존에는 닉네임만으로 로그인 가능한 레거시 경로였으나, 인증 우회 취약점으로 비활성화
+  console.warn('[CareLink] 닉네임 로그인은 비활성화되었습니다. 카카오 로그인을 이용해 주세요.');
+  var modal = document.getElementById('modal-nickname-login');
+  if(modal) modal.classList.remove('open');
+  showToast('⚠️ 카카오 로그인을 이용해 주세요.');
 }
 let selectedRole=null;
 function selectRole(role){
@@ -4309,6 +4320,18 @@ function openMatchModal(id){
 }
 function confirmMatch(){
   const item=state.listings.find(l=>l.id==state.pendingMatchId); if(!item) return;
+  // ★ 보안: 공고 작성자 본인만 매칭 완료 처리 가능 (관리자도 허용)
+  if(!state.user || !state.user.kakaoId){
+    showToast('⚠️ 로그인이 필요합니다.');
+    closeModal('modal-match');
+    return;
+  }
+  const isOwner = item.postedByKakaoId === state.user.kakaoId;
+  if(!isOwner && !isAdmin()){
+    showToast('⚠️ 공고 작성자만 매칭 완료 처리할 수 있습니다.');
+    closeModal('modal-match');
+    return;
+  }
   if(fbDB && item.fbKey){
     fbDB.ref('listings/'+item.fbKey).update({ status:'matched' }).catch(err=>{
       console.error('매칭 상태 업데이트 실패:', err);
@@ -5423,10 +5446,25 @@ function showMyKakaoId(){
 }
 
 function doLogout(){
+  // ★ 사용자 관련 state 완전 정리 (다른 사용자 로그인 시 이전 정보 노출 방지)
   state.user=null; state.role=null;
   state.chats={}; state._userChatsLoaded=false;
   state.chatLastReadTime = {};
   state.unreadChatIds = {};
+  state.selectedListing = null;
+  state.pendingMatchId = null;
+  state.pendingRepostId = null;
+  state.activeChatId = null;
+  state.bookmarks = [];
+  state._pendingCertPhoto = null;
+  state._keepEduRegion = false;
+  state._adminChatsLoaded = false;
+  state.searchQuery = '';
+  state.homePostType = null;
+  state.filter = null;
+  // 실시간 리스너 해제
+  if(state.chatUnsubscribe){ try { state.chatUnsubscribe(); } catch(e){} state.chatUnsubscribe = null; }
+  if(typeof cleanupSeatListeners === 'function'){ try { cleanupSeatListeners(); } catch(e){} }
   // 토큰 및 프로필 안전 삭제
   TokenManager.clearToken();
   try { SecureStorage.removeItem('carelink_profile'); } catch(e){}
@@ -7612,10 +7650,12 @@ function openAddForRegion(regionKey){
   });
 }
 function addNewRegion(){
-  const region = (document.getElementById('new-region-name')||{}).value.trim();
-  const inst = (document.getElementById('new-region-inst')||{}).value.trim();
-  const phone = (document.getElementById('new-region-phone')||{}).value.trim();
-  const address = (document.getElementById('new-region-address')||{}).value.trim();
+  // ★ 보안: 관리자만 지역(학원) 추가 가능
+  if(!isAdmin()){ showToast('⚠️ 관리자만 지역을 추가할 수 있습니다.'); return; }
+  const region = sanitizeInput((document.getElementById('new-region-name')||{}).value.trim()).slice(0, 30);
+  const inst = sanitizeInput((document.getElementById('new-region-inst')||{}).value.trim()).slice(0, 50);
+  const phone = (document.getElementById('new-region-phone')||{}).value.trim().slice(0, 20);
+  const address = sanitizeInput((document.getElementById('new-region-address')||{}).value.trim()).slice(0, 100);
   if(!region||!inst){showToast('지역명과 기관명을 입력해 주세요');return;}
   if(regionEduData[region]){showToast('이미 등록된 지역입니다');return;}
   regionEduData[region] = {
@@ -7692,6 +7732,8 @@ function openInstInfoForm(){
   document.getElementById('modal-edu-instinfo').classList.add('open');
 }
 function saveInstInfo(){
+  // ★ 보안: 관리자만 학원 정보 수정 가능
+  if(!isAdmin()){ showToast('⚠️ 관리자만 학원 정보를 수정할 수 있습니다.'); return; }
   const d = regionEduData[selectedEduRegion];
   if(!d) return;
   const name = document.getElementById('edit-inst-name').value.trim();
@@ -7712,6 +7754,8 @@ function saveInstInfo(){
 }
 
 function saveEduEdit(){
+  // ★ 보안: 관리자만 교육 데이터 수정 가능
+  if(!isAdmin()){ showToast('⚠️ 관리자만 교육 정보를 수정할 수 있습니다.'); return; }
   const textarea = document.getElementById('edu-edit-textarea');
   if(!textarea) return;
   const val = textarea.value.trim();
@@ -8134,6 +8178,8 @@ function adjustCapacity(delta){
 }
 
 function saveCapacity(){
+  // ★ 보안: 관리자만 정원 수정 가능
+  if(!isAdmin()){ showToast('⚠️ 관리자만 정원을 수정할 수 있습니다.'); return; }
   const input = document.getElementById('capacity-input');
   const val = parseInt(input?.value)||20;
   const d = regionEduData[selectedEduRegion];
@@ -8423,9 +8469,11 @@ function openNoticeModal(){
 
 // 공지 저장
 function saveNotice(){
+  // ★ 보안: 관리자만 공지 수정 가능
+  if(!isAdmin()){ showToast('⚠️ 관리자만 공지를 수정할 수 있습니다.'); return; }
   const textarea = document.getElementById('notice-textarea');
   if(!textarea) return;
-  state.appNotice = textarea.value.trim();
+  state.appNotice = sanitizeInput(textarea.value.trim()).slice(0, 500);
   closeModal('modal-notice');
   renderAppNotice();
   showToast('✅ 공지가 저장되었습니다');
@@ -8433,6 +8481,8 @@ function saveNotice(){
 
 // 공지 삭제
 function deleteNotice(){
+  // ★ 보안: 관리자만 공지 삭제 가능
+  if(!isAdmin()){ showToast('⚠️ 관리자만 공지를 삭제할 수 있습니다.'); return; }
   if(!confirm('공지를 삭제하시겠습니까?')) return;
   state.appNotice = '';
   closeModal('modal-notice');
@@ -8692,6 +8742,16 @@ function renderMyListings(){
 function deleteMyListing(listingId){
   const listing = state.listings.find(l => l.id == listingId);
   if(!listing) return;
+  // ★ 보안: 본인 공고만 삭제 가능 (관리자도 허용)
+  if(!state.user || !state.user.kakaoId){
+    showToast('⚠️ 로그인이 필요합니다.');
+    return;
+  }
+  const isOwner = listing.postedByKakaoId === state.user.kakaoId;
+  if(!isOwner && !isAdmin()){
+    showToast('⚠️ 본인이 올린 공고만 삭제할 수 있습니다.');
+    return;
+  }
   if(!confirm(`'${listing.title}' 공고를 삭제하시겠습니까?`)) return;
   if(fbDB && listing.fbKey){
     fbDB.ref('listings/'+listing.fbKey).remove();
@@ -9373,11 +9433,17 @@ function confirmWithdraw(){
 // ============================================================
 function submitDeleteRequest(){
   var nickname = sanitizeInput((document.getElementById('delete-req-nickname')||{}).value||'');
-  var phone = (document.getElementById('delete-req-phone')||{}).value||'';
+  var phone = ((document.getElementById('delete-req-phone')||{}).value||'').replace(/[^0-9]/g,'');
   var reason = sanitizeInput((document.getElementById('delete-req-reason')||{}).value||'');
 
   if(!nickname || nickname.length < 1){
     showToast('카카오 닉네임을 입력해 주세요');
+    return;
+  }
+
+  // ★ 보안: 전화번호 필수 (닉네임만으로는 다른 사용자 피해 발생 가능)
+  if(!phone || phone.length < 10){
+    showToast('본인 확인을 위해 등록된 전화번호를 정확히 입력해 주세요 (하이픈 없이)');
     return;
   }
 
@@ -9386,44 +9452,67 @@ function submitDeleteRequest(){
     return;
   }
 
-  // 1. 삭제 요청 기록 저장
+  // 1. 삭제 요청 기록 저장 (관리자 수동 검토용)
   var requestData = {
     nickname: nickname,
-    phone: phone.trim(),
+    phone: phone,
     reason: reason,
     requestedAt: Date.now(),
-    status: 'processing'
+    status: 'pending_review'  // ★ 자동 삭제 대신 관리자 검토 대기
   };
 
   fbDB.ref('delete_requests/' + Date.now()).set(requestData).then(function(){
-    // 2. 해당 닉네임으로 등록된 사용자 데이터 검색 및 삭제
+    // 2. 닉네임+전화번호 모두 일치하는 유저만 자동 삭제 (오삭제 방지)
     return fbDB.ref('users').orderByChild('nickname').equalTo(nickname).once('value');
   }).then(function(snapshot){
-    var promises = [];
+    var matchedUids = [];
     snapshot.forEach(function(child){
-      var uid = child.key;
-      // 사용자 데이터 삭제
-      promises.push(fbDB.ref('users/' + uid).remove());
-      // 해당 사용자의 공고 삭제
-      promises.push(
-        fbDB.ref('listings').orderByChild('userId').equalTo(uid).once('value').then(function(ls){
-          var lp = []; ls.forEach(function(l){ lp.push(fbDB.ref('listings/' + l.key).remove()); });
-          return Promise.all(lp);
-        })
-      );
-      // 해당 사용자의 채팅 참여 삭제
-      promises.push(
-        fbDB.ref('chats').orderByChild('participants/' + uid).equalTo(true).once('value').then(function(cs){
-          var cp = []; cs.forEach(function(c){ cp.push(fbDB.ref('chats/' + c.key + '/participants/' + uid).remove()); });
-          return Promise.all(cp);
-        })
-      );
+      var u = child.val() || {};
+      var uPhone = (u.phone || '').replace(/[^0-9]/g,'');
+      if(uPhone && uPhone === phone){
+        matchedUids.push(child.key);
+      }
     });
-    return Promise.all(promises);
+
+    if(matchedUids.length === 0){
+      // 일치하는 유저 없음 → 관리자에게 요청만 남기고 종료
+      showToast('✅ 삭제 요청이 접수되었습니다. 관리자가 확인 후 3영업일 이내에 처리합니다.');
+      return Promise.resolve();
+    }
+
+    if(matchedUids.length > 1){
+      // 동명이인 + 동일 전화번호 (매우 희박) — 자동 삭제 중단, 수동 검토 필요
+      console.warn('[DeleteRequest] 동일 정보 복수 사용자 감지 — 관리자 검토 필요');
+      showToast('✅ 삭제 요청이 접수되었습니다. 관리자가 확인 후 3영업일 이내에 처리합니다.');
+      return Promise.resolve();
+    }
+
+    // 단일 사용자 매치 → 자동 삭제
+    var uid = matchedUids[0];
+    var promises = [];
+    promises.push(fbDB.ref('users/' + uid).remove());
+    promises.push(
+      fbDB.ref('listings').orderByChild('userId').equalTo(uid).once('value').then(function(ls){
+        var lp = []; ls.forEach(function(l){ lp.push(fbDB.ref('listings/' + l.key).remove()); });
+        return Promise.all(lp);
+      })
+    );
+    promises.push(
+      fbDB.ref('chats').orderByChild('participants/' + uid).equalTo(true).once('value').then(function(cs){
+        var cp = []; cs.forEach(function(c){ cp.push(fbDB.ref('chats/' + c.key + '/participants/' + uid).remove()); });
+        return Promise.all(cp);
+      })
+    );
+    return Promise.all(promises).then(function(){
+      // 처리 상태 업데이트
+      return fbDB.ref('delete_requests').orderByChild('requestedAt').startAt(requestData.requestedAt).limitToFirst(1).once('value').then(function(snap){
+        snap.forEach(function(c){ fbDB.ref('delete_requests/' + c.key).update({ status:'auto_completed', completedAt: Date.now() }); });
+      });
+    });
   }).then(function(){
-    // 3. 로컬 데이터 정리
+    // 3. 로컬 데이터 정리 (본인 기기 사용 시 대비)
     try { localStorage.clear(); } catch(e){}
-    showToast('데이터 삭제가 완료되었습니다.');
+    showToast('✅ 데이터 삭제 요청이 처리되었습니다.');
     // 폼 초기화
     var el1 = document.getElementById('delete-req-nickname'); if(el1) el1.value='';
     var el2 = document.getElementById('delete-req-phone'); if(el2) el2.value='';
