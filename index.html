@@ -8,7 +8,7 @@
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes"/>
-  <title>요양링크 - 요양보호사 구인구직</title>
+  <title>요보망 - 요양보호사 구인구직</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -386,7 +386,7 @@
   <meta name="theme-color" content="#FF6B35">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="요양링크">
+  <meta name="apple-mobile-web-app-title" content="요보망">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👵🏻</text></svg>">
 </head>
 <body>
@@ -396,7 +396,7 @@
 <div id="screen-login" class="screen active">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px">
     <div style="font-size:64px;margin-bottom:16px">👵🏻</div>
-    <h1 style="font-size:32px;font-weight:900;color:#3C1E1E;margin-bottom:8px">요양링크</h1>
+    <h1 style="font-size:32px;font-weight:900;color:#3C1E1E;margin-bottom:8px">요보망</h1>
     <p style="font-size:17px;color:#666;text-align:center;line-height:1.6;margin-bottom:48px">요양보호사 구인구직<br>이제 쉽고 빠르게 찾으세요</p>
     <div style="background:#fff;border-radius:20px;padding:28px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,.08)">
       <p style="font-size:15px;color:#999;text-align:center;margin-bottom:18px">카카오톡으로 3초만에 시작</p>
@@ -420,10 +420,17 @@
             <span onclick="event.preventDefault();navigate('privacy')" style="color:var(--primary);text-decoration:underline">개인정보 수집·이용</span> 동의
           </label>
         </div>
-        <div style="display:flex;align-items:flex-start;gap:8px;padding-left:4px">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-left:4px">
           <input type="checkbox" id="agree-contact" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
           <label for="agree-contact" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
-            <span style="color:var(--primary);font-weight:700">[필수]</span> 연락처(전화번호) 수집 동의
+            <span style="color:var(--primary);font-weight:700">[필수]</span> 연락처(전화번호) 수집 동의 <span style="color:#888;font-size:11px">(공고 매칭 시 상대 사용자에게 노출)</span>
+          </label>
+        </div>
+        <!-- ★ 마케팅·광고성 정보 수신 동의 (선택) — 정보통신망법 제50조 -->
+        <div style="display:flex;align-items:flex-start;gap:8px;padding-left:4px">
+          <input type="checkbox" id="agree-marketing" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
+          <label for="agree-marketing" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
+            <span style="color:#888;font-weight:700">[선택]</span> 마케팅·광고성 정보 수신 동의 <span style="color:#888;font-size:11px">(이벤트·공지 발송용)</span>
           </label>
         </div>
       </div>
@@ -594,7 +601,7 @@
   </div>
 
   <div class="header">
-    <div style="font-size:20px;font-weight:900;color:var(--primary)">요양링크</div>
+    <div style="font-size:20px;font-weight:900;color:var(--primary)">요보망</div>
     <div style="flex:1;margin-left:8px;font-size:15px;color:var(--text-sub);cursor:pointer" onclick="openAreaSelectModal(function(area){ var el=document.getElementById('home-area-label'); if(el) el.textContent=area; if(state.mapInstance){ var c=DISTRICT_COORDS[area]; if(c) state.mapInstance.setView(c,13); } })">📍 <span id="home-area-label">내 지역</span> <span style="font-size:11px;color:#ccc">▼</span></div>
     <div class="header-right" onclick="showToast('새 알림이 없습니다')">🔔</div>
   </div>
@@ -891,7 +898,7 @@
     <div class="menu-item" onclick="showMyKakaoId()"><span class="menu-icon">🪪</span>내 카카오ID 확인<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="navigate('settings')"><span class="menu-icon">⚙️</span>설정<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="doLogout()"><span class="menu-icon">🚪</span>로그아웃<span class="menu-arrow">›</span></div>
-    <div style="padding:28px;text-align:center;font-size:13px;color:#ccc;line-height:2">요양링크 v1.0<br>공고는 등록 후 14일 자동 삭제됩니다<br>문의: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5bdb0b9a595b6b4a7b0b9bcbbbefbbea7">[email&#160;protected]</a></div>
+    <div style="padding:28px;text-align:center;font-size:13px;color:#ccc;line-height:2">요보망 v1.0<br>공고는 등록 후 14일 자동 삭제됩니다<br>문의: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5bdb0b9a595b6b4a7b0b9bcbbbefbbea7">[email&#160;protected]</a></div>
   </div>
   <div class="bottom-nav">
     <div class="nav-item" id="nav-home2" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
@@ -1543,7 +1550,7 @@
       </div>
 
       <b style="font-size:14px;color:#333">제1조 (목적)</b><br>
-      이 약관은 요양링크(이하 "회사")가 운영하는 요양보호사 구인구직 플랫폼 서비스(이하 "서비스")의 이용과 관련하여 회사와 이용자 간의 권리·의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.<br><br>
+      이 약관은 요보망(이하 "회사")가 운영하는 요양보호사 구인구직 플랫폼 서비스(이하 "서비스")의 이용과 관련하여 회사와 이용자 간의 권리·의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.<br><br>
 
       <b style="font-size:14px;color:#333">제2조 (용어의 정의)</b><br>
       ① "서비스"란 요양보호사(구직자)와 구인사업자(요양원·재가센터 등)를 연결하는 구인구직 매칭 플랫폼 및 관련 부가서비스를 말합니다.<br>
@@ -1605,7 +1612,7 @@
 
       <div style="background:#f5f5f5;border-radius:8px;padding:10px 14px;font-size:12px;color:#888">
         공고일: 2026년 4월 18일 &nbsp;|&nbsp; 시행일: 2026년 4월 18일 (카카오 로그인 수집정보 명시, 보안 강화 반영)<br>
-        운영자: 요양링크 &nbsp;|&nbsp; 문의: 앱 내 1:1 문의
+        운영자: 요보망 &nbsp;|&nbsp; 문의: 앱 내 1:1 문의
       </div>
     </div>
     <div style="padding:14px 20px;border-top:1px solid #eee">
@@ -1623,11 +1630,11 @@
     </div>
     <div style="overflow-y:auto;padding:20px;font-size:13px;line-height:1.9;color:#444">
       <div style="background:#F0F7FF;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#1565C0;line-height:1.7">
-        요양링크는 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.
+        요보망은 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.
       </div>
 
       <b style="font-size:14px;color:#333">제1조 (개인정보의 처리목적)</b><br>
-      요양링크는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 별도의 동의를 받는 등 필요한 조치를 이행합니다.<br>
+      요보망은 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 별도의 동의를 받는 등 필요한 조치를 이행합니다.<br>
       ① 요양보호사 구인·구직 서비스 제공 및 이용자 식별<br>
       ② 서비스 내 채팅 기능 운영<br>
       ③ 고객 문의 및 불만 처리<br>
@@ -1655,7 +1662,7 @@
       </div><br>
 
       <b style="font-size:14px;color:#333">제3조 (개인정보의 처리 및 보유기간)</b><br>
-      ① 요양링크는 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.<br>
+      ① 요보망은 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보를 수집 시에 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다.<br>
       ② 각각의 개인정보 처리 및 보유 기간은 다음과 같습니다.<br>
       <div style="background:#f9f9f9;border-radius:8px;padding:12px;margin:6px 0">
         • 회원 정보: 탈퇴 시 즉시 삭제<br>
@@ -1667,10 +1674,10 @@
       </div><br>
 
       <b style="font-size:14px;color:#333">제4조 (개인정보의 제3자 제공)</b><br>
-      요양링크는 정보주체의 개인정보를 제1조(처리목적)에서 명시한 범위 내에서만 처리하며, 정보주체의 동의, 법률의 특별한 규정 등 「개인정보 보호법」 제17조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.<br><br>
+      요보망은 정보주체의 개인정보를 제1조(처리목적)에서 명시한 범위 내에서만 처리하며, 정보주체의 동의, 법률의 특별한 규정 등 「개인정보 보호법」 제17조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.<br><br>
 
       <b style="font-size:14px;color:#333">제5조 (개인정보 처리 위탁)</b><br>
-      요양링크는 원활한 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 위탁합니다.<br>
+      요보망은 원활한 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 위탁합니다.<br>
       <div style="background:#f9f9f9;border-radius:8px;padding:12px;margin:6px 0">
         • 수탁자: Google LLC (Firebase)<br>
         • 위탁 업무: 데이터베이스 저장 및 관리<br>
@@ -1679,7 +1686,7 @@
       </div><br>
 
       <b style="font-size:14px;color:#333">제6조 (정보주체의 권리·의무 및 행사방법)</b><br>
-      ① 정보주체는 요양링크에 대해 언제든지 다음 각 호의 권리를 행사할 수 있습니다.<br>
+      ① 정보주체는 요보망에 대해 언제든지 다음 각 호의 권리를 행사할 수 있습니다.<br>
       &nbsp;&nbsp;1. 개인정보 열람 요구<br>
       &nbsp;&nbsp;2. 오류 등이 있을 경우 정정 요구<br>
       &nbsp;&nbsp;3. 삭제 요구<br>
@@ -1688,24 +1695,24 @@
       ③ 정보주체가 개인정보의 오류 등에 대한 정정 또는 삭제를 요구한 경우에는 요청 완료 전까지 해당 개인정보를 이용하거나 제공하지 않습니다.<br><br>
 
       <b style="font-size:14px;color:#333">제7조 (개인정보 보호를 위한 안전성 확보조치)</b><br>
-      요양링크는 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.<br>
+      요보망은 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.<br>
       ① 개인정보의 암호화: 이용자의 개인정보는 암호화하여 저장 및 관리<br>
       ② 해킹 등에 대비한 기술적 대책: Firebase Security Rules를 통한 접근 제어<br>
       ③ 개인정보 취급 최소화: 서비스 제공에 필요한 최소한의 개인정보만 수집<br><br>
 
       <b style="font-size:14px;color:#333">제7조의2 (개인정보의 파기절차 및 방법)</b><br>
-      ① 요양링크는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체없이 해당 개인정보를 파기합니다.<br>
+      ① 요보망은 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체없이 해당 개인정보를 파기합니다.<br>
       ② 파기절차: 이용자가 입력한 정보는 목적 달성 후 별도의 DB로 옮겨져 내부 방침 및 기타 관련 법령에 따라 일정기간 저장된 후 파기됩니다.<br>
       ③ 파기방법: 전자적 파일 형태의 정보는 기록을 재생할 수 없는 기술적 방법을 사용합니다.<br><br>
 
       <b style="font-size:14px;color:#333">제7조의3 (자동수집장치의 설치·운영 및 거부에 관한 사항)</b><br>
-      ① 요양링크는 이용자의 서비스 이용 편의를 위해 쿠키(Cookie) 및 로컬 스토리지(Local Storage)를 사용합니다.<br>
+      ① 요보망은 이용자의 서비스 이용 편의를 위해 쿠키(Cookie) 및 로컬 스토리지(Local Storage)를 사용합니다.<br>
       ② 쿠키 등을 통해 수집되는 정보: 로그인 상태 유지, 이용자 설정 정보<br>
       ③ 이용자는 브라우저 설정을 통해 쿠키 저장을 거부할 수 있으며, 이 경우 일부 서비스 이용에 제한이 있을 수 있습니다.<br>
       ④ 쿠키 삭제 방법: 웹브라우저 설정 > 개인정보/보안 > 쿠키 삭제<br><br>
 
       <b style="font-size:14px;color:#333">제8조 (개인정보 보호책임자)</b><br>
-      요양링크는 개인정보 처리에 관한 업무를 총괄하고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제를 위하여 아래와 같이 개인정보 보호책임자를 지정합니다.<br>
+      요보망은 개인정보 처리에 관한 업무를 총괄하고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제를 위하여 아래와 같이 개인정보 보호책임자를 지정합니다.<br>
       <div style="background:#FFF8F5;border-radius:8px;padding:12px;margin:6px 0">
         • 개인정보 보호책임자: 심상욱<br>
         • 전화번호: 010-4590-5949<br>
@@ -1714,7 +1721,7 @@
       </div><br>
 
       <b style="font-size:14px;color:#333">제9조 (개인정보 열람 청구)</b><br>
-      정보주체는 「개인정보 보호법」 제35조에 따른 개인정보의 열람 청구를 아래 부서에 할 수 있습니다. 요양링크는 정보주체의 개인정보 열람청구가 신속하게 처리되도록 노력합니다.<br>
+      정보주체는 「개인정보 보호법」 제35조에 따른 개인정보의 열람 청구를 아래 부서에 할 수 있습니다. 요보망은 정보주체의 개인정보 열람청구가 신속하게 처리되도록 노력합니다.<br>
       • 접수 방법: 앱 내 1:1 문의 채팅<br><br>
 
       <b style="font-size:14px;color:#333">제10조 (권익침해 구제방법)</b><br>
@@ -2004,10 +2011,10 @@
       공고는 등록 후 14일 자동 삭제됩니다<br>
       문의: 앱 내 채팅으로 문의해 주세요<br>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#ccc;line-height:1.8">
-        <b style="color:#bbb">요양링크</b><br>
-        대표: 요양링크 &nbsp;|&nbsp; 이메일: tkddnr5949@gmail.com<br>
+        <b style="color:#bbb">요보망</b><br>
+        대표: 요보망 &nbsp;|&nbsp; 이메일: tkddnr5949@gmail.com<br>
         본 서비스는 요양보호사 구인구직 정보 제공 플랫폼입니다<br>
-        © 2026 요양링크. All rights reserved.
+        © 2026 요보망. All rights reserved.
       </div>
     </div>
   </div>
@@ -2021,11 +2028,11 @@
   </div>
   <div class="scroll-area" style="padding:20px;font-size:14px;line-height:1.9;color:#444">
     <div style="background:#F0F7FF;border-radius:12px;padding:14px;margin-bottom:18px;font-size:13px;color:#1565C0;line-height:1.7">
-      <b>요양링크(CareLink)</b>는 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.
+      <b>요보망</b>는 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 다음과 같이 개인정보처리방침을 수립·공개합니다.
     </div>
 
     <b style="font-size:15px;color:#333">제1조 (개인정보의 처리목적)</b><br>
-    요양링크(CareLink, 이하 "앱")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행합니다.<br>
+    요보망(이하 "앱")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 「개인정보 보호법」 제18조에 따라 별도의 동의를 받는 등 필요한 조치를 이행합니다.<br>
     ① 요양보호사 구인·구직 매칭 서비스 제공 및 이용자 식별<br>
     ② 서비스 내 1:1 채팅 기능 운영<br>
     ③ 고객 문의 및 불만 처리<br>
@@ -2034,7 +2041,7 @@
     <b style="font-size:15px;color:#333">제2조 (개인정보처리자)</b><br>
     <div style="background:#FFF8F5;border-radius:10px;padding:12px;margin:8px 0">
       • 개인정보처리자: <b>심상욱</b> (개인 개발자)<br>
-      • 앱 이름: 요양링크 (CareLink)<br>
+      • 앱 이름: 요보망<br>
       • 전화번호: 010-4590-5949<br>
       • 이메일: tkddnr5949@gmail.com<br>
       • 문의: 앱 내 1:1 문의 채팅
@@ -2295,6 +2302,61 @@ var TokenManager = {
 };
 
 // ============================================================
+//  유틸: 한국어 조사 자동 선택 (받침 유무 판별)
+//   - getJosa('이름','을') → '을',  getJosa('연락처','을') → '를'
+//   - 지원: 은/는, 이/가, 을/를, 와/과, (으)로
+// ============================================================
+function getJosa(word, type){
+  if(!word) return type;
+  var last = word.charCodeAt(word.length-1);
+  // 한글 음절 범위 0xAC00~0xD7A3, 받침 = (코드-0xAC00) % 28
+  var hasJongseong = (last >= 0xAC00 && last <= 0xD7A3) && ((last - 0xAC00) % 28) !== 0;
+  // 영어 끝나는 경우는 단순 모음 판단
+  if(last < 0xAC00 || last > 0xD7A3){
+    var ch = word[word.length-1].toLowerCase();
+    hasJongseong = !(/[aeiouy]/.test(ch));
+  }
+  switch(type){
+    case '은': case '는': return hasJongseong ? '은' : '는';
+    case '이': case '가': return hasJongseong ? '이' : '가';
+    case '을': case '를': return hasJongseong ? '을' : '를';
+    case '와': case '과': return hasJongseong ? '과' : '와';
+    case '로': case '으로': return hasJongseong ? '으로' : '로';
+    default: return type;
+  }
+}
+
+// ============================================================
+//  유틸: 만 나이 계산 + 미성년자 차단 검증
+//   - kakaoBirthyear: "YYYY", kakaoBirthday: "MMDD"
+//   - 반환: 만 나이 (정수) 또는 null (정보 없음)
+// ============================================================
+function calcKoreanAge(birthyearStr, birthdayStr){
+  if(!birthyearStr) return null;
+  var by = parseInt(birthyearStr, 10);
+  if(isNaN(by) || by < 1900 || by > 2100) return null;
+  var bm = 1, bd = 1;
+  if(birthdayStr && birthdayStr.length === 4){
+    bm = parseInt(birthdayStr.substring(0,2), 10) || 1;
+    bd = parseInt(birthdayStr.substring(2,4), 10) || 1;
+  }
+  var now = new Date();
+  var age = now.getFullYear() - by;
+  // 생일 안 지났으면 -1
+  if(now.getMonth()+1 < bm || (now.getMonth()+1 === bm && now.getDate() < bd)) age--;
+  return age;
+}
+
+// 미성년자 가입 검증 — 14세 미만은 가입 차단 (개인정보보호법 제22조의2: 법정대리인 동의 필요)
+// 14세 이상이면 통과. 자격증/요양보호사 역할은 별도로 만 18세 검증해야 함.
+function validateAgeForSignup(birthyear, birthday){
+  var age = calcKoreanAge(birthyear, birthday);
+  if(age === null) return { ok: true, age: null }; // 정보 없으면 통과 (카카오 동의항목 미승인 시)
+  if(age < 14) return { ok: false, age: age, reason: 'under14' };
+  return { ok: true, age: age };
+}
+
+// ============================================================
 //  보안 모듈: 자동 로그아웃 — 비활성화됨 (로그인 영구 유지)
 //  사용자가 직접 로그아웃 버튼을 누를 때만 로그아웃
 // ============================================================
@@ -2466,7 +2528,7 @@ function validateSession(){
     if(widthThreshold || heightThreshold){
       if(!devtoolsOpen){
         devtoolsOpen = true;
-        console.log('%c⚠️ 요양링크 보안 경고', 'font-size:24px;font-weight:bold;color:red');
+        console.log('%c⚠️ 요보망 보안 경고', 'font-size:24px;font-weight:bold;color:red');
         console.log('%c이 콘솔은 개발자 전용입니다. 개인정보를 입력하지 마세요.', 'font-size:14px;color:#FF6B35');
       }
     } else {
@@ -3364,8 +3426,13 @@ function doKakaoLogin(){
   // 앱 WebView 감지 (UserAgent에 YoyangLinkApp 포함)
   var isInApp = navigator.userAgent.indexOf('YoyangLinkApp') !== -1;
 
-  // 연락처 수집 동의 여부 저장
-  try { localStorage.setItem('cl_contact_consent', document.getElementById('agree-contact').checked ? '1' : '0'); } catch(e){}
+  // 연락처/마케팅 동의 여부 저장 (Firebase에는 회원가입 완료 후 저장)
+  try {
+    localStorage.setItem('cl_contact_consent', document.getElementById('agree-contact').checked ? '1' : '0');
+    var mkt = document.getElementById('agree-marketing');
+    localStorage.setItem('cl_marketing_consent', (mkt && mkt.checked) ? '1' : '0');
+    localStorage.setItem('cl_consent_at', String(Date.now())); // 동의 일시 (분쟁 시 증거)
+  } catch(e){}
 
   if(!window.Kakao || !Kakao.isInitialized()){
     showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
@@ -3374,36 +3441,45 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
-    // ★ 앱 WebView: 카카오톡 앱 간편로그인 → Chrome Custom Tab → SDK 폴백
-    // 카카오톡 앱이 설치되어 있으면 반드시 앱으로 바로 연동 (아이디/비밀번호 입력 X)
-    // WebView UA에 "wv" 마커가 있어 카카오 서버가 카카오톡 앱 연동을 차단할 수 있으므로
-    // Chrome Custom Tab 방식을 우선 사용하고, 실패 시 SDK throughTalk으로 폴백.
-    // intent:// URL은 네이티브 shouldOverrideUrlLoading에서 처리하여 카카오톡 앱 실행.
-    console.log('[CareLink] WebView 감지 → 카카오톡 앱 간편로그인 시도');
+    // ★ 앱 WebView: SDK 우회하고 intent:// URL을 직접 navigate → 카카오톡 앱 실행
+    //
+    // [왜 SDK를 안 쓰나]
+    //   Kakao SDK는 WebView를 감지하면(UA의 "wv" 마커 외에도 쿠키/플러그인/WebKit 특성 등 다중 신호 사용)
+    //   throughTalk을 무시하고 웹 로그인(아이디/비번 입력)으로 폴백함.
+    //   네이티브에서 "; wv)" 마커를 제거해도 Kakao 서버가 다른 방법으로 WebView를 탐지하여 차단함.
+    //
+    // [동작 원리]
+    //   1) 우리가 직접 intent:// URL을 생성 (scheme=kakaokompassauth, package=com.kakao.talk)
+    //   2) window.location.href로 navigate
+    //   3) MainActivity.shouldOverrideUrlLoading이 intent://를 가로채서 Intent.parseUri로 파싱
+    //   4) resolveActivity(com.kakao.talk) 성공 → startActivity → 카카오톡 앱 실행
+    //   5) KakaoTalk이 인증 → redirect_uri로 ?code=... 반환 → 콜백 핸들러가 토큰 교환
+    //
+    // [카카오톡 미설치 시]
+    //   intent URL의 S.browser_fallback_url 파라미터를 MainActivity가 추출하여 웹 로그인 페이지로 이동.
+    console.log('[CareLink] WebView 감지 → intent URL로 카카오톡 앱 직접 실행');
 
-    var authUrl = 'https://kauth.kakao.com/oauth/authorize'
+    var fallbackAuthUrl = 'https://kauth.kakao.com/oauth/authorize'
       + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
       + '&redirect_uri=' + encodeURIComponent(redirectUri)
       + '&response_type=code';
 
+    // kakaokompassauth://authorize?... 를 intent:// 포맷으로 래핑
+    var intentUrl = 'intent://authorize'
+      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=code'
+      + '#Intent'
+      + ';scheme=kakaokompassauth'
+      + ';package=com.kakao.talk'
+      + ';S.browser_fallback_url=' + encodeURIComponent(fallbackAuthUrl)
+      + ';end';
+
     try {
-      if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
-        // 1순위: Chrome Custom Tab으로 열기 (카카오톡 앱 간편로그인 지원)
-        NativeStorage.openInCustomTab(authUrl);
-      } else if(window.__KAKAO_INTENT_SUPPORT__){
-        // 2순위: 네이티브가 intent:// 처리 가능 → SDK throughTalk으로 카카오톡 앱 실행
-        // shouldOverrideUrlLoading이 intent:// URL을 가로채서 카카오톡 앱을 직접 실행함.
-        // 카카오톡 미설치 시에만 browser_fallback_url로 웹 로그인 폴백.
-        console.log('[CareLink] intent:// 지원 확인 → SDK throughTalk 사용');
-        Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
-      } else {
-        // 3순위: 구버전 앱 → 직접 URL 이동 (웹 로그인)
-        console.warn('[CareLink] Custom Tab/intent 미지원 → 직접 URL 이동');
-        window.location.href = authUrl;
-      }
+      window.location.href = intentUrl;
     } catch(e){
-      console.warn('[CareLink] 카카오 로그인 실패 → 직접 URL 이동:', e);
-      window.location.href = authUrl;
+      console.warn('[CareLink] intent URL 이동 실패 → 웹 로그인 폴백:', e);
+      window.location.href = fallbackAuthUrl;
     }
   } else {
     // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
@@ -3477,9 +3553,25 @@ document.addEventListener('DOMContentLoaded', function(){
       var banInfo = state.bannedUsers[kakaoId] || {};
       window._kakaoCallbackProcessing = false; // ★ 플래그 해제 (버튼 복구)
       if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
-      alert('⚠️ 이용이 제한된 계정입니다.\n\n사유: ' + (banInfo.reason || '관리자 판단에 의한 차단') + '\n\n문의: tkddnr5949@gmail.com');
+      // ★ 차단 사유는 사생활 보호상 일반 메시지로 표시 (구체 사유는 본인 문의 시에만 안내)
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n자세한 사항은 아래 이메일로 문의해 주세요.\n\n문의: tkddnr5949@gmail.com');
       return;
     }
+
+    // ── 미성년자 가입 검증 (개인정보보호법 제22조의2) ──
+    // 14세 미만은 법정대리인 동의 절차 미구현 → 가입 차단
+    // 14세 이상은 가입 가능. 단, 요양보호사 역할 선택 시 별도로 만 18세 검증 필요.
+    var ageCheck = validateAgeForSignup(kakaoBirthyear, kakaoBirthday);
+    if(!ageCheck.ok){
+      window._kakaoCallbackProcessing = false;
+      if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
+      // 카카오 토큰도 폐기 (기록 남기지 않음)
+      try { TokenManager.clearToken(); } catch(e){}
+      try { if(window.Kakao && Kakao.Auth) Kakao.Auth.logout(function(){}); } catch(e){}
+      alert('⚠️ 만 14세 미만은 가입할 수 없습니다.\n\n(개인정보 보호법에 따라 14세 미만 아동의 회원가입은 법정대리인 동의가 필요하며, 본 서비스는 해당 절차를 제공하지 않습니다.)');
+      return;
+    }
+    if(ageCheck.age !== null) console.log('[요보망] 가입자 만 나이:', ageCheck.age);
 
     try {
       console.log('[CareLink] SecureStorage 프로필 확인 중...');
@@ -5413,14 +5505,14 @@ function showToast(msg, duration){
 }
 function shareDetail(){
   const item = state.selectedListing;
-  const title = item ? item.title : '요양링크 공고';
+  const title = item ? item.title : '요보망 공고';
   const area = item ? item.area : '';
   const salary = item ? item.salary : '';
-  const shareText = `[요양링크] ${title}\n📍 ${area} · 💰 ${salary}\n요양보호사 구인구직 앱에서 확인하세요!`;
+  const shareText = `[요보망] ${title}\n📍 ${area} · 💰 ${salary}\n요양보호사 구인구직 앱에서 확인하세요!`;
   const shareUrl = window.location.href;
 
   if(navigator.share){
-    navigator.share({title:'요양링크 - '+title, text:shareText, url:shareUrl}).catch(()=>{});
+    navigator.share({title:'요보망 - '+title, text:shareText, url:shareUrl}).catch(()=>{});
   } else {
     // 클립보드 복사 fallback
     const copyText = shareText + '\n' + shareUrl;
@@ -5471,6 +5563,12 @@ function doLogout(){
   // 실시간 리스너 해제
   if(state.chatUnsubscribe){ try { state.chatUnsubscribe(); } catch(e){} state.chatUnsubscribe = null; }
   if(typeof cleanupSeatListeners === 'function'){ try { cleanupSeatListeners(); } catch(e){} }
+  // ★ 카카오 SDK 세션 종료 (서버 측 토큰 무효화) — 같은 기기 다른 사용자 자동 진입 차단
+  try {
+    if(window.Kakao && Kakao.Auth && typeof Kakao.Auth.logout === 'function' && Kakao.Auth.getAccessToken()){
+      Kakao.Auth.logout(function(){ console.log('[요보망] 카카오 SDK 로그아웃 완료'); });
+    }
+  } catch(e){ console.warn('[요보망] 카카오 SDK 로그아웃 오류:', e); }
   // 토큰 및 프로필 안전 삭제
   TokenManager.clearToken();
   try { SecureStorage.removeItem('carelink_profile'); } catch(e){}
@@ -5784,7 +5882,7 @@ function fbRestRemove(path){
 // ── REST 폴백 모드: 주기적 데이터 새로고침 ──────────────────
 function startRestPolling(){
   if(_fbRestTimer) return;
-  console.log('[요양링크] REST 폴링 모드 시작 (15초 간격)');
+  console.log('[요보망] REST 폴링 모드 시작 (15초 간격)');
   loadListingsViaRest();
   _fbRestTimer = setInterval(function(){
     loadListingsViaRest();
@@ -5805,14 +5903,14 @@ function loadListingsViaRest(){
     if(state.mapInstance) renderMapMarkers();
     renderMyListings();
   }).catch(function(e){
-    console.error('[요양링크] REST listings 로드 실패:', e);
+    console.error('[요보망] REST listings 로드 실패:', e);
   });
 }
 
 function initFirebase(){
   try {
     if(FIREBASE_CONFIG.apiKey === '여기에_입력') {
-      console.warn('[요양링크] Firebase 미설정 → 데모 모드로 동작합니다.');
+      console.warn('[요보망] Firebase 미설정 → 데모 모드로 동작합니다.');
       document.getElementById('firebase-setup-notice').style.display='block';
       return;
     }
@@ -5823,7 +5921,7 @@ function initFirebase(){
     }
     firebase.initializeApp(FIREBASE_CONFIG);
     fbDB = firebase.database();
-    console.log('[요양링크] Firebase SDK 초기화 완료');
+    console.log('[요보망] Firebase SDK 초기화 완료');
 
     // ── 영구밴 목록 로드 ────────────────────────────────────
     loadBannedUsers();
@@ -5843,7 +5941,7 @@ function initFirebase(){
     // 3초 후에도 실시간 미연결이면 REST 폴백 모드 확정
     var _connectionTimeout = setTimeout(function(){
       if(!_realtimeConnected){
-        console.warn('[요양링크] 실시간 연결 실패 → REST API 폴백 모드 전환');
+        console.warn('[요보망] 실시간 연결 실패 → REST API 폴백 모드 전환');
         _fbUseRest = true;
         enableRestFallback();
         startRestPolling();
@@ -5856,7 +5954,7 @@ function initFirebase(){
         _fbUseRest = false;
         clearTimeout(_connectionTimeout);
         if(_fbRestTimer){ clearInterval(_fbRestTimer); _fbRestTimer = null; }
-        console.log('[요양링크] Firebase 실시간 연결 성공 ✅');
+        console.log('[요보망] Firebase 실시간 연결 성공 ✅');
       }
     });
 
@@ -5889,7 +5987,7 @@ function initFirebase(){
     });
 
   } catch(e){
-    console.error('[요양링크] Firebase 초기화 실패:', e);
+    console.error('[요보망] Firebase 초기화 실패:', e);
   }
 }
 
@@ -5900,7 +5998,7 @@ function initFirebase(){
 var _origRef = null;
 function enableRestFallback(){
   if(_origRef) return; // 이미 활성화됨
-  if(!fbDB){ console.warn('[요양링크] fbDB 없음 → REST 폴백 건너뜀'); return; }
+  if(!fbDB){ console.warn('[요보망] fbDB 없음 → REST 폴백 건너뜀'); return; }
   _origRef = fbDB.ref.bind(fbDB);
 
   fbDB.ref = function(path){
@@ -6010,7 +6108,7 @@ function enableRestFallback(){
 
     return wrapped;
   };
-  console.log('[요양링크] REST 폴백 래퍼 활성화');
+  console.log('[요보망] REST 폴백 래퍼 활성화');
 }
 
 // ============================================================
@@ -6593,7 +6691,7 @@ function renderChatList(){
         if(!state.chats[chatId]){
           state.chats[chatId]={
             title: '1:1 문의',
-            otherName: '요양링크 운영자',
+            otherName: '요보망 운영자',
             otherIcon: '🛟',
             listingId: null,
             isSupport: true,
@@ -6605,7 +6703,7 @@ function renderChatList(){
     updateChatBadge();
     renderChatListDraw();
   }).catch(function(err){
-    console.error('[요양링크] 채팅 목록 로드 실패:', err);
+    console.error('[요보망] 채팅 목록 로드 실패:', err);
     renderChatListDraw();
   });
 }
@@ -6685,7 +6783,7 @@ function cleanupOldMessages(){
         }
       });
       if(deleteCount > 0){
-        console.log('[요양링크] 채팅 '+chatId+': '+deleteCount+'/'+totalCount+'개 오래된 메시지 정리');
+        console.log('[요보망] 채팅 '+chatId+': '+deleteCount+'/'+totalCount+'개 오래된 메시지 정리');
       }
     });
   });
@@ -6928,7 +7026,7 @@ function reopenChat(chatId){
   state.activeChatId=chatId;
   if(chat.isSupport){
     // 1:1 문의 채팅
-    document.getElementById('chatroom-title').textContent = chat.otherName||'요양링크 운영자';
+    document.getElementById('chatroom-title').textContent = chat.otherName||'요보망 운영자';
     document.getElementById('chatroom-listing-banner').style.display = 'none';
     document.getElementById('chatroom-phone-btn').style.display = 'none';
   } else {
@@ -7102,7 +7200,7 @@ function openSupportChat(){
   if(!state.chats[chatId]){
     state.chats[chatId]={
       title: '1:1 문의',
-      otherName: '요양링크 운영자',
+      otherName: '요보망 운영자',
       otherIcon: '🛟',
       listingId: null,
       isSupport: true,
@@ -7127,7 +7225,7 @@ function openSupportChat(){
     }
   }
   state.activeChatId = chatId;
-  document.getElementById('chatroom-title').textContent = '요양링크 운영자';
+  document.getElementById('chatroom-title').textContent = '요보망 운영자';
   document.getElementById('chatroom-listing-banner').style.display = 'none';
   document.getElementById('chatroom-phone-btn').style.display = 'none';
   loadMessages(chatId);
@@ -8068,7 +8166,7 @@ function refresherStepNext(){
   // 유효성 검사
   const val = refresherFormData[step.key] || '';
   if(step.required && !val){
-    showToast(`${step.label}을(를) 입력해 주세요`);
+    showToast(`${step.label}${getJosa(step.label,'을')} 입력해 주세요`);
     return;
   }
   if(step.key==='ssn' && val.length < 13){ showToast('주민등록번호 13자리를 입력해 주세요'); return; }
@@ -8409,7 +8507,7 @@ function updateAdminStats(){
       if(el3) el3.textContent = totalUsers;
       if(el4) el4.textContent = todayNew;
     }).catch(function(err){
-      console.error('[요양링크] 회원 통계 로드 실패:', err);
+      console.error('[요보망] 회원 통계 로드 실패:', err);
       var el3 = document.getElementById('stat-total-users');
       var el4 = document.getElementById('stat-today-new');
       if(el3) el3.textContent = '-';
@@ -8874,7 +8972,7 @@ function ensureNickname(callback){
       if(fbDB){
         fbDB.ref('users/' + state.user.kakaoId + '/nickname').set(nick).catch(function(){});
       }
-      console.log('[요양링크] 임시 별명 자동 부여:', nick);
+      console.log('[요보망] 임시 별명 자동 부여:', nick);
       if(callback) callback();
     });
   }).catch(function(){
@@ -9082,7 +9180,8 @@ function loadBannedUsers(){
     // 현재 로그인된 사용자가 밴 당했는지 사후 체크
     if(state.user && state.user.kakaoId && isUserBanned(state.user.kakaoId)){
       var banInfo = state.bannedUsers[state.user.kakaoId] || {};
-      alert('⚠️ 이용이 제한된 계정입니다.\n\n사유: ' + (banInfo.reason || '관리자 판단에 의한 차단') + '\n\n문의: tkddnr5949@gmail.com');
+      // ★ 차단 사유는 사생활 보호상 일반 메시지로 표시 (구체 사유는 본인 문의 시에만 안내)
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n자세한 사항은 아래 이메일로 문의해 주세요.\n\n문의: tkddnr5949@gmail.com');
       try {
         SecureStorage.removeItem('carelink_profile');
         localStorage.removeItem('carelink_nickname');
@@ -9094,7 +9193,7 @@ function loadBannedUsers(){
       state.role = '';
       navigate('login');
     }
-  }).catch(function(e){ console.warn('[요양링크] 차단 목록 로드 실패:', e); });
+  }).catch(function(e){ console.warn('[요보망] 차단 목록 로드 실패:', e); });
   // 실시간 리스너도 등록 (REST 폴백 활성화 후 동작)
   if(fbDB){
     fbDB.ref('banned_users').on('value', function(snap){
@@ -9379,7 +9478,7 @@ function renderAdminUsers(){
           + '</div>';
       }).join('');
     }).catch(function(err){
-      console.error('[요양링크] 회원 목록 로드 실패:', err);
+      console.error('[요보망] 회원 목록 로드 실패:', err);
       container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">회원 목록을 불러올 수 없습니다<br><span style="font-size:12px;color:#aaa">Firebase 권한을 확인하세요</span><br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
     });
   }
@@ -9657,8 +9756,8 @@ let _deferredPWAPrompt = null;
 // PWA manifest 동적 생성
 function initPWAManifest(){
   const manifest = {
-    name: '요양링크 - 요양보호사 구인구직',
-    short_name: '요양링크',
+    name: '요보망 - 요양보호사 구인구직',
+    short_name: '요보망',
     description: '요양보호사 구인구직 매칭 앱',
     start_url: window.location.href,
     display: 'standalone',
@@ -9998,7 +10097,7 @@ function confirmHire(hired){
 }
 
 // ============================================================
-//  이모티콘 시스템 (요양링크 커스텀 스티커)
+//  이모티콘 시스템 (요보망 커스텀 스티커)
 // ============================================================
 var STICKERS = {
   greet: [
@@ -10128,7 +10227,7 @@ document.addEventListener('keydown', function(e){
 });
 // 콘솔 경고
 console.log('%c⛔ 주의!', 'font-size:40px;font-weight:bold;color:red');
-console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 여기에 무언가를 붙여넣으라고 했다면,\n그것은 사기이며 요양링크 계정에 대한 접근 권한을 줄 수 있습니다.', 'font-size:14px;color:#333');
+console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 여기에 무언가를 붙여넣으라고 했다면,\n그것은 사기이며 요보망 계정에 대한 접근 권한을 줄 수 있습니다.', 'font-size:14px;color:#333');
 // ============================================================
 // 스크롤 시 상단 헤더(광고+검색창) 숨기기/보이기
 // ============================================================

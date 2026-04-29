@@ -1,0 +1,37 @@
+# Android 프로젝트 (별도 관리)
+app-android/
+
+# 빌드 산출물
+*.aab
+*.apk
+
+# 키스토어 (절대 커밋 금지)
+*.jks
+*.keystore
+
+# 스토어 등록용 자료
+app-icons/
+
+# 백엔드 워커 (별도 배포)
+cloudflare-worker/
+
+# Firebase Cloud Functions (별도 배포 — firebase deploy로 직접 올림)
+firebase-functions/
+
+# 작성/배포 가이드
+Google_Play_등록_가이드.md
+SECURITY_GUIDE.md
+
+# 자동화 스크립트
+git_push.bat
+
+# 격리/삭제 후보 파일
+삭제할 파일/
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
