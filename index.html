@@ -3422,6 +3422,7 @@ function checkConsent(){
 // ============================================================
 function processKakaoUser(res){
     console.log('[CareLink] 카카오 사용자 정보 수신 완료');
+    var btn = document.getElementById('kakao-btn');
     const kakaoId = String(res.id);
     const account = res.kakao_account || {};
     const profile = account.profile || {};
@@ -3605,46 +3606,34 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
-    // ★★★ 진단 — 어떤 이유로 폴백되는지 사용자에게 보여줌 ★★★
-    var _diag = '[진단 정보]\n\n';
-    _diag += 'isInApp: true\n';
-    _diag += 'NativeStorage 존재: ' + (!!window.NativeStorage) + '\n';
-    if(window.NativeStorage){
-      _diag += 'kakaoLogin 메서드: ' + (typeof window.NativeStorage.kakaoLogin) + '\n';
-      _diag += 'openInCustomTab 메서드: ' + (typeof window.NativeStorage.openInCustomTab) + '\n';
-    }
-    _diag += '\nUserAgent: ' + navigator.userAgent.substring(0, 200);
-    alert(_diag);
-
     // ★★★ 네이티브 카카오 SDK 브릿지 (KakaoTalk 자동연동) ★★★
     if(window.NativeStorage && typeof NativeStorage.kakaoLogin === 'function'){
       console.log('[요보망] 네이티브 SDK 브릿지로 카카오 로그인');
       window.kakaoNativeLoginCallback = function(jsonStr){
-        // ★ 진단: 받은 원본을 일단 alert로 표시 (디버깅 단계)
         var data = null;
-        try {
-          data = JSON.parse(jsonStr);
-        } catch(parseErr){
-          alert('[디버그] JSON.parse 실패\n\n원본 (앞 500자):\n' + (jsonStr || '').substring(0, 500) + '\n\nerr: ' + parseErr.message);
+        try { data = JSON.parse(jsonStr); }
+        catch(parseErr){
+          console.error('[요보망] JSON.parse 실패:', parseErr);
+          showToast('카카오 응답 파싱 실패');
           var bp=document.getElementById('kakao-btn');
           if(bp){ bp.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; bp.disabled=false; }
           return;
         }
         if(!data.ok){
-          alert('[디버그] 네이티브 로그인 실패\n\n에러: ' + (data.error || '알 수 없는 오류') + '\n\n전체 응답: ' + JSON.stringify(data).substring(0,400));
+          console.warn('[요보망] 네이티브 로그인 실패:', data.error);
+          showToast('카카오 로그인 실패: ' + (data.error || '알 수 없는 오류'));
           var b=document.getElementById('kakao-btn');
           if(b){ b.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; b.disabled=false; }
           return;
         }
-        // 토큰 저장
         try { Kakao.Auth.setAccessToken(data.accessToken); } catch(e){}
         try { TokenManager.setToken(data.accessToken); } catch(e){}
         window._kakaoCallbackProcessing = true;
-        // 사용자 처리 (에러 시 정확한 메시지)
         try {
           processKakaoUser({ id: data.kakaoId, kakao_account: data.kakao_account || {} });
         } catch(procErr){
-          alert('[디버그] processKakaoUser 실패\n\n' + procErr.message + '\n\nstack:\n' + (procErr.stack||'').substring(0,500));
+          console.error('[요보망] processKakaoUser 오류:', procErr);
+          showToast('로그인 처리 오류: ' + procErr.message);
           var b2=document.getElementById('kakao-btn');
           if(b2){ b2.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; b2.disabled=false; }
         }
