@@ -3038,16 +3038,32 @@ function truncateAddrToDong(item){
   return item.area || '';
 }
 
+// ============================================================
+//  좌표 격자화 (보호자/요양보호사 위치 노출 방지)
+//   - 정확 좌표 → 250m 격자에 스냅 (0.0025° ≈ 250m)
+//   - 격자 내 시드 기반 ±50m jitter (같은 id는 항상 같은 위치, 같은 격자 다른 공고는 분산)
+//   - 지도엔 이 격자 좌표 + 750m 반경 원으로 "이 영역 내 어딘가"라고 표시
+//   - 줌 최대 15 + 격자화 + 750m 원 → 3중 프라이버시 보호
+// ============================================================
+var GRID_SIZE = 0.0025; // 약 250m
+function snapToPrivacyGrid(lat, lng, id){
+  var snapLat = Math.round(lat / GRID_SIZE) * GRID_SIZE;
+  var snapLng = Math.round(lng / GRID_SIZE) * GRID_SIZE;
+  // 격자 안에서 시드 기반 결정적 오프셋 (±50m)
+  var seed = (parseInt(id, 10) || 1) * 3571;
+  var jitterLat = (((seed * 13) % 200) - 100) * 0.000005;  // ±50m
+  var jitterLng = (((seed * 17) % 200) - 100) * 0.000006;
+  return [snapLat + jitterLat, snapLng + jitterLng];
+}
+
 function getApproxCoords(area, id, item){
-  // 프라이버시 보호: maxZoom:15로 확대 제한하여 정확한 위치 특정 불가
-  // 도로명주소 좌표를 그대로 사용하되 줌 제한으로 프라이버시 보호
   const itemLat = item ? parseFloat(item.lat) : 0;
   const itemLng = item ? parseFloat(item.lng) : 0;
   if(itemLat && itemLng && itemLat !== 0 && itemLng !== 0){
-    // 도로명주소 좌표 그대로 사용 (줌 제한으로 프라이버시 보호)
-    return [itemLat, itemLng];
+    // ★ 도로명주소 좌표를 250m 격자에 스냅 → 정확 위치 노출 방지
+    return snapToPrivacyGrid(itemLat, itemLng, id);
   }
-  // 좌표 없는 공고: DISTRICT_COORDS 기반
+  // 좌표 없는 공고: DISTRICT_COORDS 기반 (시군구 중심에 시드 기반 분산)
   const base = DISTRICT_COORDS[area];
   if(!base) return [37.5665,126.9780];
   const seed = (id || 1) * 3571 + (area||'').length * 7919;
@@ -3441,45 +3457,41 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
-    // ★ 앱 WebView: SDK 우회하고 intent:// URL을 직접 navigate → 카카오톡 앱 실행
+    // ★★★ Variant 2: Chrome Custom Tab으로 카카오 인증 ★★★
     //
-    // [왜 SDK를 안 쓰나]
-    //   Kakao SDK는 WebView를 감지하면(UA의 "wv" 마커 외에도 쿠키/플러그인/WebKit 특성 등 다중 신호 사용)
-    //   throughTalk을 무시하고 웹 로그인(아이디/비번 입력)으로 폴백함.
-    //   네이티브에서 "; wv)" 마커를 제거해도 Kakao 서버가 다른 방법으로 WebView를 탐지하여 차단함.
+    // [원리]
+    //   1) WebView 안에서 SDK throughTalk이나 intent:// URL은 Kakao 서버/SDK가 WebView를 차단하므로 모두 실패
+    //   2) MainActivity의 NativeStorage.openInCustomTab()을 호출 → Chrome Custom Tab 열림
+    //   3) Custom Tab은 진짜 Chrome 프로세스라 WebView 차단을 받지 않음
+    //   4) Chrome에서 Kakao SDK가 정상 작동 → KakaoTalk 앱 자동 연동
+    //   5) 인증 후 리다이렉트 URL(https://carelink-app.github.io/carelink/?code=...)로 이동
+    //   6) App Links intent-filter가 우리 앱을 띄우면서 MainActivity.onNewIntent로 URL 전달
+    //   7) MainActivity가 WebView에 그 URL 로드 → 콜백 핸들러가 code를 받아 토큰 교환
     //
-    // [동작 원리]
-    //   1) 우리가 직접 intent:// URL을 생성 (scheme=kakaokompassauth, package=com.kakao.talk)
-    //   2) window.location.href로 navigate
-    //   3) MainActivity.shouldOverrideUrlLoading이 intent://를 가로채서 Intent.parseUri로 파싱
-    //   4) resolveActivity(com.kakao.talk) 성공 → startActivity → 카카오톡 앱 실행
-    //   5) KakaoTalk이 인증 → redirect_uri로 ?code=... 반환 → 콜백 핸들러가 토큰 교환
-    //
-    // [카카오톡 미설치 시]
-    //   intent URL의 S.browser_fallback_url 파라미터를 MainActivity가 추출하여 웹 로그인 페이지로 이동.
-    console.log('[CareLink] WebView 감지 → intent URL로 카카오톡 앱 직접 실행');
+    // [App Links 검증 필요]
+    //   - .well-known/assetlinks.json이 GitHub Pages에서 정상 서빙되어야 함
+    //   - APK 서명 인증서 SHA256과 assetlinks.json의 sha256_cert_fingerprints가 일치해야 함
+    //   - 일치하면 OS가 자동으로 우리 앱을 우선 호출 → "Open with..." 선택창 안 뜸
+    console.log('[요보망] WebView → Chrome Custom Tab으로 카카오 OAuth 시작');
 
-    var fallbackAuthUrl = 'https://kauth.kakao.com/oauth/authorize'
+    var authUrl = 'https://kauth.kakao.com/oauth/authorize'
       + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
       + '&redirect_uri=' + encodeURIComponent(redirectUri)
       + '&response_type=code';
 
-    // kakaokompassauth://authorize?... 를 intent:// 포맷으로 래핑
-    var intentUrl = 'intent://authorize'
-      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
-      + '&redirect_uri=' + encodeURIComponent(redirectUri)
-      + '&response_type=code'
-      + '#Intent'
-      + ';scheme=kakaokompassauth'
-      + ';package=com.kakao.talk'
-      + ';S.browser_fallback_url=' + encodeURIComponent(fallbackAuthUrl)
-      + ';end';
-
-    try {
-      window.location.href = intentUrl;
-    } catch(e){
-      console.warn('[CareLink] intent URL 이동 실패 → 웹 로그인 폴백:', e);
-      window.location.href = fallbackAuthUrl;
+    // 네이티브 Custom Tab 호출 — MainActivity의 NativeStorage 인터페이스 (라인 117-137)
+    if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
+      try {
+        NativeStorage.openInCustomTab(authUrl);
+        console.log('[요보망] Custom Tab 호출 성공 — 카카오 인증 페이지 열림');
+      } catch(e){
+        console.warn('[요보망] Custom Tab 실패, window.location 폴백:', e);
+        window.location.href = authUrl;
+      }
+    } else {
+      // NativeStorage 인터페이스가 없는 구버전 앱 → 직접 OAuth URL로 이동
+      console.warn('[요보망] NativeStorage.openInCustomTab 없음 — 직접 URL 이동');
+      window.location.href = authUrl;
     }
   } else {
     // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
@@ -4186,9 +4198,20 @@ function renderMapMarkers(){
     var coords = cluster.coords;
 
     if(items.length === 1){
-      // ── 단일 마커: 기존 스타일 ──
+      // ── 단일 마커: 750m 반경 원 + 마커 ──
       var item = items[0];
       var color = item.type==='employer' ? '#FF6B35' : '#1565C0';
+      // ★ 프라이버시 원 (반경 750m) — 마커보다 먼저 그려서 마커가 위에 오게 함
+      var privacyCircle = L.circle(coords, {
+        radius: 750,
+        color: color,
+        weight: 1.5,
+        opacity: 0.5,
+        fillColor: color,
+        fillOpacity: 0.10,
+        interactive: false   // 원 클릭 안 됨 (마커만 클릭 가능)
+      }).addTo(map);
+      state.mapMarkers.push(privacyCircle);
       var icon = L.divIcon({
         html:'<div style="background:'+color+';width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);">'+(item.type==='employer'?'🏠':'👩‍⚕️')+'</div>',
         className:'',iconSize:[36,36],iconAnchor:[18,18],
@@ -4207,6 +4230,17 @@ function renderMapMarkers(){
       var cnt = items.length;
       var hasEmployer = items.some(function(i){ return i.type==='employer'; });
       var bgColor = hasEmployer ? '#FF6B35' : '#1565C0';
+      // ★ 프라이버시 원 (반경 750m) — 클러스터 위치도 격자 기반이라 정확 위치 아님
+      var clusterCircle = L.circle(coords, {
+        radius: 750,
+        color: bgColor,
+        weight: 1.5,
+        opacity: 0.5,
+        fillColor: bgColor,
+        fillOpacity: 0.10,
+        interactive: false
+      }).addTo(map);
+      state.mapMarkers.push(clusterCircle);
       var clusterIcon = L.divIcon({
         html:'<div style="background:'+bgColor+';min-width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:0 6px;">'
           + cnt
@@ -5254,6 +5288,11 @@ function fallbackCoords(areaKey){
 }
 
 function submitPost(){
+  // ★ 중복 제출 방어 — 동시에 여러 번 클릭하거나 처리 중 다시 누를 때 차단
+  if(window._isSubmittingPost){
+    showToast('⏳ 등록 처리 중입니다. 잠시만 기다려주세요');
+    return;
+  }
   // 지오코딩이 아직 진행 중이면 기다린 후 재시도 (최대 4초)
   if(!_geocodingDone){
     showToast('📍 주소 좌표 변환 중... 잠시만 기다려주세요');
@@ -5402,16 +5441,21 @@ function submitPost(){
       expType: selectedExpType||'', wishDist: selectedCgDist||0,
       sharePhone: sharePhoneSelected,
     };
+    window._isSubmittingPost = true;
     if(fbDB){
-      fbDB.ref('listings').push(newItem).catch(err=>{
-        console.error('구직 공고 등록 실패:', err);
-        showToast('⚠️ 공고 등록 실패. 다시 시도해주세요.');
-      });
+      fbDB.ref('listings').push(newItem)
+        .then(function(){ window._isSubmittingPost = false; })
+        .catch(err=>{
+          window._isSubmittingPost = false;
+          console.error('구직 공고 등록 실패:', err);
+          showToast('⚠️ 공고 등록 실패. 다시 시도해주세요.');
+        });
       // onValue 리스너가 자동으로 renderListings() 호출
     } else {
       state.listings.unshift(newItem);
       renderListings();
       updateMyListings(newItem);
+      window._isSubmittingPost = false;
     }
     resetPostForm();
     showToast('✅ 구직 공고가 등록되었습니다! (14일 후 자동 삭제)');
@@ -5431,16 +5475,21 @@ function submitPost(){
     lat:postLat, lng:postLng, roadAddress:roadAddress, bname:bname,
     sharePhone: sharePhoneSelected,
   };
+  window._isSubmittingPost = true;
   if(fbDB){
-    fbDB.ref('listings').push(newItem).catch(err=>{
-      console.error('구인 공고 등록 실패:', err);
-      showToast('⚠️ 공고 등록 실패. 다시 시도해주세요.');
-    });
+    fbDB.ref('listings').push(newItem)
+      .then(function(){ window._isSubmittingPost = false; })
+      .catch(err=>{
+        window._isSubmittingPost = false;
+        console.error('구인 공고 등록 실패:', err);
+        showToast('⚠️ 공고 등록 실패. 다시 시도해주세요.');
+      });
     // onValue 리스너가 자동으로 renderListings() 호출
   } else {
     state.listings.unshift(newItem);
     renderListings();
     updateMyListings(newItem);
+    window._isSubmittingPost = false;
   }
   resetPostForm();
   showToast('✅ 구인 공고가 등록되었습니다! (14일 후 자동 삭제)');
@@ -5560,6 +5609,12 @@ function doLogout(){
   state.searchQuery = '';
   state.homePostType = null;
   state.filter = null;
+  // ★ 추가 cleanup — 다음 사용자 로그인 시 이전 데이터/플래그 잔존 방지
+  state.myCoords = null;
+  state._myListings = null;
+  state._lastInterview = null;
+  window._kakaoCallbackProcessing = false;
+  window._isSubmittingPost = false;
   // 실시간 리스너 해제
   if(state.chatUnsubscribe){ try { state.chatUnsubscribe(); } catch(e){} state.chatUnsubscribe = null; }
   if(typeof cleanupSeatListeners === 'function'){ try { cleanupSeatListeners(); } catch(e){} }
@@ -7973,43 +8028,49 @@ function submitCertApply(){
   const s = d.certSchedule[currentApplyIdx];
   const fbKey = getEduFbKey('cert', currentApplyIdx);
 
-  // 중복 신청 체크
+  // ★ 원자적 신청 — Firebase 트랜잭션으로 중복신청 + 정원초과 동시에 방어
   const userId = (state.user&&state.user.kakaoId)||name+phone;
-  fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
-    if(snap.exists()){
-      showToast('이미 해당 일정에 신청하셨습니다');
+  const capacity = s.capacity || 30;
+  const appData = {
+    type: 'cert',
+    region: selectedEduRegion,
+    instName: d.instName,
+    scheduleDate: s.date,
+    scheduleTime: s.time,
+    name: name,
+    phone: phone,
+    discount: discount,
+    license: license || '',
+    userId: userId,
+    appliedAt: Date.now(),
+    appliedDate: new Date().toLocaleDateString('ko-KR')
+  };
+  fbDB.ref('edu-applications/'+fbKey).transaction(function(current){
+    current = current || {};
+    // 중복 신청 검사
+    for(var k in current){
+      if(current[k] && current[k].userId === userId) return; // abort
+    }
+    // 정원 검사
+    if(Object.keys(current).length >= capacity) return; // abort
+    // 추가
+    var newKey = 'app_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    current[newKey] = appData;
+    return current;
+  }, function(err, committed, snap){
+    if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
+    if(!committed){
+      // abort된 이유 확인 (중복 vs 정원)
+      var existing = (snap && snap.val()) || {};
+      var alreadyApplied = false;
+      for(var k in existing){ if(existing[k] && existing[k].userId === userId){ alreadyApplied = true; break; } }
+      if(alreadyApplied) showToast('이미 해당 일정에 신청하셨습니다');
+      else showToast('정원이 마감되었습니다');
       return;
     }
-    // 정원 체크
-    fbDB.ref('edu-applications/'+fbKey).once('value', allSnap=>{
-      const currentCount = allSnap.numChildren();
-      const capacity = s.capacity || 30;
-      if(currentCount >= capacity){
-        showToast('정원이 마감되었습니다');
-        return;
-      }
-      // 저장
-      const appData = {
-        type: 'cert',
-        region: selectedEduRegion,
-        instName: d.instName,
-        scheduleDate: s.date,
-        scheduleTime: s.time,
-        name: name,
-        phone: phone,
-        discount: discount,
-        license: license || '',
-        userId: userId,
-        appliedAt: Date.now(),
-        appliedDate: new Date().toLocaleDateString('ko-KR')
-      };
-      fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
-        if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
-        closeModal('modal-edu-cert-apply');
-        showToast('✅ 교육 신청이 완료되었습니다!');
-        renderEduRegionContent();
-      });
-    });
+    closeModal('modal-edu-cert-apply');
+    showToast('✅ 교육 신청이 완료되었습니다!');
+    renderEduRegionContent();
   });
 }
 
@@ -8220,38 +8281,43 @@ function submitRefresherApply(){
   const s = d.refresherSchedule[currentApplyIdx];
   const fbKey = getEduFbKey('refresher', currentApplyIdx);
 
+  // ★ 원자적 신청 — Firebase 트랜잭션 (보수교육)
   const userId = (state.user&&state.user.kakaoId)||name+phone;
-  fbDB.ref('edu-applications/'+fbKey).orderByChild('userId').equalTo(userId).once('value', snap=>{
-    if(snap.exists()){
-      showToast('이미 해당 일정에 신청하셨습니다');
+  const capacity = s.capacity || 20;
+  const appData = {
+    type: 'refresher',
+    region: selectedEduRegion,
+    instName: d.instName,
+    scheduleDate: s.date,
+    scheduleTime: s.time,
+    name: name,
+    phone: phone,
+    userId: userId,
+    appliedAt: Date.now(),
+    appliedDate: new Date().toLocaleDateString('ko-KR')
+  };
+  fbDB.ref('edu-applications/'+fbKey).transaction(function(current){
+    current = current || {};
+    for(var k in current){
+      if(current[k] && current[k].userId === userId) return;
+    }
+    if(Object.keys(current).length >= capacity) return;
+    var newKey = 'app_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    current[newKey] = appData;
+    return current;
+  }, function(err, committed, snap){
+    if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
+    if(!committed){
+      var existing = (snap && snap.val()) || {};
+      var alreadyApplied = false;
+      for(var k in existing){ if(existing[k] && existing[k].userId === userId){ alreadyApplied = true; break; } }
+      if(alreadyApplied) showToast('이미 해당 일정에 신청하셨습니다');
+      else showToast('정원이 마감되었습니다');
       return;
     }
-    fbDB.ref('edu-applications/'+fbKey).once('value', allSnap=>{
-      const currentCount = allSnap.numChildren();
-      const capacity = s.capacity || 20;
-      if(currentCount >= capacity){
-        showToast('정원이 마감되었습니다');
-        return;
-      }
-      const appData = {
-        type: 'refresher',
-        region: selectedEduRegion,
-        instName: d.instName,
-        scheduleDate: s.date,
-        scheduleTime: s.time,
-        name: name,
-        phone: phone,
-        userId: userId,
-        appliedAt: Date.now(),
-        appliedDate: new Date().toLocaleDateString('ko-KR')
-      };
-      fbDB.ref('edu-applications/'+fbKey).push(appData, err=>{
-        if(err){ showToast('신청 중 오류가 발생했습니다'); return; }
-        closeModal('modal-edu-refresher-apply');
-        showToast('✅ 보수교육 신청이 완료되었습니다!\n담당자가 연락드리겠습니다.');
-        renderEduRegionContent();
-      });
-    });
+    closeModal('modal-edu-refresher-apply');
+    showToast('✅ 보수교육 신청이 완료되었습니다!\n담당자가 연락드리겠습니다.');
+    renderEduRegionContent();
   });
 }
 
