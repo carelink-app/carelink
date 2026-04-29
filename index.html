@@ -3605,6 +3605,17 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
+    // ★★★ 진단 — 어떤 이유로 폴백되는지 사용자에게 보여줌 ★★★
+    var _diag = '[진단 정보]\n\n';
+    _diag += 'isInApp: true\n';
+    _diag += 'NativeStorage 존재: ' + (!!window.NativeStorage) + '\n';
+    if(window.NativeStorage){
+      _diag += 'kakaoLogin 메서드: ' + (typeof window.NativeStorage.kakaoLogin) + '\n';
+      _diag += 'openInCustomTab 메서드: ' + (typeof window.NativeStorage.openInCustomTab) + '\n';
+    }
+    _diag += '\nUserAgent: ' + navigator.userAgent.substring(0, 200);
+    alert(_diag);
+
     // ★★★ 네이티브 카카오 SDK 브릿지 (KakaoTalk 자동연동) ★★★
     if(window.NativeStorage && typeof NativeStorage.kakaoLogin === 'function'){
       console.log('[요보망] 네이티브 SDK 브릿지로 카카오 로그인');
