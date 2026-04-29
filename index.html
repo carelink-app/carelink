@@ -3457,59 +3457,14 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
-    // ★★★ Variant 7: Custom Tab으로 우리 사이트를 열고 자동 로그인 트리거 ★★★
-    //
-    // [핵심 전략]
-    //   카카오 인증 페이지를 직접 열면 Custom Tab의 X-Requested-With 헤더 때문에 카카오 서버가 차단함.
-    //   대신 우리 사이트(carelink-app.github.io)를 Custom Tab으로 열고, ?kakao_login=auto 파라미터로
-    //   자동 로그인을 트리거함. 우리 사이트는 Custom Tab의 X-Requested-With를 받아도 OK
-    //   (우리 사이트는 그 헤더로 차별 안 함).
-    //
-    // [동작 흐름]
-    //   1) NativeStorage.openInCustomTab(우리사이트 + '?kakao_login=auto') 호출
-    //   2) Custom Tab 열림 → 진짜 Chrome 컨텍스트 → 우리 사이트 로드
-    //   3) Custom Tab의 UA에는 "YoyangLinkApp" 없음 → isInApp=false
-    //   4) 페이지 init 후 ?kakao_login=auto 감지 → 자동으로 doKakaoLogin() 재호출
-    //   5) 이번엔 isInApp=false → else 분기 → Kakao.Auth.authorize({throughTalk:true})
-    //   6) Chrome에서 SDK가 정상 작동 → KakaoTalk 앱 직접 실행
-    //   7) 인증 후 redirect_uri로 복귀 → App Links가 우리 앱 띄움 → 콜백 처리
-    console.log('[요보망] WebView → Custom Tab으로 우리 사이트 + auto-login 트리거');
-
-    var siteUrl = window.location.origin + window.location.pathname + '?kakao_login=auto';
-
-    if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
-      try {
-        NativeStorage.openInCustomTab(siteUrl);
-        console.log('[요보망] ✓ Custom Tab으로 우리 사이트 호출');
-        // 버튼 상태 복구 (사용자가 돌아왔을 때 재시도 가능하도록)
-        setTimeout(function(){
-          if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
-        }, 1500);
-        return;
-      } catch(e){
-        console.warn('[요보망] Custom Tab 실패:', e);
-      }
-    }
-
-    // 폴백 1: NativeStorage 없는 구버전 APK → kakao 스킴 직접
-    var NATIVE_KEY = '8f9ba1dbad2435cf39601892a5013faf';
-    try {
-      var kakaoAppUrl = 'kakao' + NATIVE_KEY + '://oauth'
-        + '?client_id=' + NATIVE_KEY
-        + '&redirect_uri=' + encodeURIComponent(redirectUri)
-        + '&response_type=code';
-      window.location.href = kakaoAppUrl;
-      return;
-    } catch(e){
-      console.warn('[요보망] kakao 스킴 실패:', e);
-    }
-
-    // 폴백 2: 마지막 수단 — WebView에 직접 로드 (id/비번 화면 뜸)
+    // ★ 단순화된 안정 흐름 — WebView가 OAuth URL 직접 로드
+    //   카카오톡 자동연동(원탭)은 WebView 환경 보안 정책상 불안정해서 제거.
+    //   사용자가 ID/PW 한 번 입력 → 토큰 캐시 → 다음부턴 자동 로그인.
+    console.log('[요보망] WebView → kauth.kakao.com OAuth 페이지 (안정 흐름)');
     var authUrl = 'https://kauth.kakao.com/oauth/authorize'
       + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
       + '&redirect_uri=' + encodeURIComponent(redirectUri)
       + '&response_type=code';
-    console.warn('[요보망] 모든 방법 실패 → WebView 직접 로드');
     window.location.href = authUrl;
   } else {
     // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
@@ -3525,35 +3480,10 @@ function doKakaoLogin(){
 document.addEventListener('DOMContentLoaded', function(){
   const urlParams = new URLSearchParams(window.location.search);
 
-  // ★ Custom Tab 자동 로그인 트리거 ─ ?kakao_login=auto 가 있으면 즉시 카카오 로그인 호출
-  // 이 분기는 Custom Tab(진짜 Chrome) 환경에서 실행됨 — isInApp=false 이므로 SDK throughTalk 정상 작동
+  // ★ ?kakao_login=auto 파라미터가 URL에 남아있으면 정리 (무한 루프 방지)
   if(urlParams.get('kakao_login') === 'auto'){
-    console.log('[요보망] auto-login 파라미터 감지 → SDK throughTalk 즉시 호출');
-    // URL에서 파라미터 제거 (페이지 새로고침 시 무한 루프 방지)
     window.history.replaceState({}, document.title, window.location.pathname);
-    // SDK가 로드된 후 호출 (지연)
-    var _autoLoginAttempts = 0;
-    var _autoLoginTimer = setInterval(function(){
-      _autoLoginAttempts++;
-      if(window.Kakao && Kakao.isInitialized && Kakao.isInitialized()){
-        clearInterval(_autoLoginTimer);
-        try {
-          if(typeof doKakaoLogin === 'function'){
-            doKakaoLogin();
-          } else {
-            // doKakaoLogin이 아직 정의 안 됐으면 SDK 직접 호출
-            Kakao.Auth.authorize({
-              redirectUri: window.location.origin + window.location.pathname,
-              throughTalk: true
-            });
-          }
-        } catch(e){ console.error('[요보망] auto-login 호출 실패:', e); }
-      } else if(_autoLoginAttempts > 30){  // 약 6초 대기
-        clearInterval(_autoLoginTimer);
-        console.warn('[요보망] Kakao SDK 초기화 대기 타임아웃');
-      }
-    }, 200);
-    return;
+    // 자동 트리거 제거 — 사용자가 카카오 버튼을 직접 누르도록 함 (안정성 우선)
   }
 
   const code = urlParams.get('code');
