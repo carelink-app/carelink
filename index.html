@@ -3457,18 +3457,22 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
-    // ★★★ Variant 5: 다단계 시도 — Custom Tab → window.open(외부 브라우저) → kakao 스킴 → WebView ★★★
+    // ★★★ Variant 6: window.open(외부 브라우저) 우선 — X-Requested-With 헤더 회피 ★★★
     //
-    // [전략 — 가장 가능성 높은 순서로]
-    //   1) NativeStorage.openInCustomTab() — Chrome Custom Tab (가장 확실)
-    //   2) window.open(authUrl, '_blank') — MainActivity.onCreateWindow가 잡아서 외부 Chrome 띄움
-    //   3) kakao{NATIVE_KEY}://oauth — KakaoTalk 직접 호출 (구버전 호환)
-    //   4) window.location.href = authUrl — 마지막 수단 (WebView에 직접 로드)
+    // [핵심 깨달음]
+    //   Custom Tab은 Chrome 프로세스이지만 호출자 패키지명을 X-Requested-With 헤더에 자동 첨부.
+    //   Kakao 서버가 이 헤더로 우리를 "앱 컨텍스트"로 감지 → 카카오톡 버튼 숨김.
+    //   외부 Chrome(default browser)으로 띄우면 그 헤더 없이 깨끗한 요청 → 카카오톡 버튼 정상 표시.
     //
-    // [왜 이렇게 다단계인가]
-    //   사용자 APK 버전에 따라 어떤 인터페이스가 노출되는지 다름.
-    //   순차 시도해서 가능한 첫 번째 방법으로 작동시킴.
-    console.log('[요보망] WebView 카카오 로그인 — 다단계 시도 시작');
+    // [동작 원리]
+    //   1) window.open(authUrl, '_blank') 호출
+    //   2) WebView가 WebChromeClient.onCreateWindow 발화
+    //   3) MainActivity의 onCreateWindow 핸들러가 임시 WebView 생성 → URL 로드
+    //   4) shouldOverrideUrlLoading이 잡아서 — 우리 도메인 아니면 startActivity(VIEW, url) → 외부 Chrome
+    //   5) 외부 Chrome에서 kauth.kakao.com 로드 → 카카오톡 버튼 정상 표시
+    //   6) 사용자가 "카카오톡으로 로그인" 클릭 → KakaoTalk 앱 실행 → 인증 → redirect_uri로 복귀
+    //   7) App Links가 우리 앱 띄움 → MainActivity.onNewIntent → WebView에 콜백 URL 로드 → 토큰 교환
+    console.log('[요보망] WebView 카카오 로그인 — 외부 Chrome 우선 시도');
 
     var NATIVE_KEY = '8f9ba1dbad2435cf39601892a5013faf';
     var JS_KEY = 'caab60a0d7759feab93abb6cb6a8b331';
@@ -3478,30 +3482,27 @@ function doKakaoLogin(){
       + '&redirect_uri=' + encodeURIComponent(redirectUri)
       + '&response_type=code';
 
-    // 시도 1: Chrome Custom Tab (최신 APK)
+    // 시도 1: window.open으로 외부 브라우저 호출 (X-Requested-With 없음 → 카카오톡 버튼 보임)
+    try {
+      var popup = window.open(authUrl, '_blank');
+      if(popup !== null){  // null = 차단됨, 그 외(undefined 포함) = 성공
+        console.log('[요보망] ✓ window.open 호출 (외부 Chrome 위임)');
+        return;
+      }
+      console.warn('[요보망] window.open이 null 반환 (popup blocker), 다음 시도');
+    } catch(e){
+      console.warn('[요보망] window.open 예외:', e);
+    }
+
+    // 시도 2: Chrome Custom Tab (window.open 실패 시)
     if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
       try {
         NativeStorage.openInCustomTab(authUrl);
-        console.log('[요보망] ✓ Custom Tab 호출 성공');
+        console.log('[요보망] Custom Tab 폴백 (X-Requested-With 헤더로 카카오톡 버튼 안 보일 수 있음)');
         return;
       } catch(e){
-        console.warn('[요보망] Custom Tab 호출 실패, 다음 시도:', e);
+        console.warn('[요보망] Custom Tab 실패:', e);
       }
-    } else {
-      console.warn('[요보망] NativeStorage.openInCustomTab 없음 (구버전 APK)');
-    }
-
-    // 시도 2: window.open으로 외부 브라우저 호출
-    //   MainActivity.onCreateWindow가 잡아서 startActivity(VIEW, url) → 외부 Chrome 실행
-    try {
-      var popup = window.open(authUrl, '_blank');
-      if(popup){
-        console.log('[요보망] ✓ window.open 성공 (외부 브라우저로 위임)');
-        return;
-      }
-      console.warn('[요보망] window.open 차단됨, 다음 시도');
-    } catch(e){
-      console.warn('[요보망] window.open 실패, 다음 시도:', e);
     }
 
     // 시도 3: kakao{NATIVE_KEY}://oauth — KakaoTalk 직접
@@ -3511,14 +3512,13 @@ function doKakaoLogin(){
         + '&redirect_uri=' + encodeURIComponent(redirectUri)
         + '&response_type=code';
       window.location.href = kakaoAppUrl;
-      console.log('[요보망] kakao 스킴 시도 (MainActivity가 처리)');
       return;
     } catch(e){
       console.warn('[요보망] kakao 스킴 실패:', e);
     }
 
     // 시도 4: 마지막 수단 — WebView에 직접 로드
-    console.warn('[요보망] 모든 방법 실패 → WebView에 직접 로드 (id/비번 화면 뜸)');
+    console.warn('[요보망] 모든 방법 실패 → WebView 직접 로드');
     window.location.href = authUrl;
   } else {
     // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
