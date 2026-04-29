@@ -3416,115 +3416,11 @@ function checkConsent(){
   }
 }
 
-window.doKakaoLogin = doKakaoLogin;
-function doKakaoLogin(){
-  // 카카오 로그인 버튼 클릭 시 필수 약관 자동 동의 처리
-  var termsOk = document.getElementById('agree-terms');
-  var privacyOk = document.getElementById('agree-privacy');
-  var contactOk = document.getElementById('agree-contact');
-  var allCb = document.getElementById('agree-all');
-  if(termsOk) termsOk.checked = true;
-  if(privacyOk) privacyOk.checked = true;
-  if(contactOk) contactOk.checked = true;  // 연락처 수집 동의도 필수
-  // 전체동의 체크박스도 동기화
-  if(allCb){
-    var all = document.querySelectorAll('.consent-cb');
-    var allChecked = true;
-    all.forEach(function(cb){ if(!cb.checked) allChecked = false; });
-    allCb.checked = allChecked;
-  }
-
-  const btn = document.getElementById('kakao-btn');
-  if(btn){ btn.disabled=true; btn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 중...'; }
-
-  var redirectUri = window.location.origin + window.location.pathname;
-
-  // 앱 WebView 감지 (UserAgent에 YoyangLinkApp 포함)
-  var isInApp = navigator.userAgent.indexOf('YoyangLinkApp') !== -1;
-
-  // 연락처/마케팅 동의 여부 저장 (Firebase에는 회원가입 완료 후 저장)
-  try {
-    localStorage.setItem('cl_contact_consent', document.getElementById('agree-contact').checked ? '1' : '0');
-    var mkt = document.getElementById('agree-marketing');
-    localStorage.setItem('cl_marketing_consent', (mkt && mkt.checked) ? '1' : '0');
-    localStorage.setItem('cl_consent_at', String(Date.now())); // 동의 일시 (분쟁 시 증거)
-  } catch(e){}
-
-  if(!window.Kakao || !Kakao.isInitialized()){
-    showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-    if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
-    return;
-  }
-
-  if(isInApp){
-    // ★ 단순화된 안정 흐름 — WebView가 OAuth URL 직접 로드
-    //   카카오톡 자동연동(원탭)은 WebView 환경 보안 정책상 불안정해서 제거.
-    //   사용자가 ID/PW 한 번 입력 → 토큰 캐시 → 다음부턴 자동 로그인.
-    console.log('[요보망] WebView → kauth.kakao.com OAuth 페이지 (안정 흐름)');
-    var authUrl = 'https://kauth.kakao.com/oauth/authorize'
-      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
-      + '&redirect_uri=' + encodeURIComponent(redirectUri)
-      + '&response_type=code';
-    window.location.href = authUrl;
-  } else {
-    // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
-    Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
-  }
-}
 
 // ============================================================
-//  Kakao OAuth 인가코드 콜백 처리 (SDK v2 리다이렉트 방식)
-//  Netlify _redirects 프록시:
-//    /api/kakao/token  →  https://kauth.kakao.com/oauth/token  (server-to-server, CORS 없음)
+//  processKakaoUser — OAuth + 네이티브 SDK 양쪽에서 호출되는 공통 사용자 처리
 // ============================================================
-document.addEventListener('DOMContentLoaded', function(){
-  const urlParams = new URLSearchParams(window.location.search);
-
-  // ★ ?kakao_login=auto 파라미터가 URL에 남아있으면 정리 (무한 루프 방지)
-  if(urlParams.get('kakao_login') === 'auto'){
-    window.history.replaceState({}, document.title, window.location.pathname);
-    // 자동 트리거 제거 — 사용자가 카카오 버튼을 직접 누르도록 함 (안정성 우선)
-  }
-
-  const code = urlParams.get('code');
-  if(!code) return;
-
-  // ★ 카카오 콜백 처리 중 플래그 (init()에서 로그인 화면 표시 방지)
-  window._kakaoCallbackProcessing = true;
-
-  // URL에서 code 파라미터 제거 (히스토리 정리)
-  window.history.replaceState({}, document.title, window.location.pathname);
-
-  // SDK 초기화
-  if(!Kakao.isInitialized()) Kakao.init('caab60a0d7759feab93abb6cb6a8b331');
-
-  // 로딩 상태 표시
-  const btn = document.getElementById('kakao-btn');
-  if(btn){ btn.disabled=true; btn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 처리 중...'; }
-
-  // Netlify 프록시를 통한 토큰 교환 (CORS 우회)
-  fetch('https://kauth.kakao.com/oauth/token', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'},
-    body: new URLSearchParams({
-      grant_type: 'authorization_code',
-      client_id: 'caab60a0d7759feab93abb6cb6a8b331',
-      redirect_uri: window.location.origin + window.location.pathname,
-      code: code
-    })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    if(data.error) throw new Error(data.error_description || data.error);
-    console.log('[CareLink] 카카오 토큰 교환 성공');
-    // 토큰을 localStorage에 안전하게 저장 (영구 자동로그인)
-    Kakao.Auth.setAccessToken(data.access_token);
-    TokenManager.setToken(data.access_token);
-    return fetch('https://kapi.kakao.com/v2/user/me', {
-      headers: { 'Authorization': 'Bearer ' + data.access_token }
-    }).then(function(r){ return r.json(); });
-  })
-  .then(function(res){
+function processKakaoUser(res){
     console.log('[CareLink] 카카오 사용자 정보 수신 완료');
     const kakaoId = String(res.id);
     const account = res.kakao_account || {};
@@ -3666,6 +3562,143 @@ document.addEventListener('DOMContentLoaded', function(){
       console.error('[CareLink] Firebase REST 조회 실패:', fbError);
       _goToNewUserFlow();
     });
+}
+
+window.doKakaoLogin = doKakaoLogin;
+function doKakaoLogin(){
+  // 카카오 로그인 버튼 클릭 시 필수 약관 자동 동의 처리
+  var termsOk = document.getElementById('agree-terms');
+  var privacyOk = document.getElementById('agree-privacy');
+  var contactOk = document.getElementById('agree-contact');
+  var allCb = document.getElementById('agree-all');
+  if(termsOk) termsOk.checked = true;
+  if(privacyOk) privacyOk.checked = true;
+  if(contactOk) contactOk.checked = true;  // 연락처 수집 동의도 필수
+  // 전체동의 체크박스도 동기화
+  if(allCb){
+    var all = document.querySelectorAll('.consent-cb');
+    var allChecked = true;
+    all.forEach(function(cb){ if(!cb.checked) allChecked = false; });
+    allCb.checked = allChecked;
+  }
+
+  const btn = document.getElementById('kakao-btn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 중...'; }
+
+  var redirectUri = window.location.origin + window.location.pathname;
+
+  // 앱 WebView 감지 (UserAgent에 YoyangLinkApp 포함)
+  var isInApp = navigator.userAgent.indexOf('YoyangLinkApp') !== -1;
+
+  // 연락처/마케팅 동의 여부 저장 (Firebase에는 회원가입 완료 후 저장)
+  try {
+    localStorage.setItem('cl_contact_consent', document.getElementById('agree-contact').checked ? '1' : '0');
+    var mkt = document.getElementById('agree-marketing');
+    localStorage.setItem('cl_marketing_consent', (mkt && mkt.checked) ? '1' : '0');
+    localStorage.setItem('cl_consent_at', String(Date.now())); // 동의 일시 (분쟁 시 증거)
+  } catch(e){}
+
+  if(!window.Kakao || !Kakao.isInitialized()){
+    showToast('카카오 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
+    return;
+  }
+
+  if(isInApp){
+    // ★★★ 네이티브 카카오 SDK 브릿지 (KakaoTalk 자동연동) ★★★
+    if(window.NativeStorage && typeof NativeStorage.kakaoLogin === 'function'){
+      console.log('[요보망] 네이티브 SDK 브릿지로 카카오 로그인');
+      window.kakaoNativeLoginCallback = function(jsonStr){
+        try {
+          var data = JSON.parse(jsonStr);
+          if(!data.ok){
+            console.warn('[요보망] 네이티브 로그인 실패:', data.error);
+            showToast('카카오 로그인 실패: ' + (data.error || '알 수 없는 오류'));
+            var b=document.getElementById('kakao-btn');
+            if(b){ b.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; b.disabled=false; }
+            return;
+          }
+          try { Kakao.Auth.setAccessToken(data.accessToken); } catch(e){}
+          TokenManager.setToken(data.accessToken);
+          window._kakaoCallbackProcessing = true;
+          processKakaoUser({ id: data.kakaoId, kakao_account: data.kakao_account || {} });
+        } catch(e){
+          console.error('[요보망] 네이티브 콜백 오류:', e);
+          showToast('카카오 로그인 처리 오류');
+          var b2=document.getElementById('kakao-btn');
+          if(b2){ b2.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; b2.disabled=false; }
+        }
+      };
+      try { NativeStorage.kakaoLogin(); return; }
+      catch(e){ console.warn('[요보망] kakaoLogin 호출 실패:', e); }
+    }
+    // 폴백: 구버전 APK → WebView OAuth URL
+    console.log('[요보망] 폴백 WebView OAuth');
+    var authUrl = 'https://kauth.kakao.com/oauth/authorize'
+      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=code';
+    window.location.href = authUrl;
+  } else {
+    // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
+    Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
+  }
+}
+
+// ============================================================
+//  Kakao OAuth 인가코드 콜백 처리 (SDK v2 리다이렉트 방식)
+//  Netlify _redirects 프록시:
+//    /api/kakao/token  →  https://kauth.kakao.com/oauth/token  (server-to-server, CORS 없음)
+// ============================================================
+document.addEventListener('DOMContentLoaded', function(){
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // ★ ?kakao_login=auto 파라미터가 URL에 남아있으면 정리 (무한 루프 방지)
+  if(urlParams.get('kakao_login') === 'auto'){
+    window.history.replaceState({}, document.title, window.location.pathname);
+    // 자동 트리거 제거 — 사용자가 카카오 버튼을 직접 누르도록 함 (안정성 우선)
+  }
+
+  const code = urlParams.get('code');
+  if(!code) return;
+
+  // ★ 카카오 콜백 처리 중 플래그 (init()에서 로그인 화면 표시 방지)
+  window._kakaoCallbackProcessing = true;
+
+  // URL에서 code 파라미터 제거 (히스토리 정리)
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  // SDK 초기화
+  if(!Kakao.isInitialized()) Kakao.init('caab60a0d7759feab93abb6cb6a8b331');
+
+  // 로딩 상태 표시
+  const btn = document.getElementById('kakao-btn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<span style="font-size:18px">⏳</span> 로그인 처리 중...'; }
+
+  // Netlify 프록시를 통한 토큰 교환 (CORS 우회)
+  fetch('https://kauth.kakao.com/oauth/token', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'},
+    body: new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: 'caab60a0d7759feab93abb6cb6a8b331',
+      redirect_uri: window.location.origin + window.location.pathname,
+      code: code
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.error) throw new Error(data.error_description || data.error);
+    console.log('[CareLink] 카카오 토큰 교환 성공');
+    // 토큰을 localStorage에 안전하게 저장 (영구 자동로그인)
+    Kakao.Auth.setAccessToken(data.access_token);
+    TokenManager.setToken(data.access_token);
+    return fetch('https://kapi.kakao.com/v2/user/me', {
+      headers: { 'Authorization': 'Bearer ' + data.access_token }
+    }).then(function(r){ return r.json(); });
+  })
+  .then(function(res){
+    processKakaoUser(res);
   })
   .catch(function(err){
     console.error('카카오 로그인 처리 오류:', err);
