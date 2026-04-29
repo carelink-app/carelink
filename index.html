@@ -3457,42 +3457,65 @@ function doKakaoLogin(){
   }
 
   if(isInApp){
-    // ★★★ Variant 2: Chrome Custom Tab으로 카카오 인증 ★★★
+    // ★★★ Variant 3 (combined): kakaokompassauth:// 직접 + Custom Tab 폴백 ★★★
     //
-    // [원리]
-    //   1) WebView 안에서 SDK throughTalk이나 intent:// URL은 Kakao 서버/SDK가 WebView를 차단하므로 모두 실패
-    //   2) MainActivity의 NativeStorage.openInCustomTab()을 호출 → Chrome Custom Tab 열림
-    //   3) Custom Tab은 진짜 Chrome 프로세스라 WebView 차단을 받지 않음
-    //   4) Chrome에서 Kakao SDK가 정상 작동 → KakaoTalk 앱 자동 연동
-    //   5) 인증 후 리다이렉트 URL(https://carelink-app.github.io/carelink/?code=...)로 이동
-    //   6) App Links intent-filter가 우리 앱을 띄우면서 MainActivity.onNewIntent로 URL 전달
-    //   7) MainActivity가 WebView에 그 URL 로드 → 콜백 핸들러가 code를 받아 토큰 교환
-    //
-    // [App Links 검증 필요]
-    //   - .well-known/assetlinks.json이 GitHub Pages에서 정상 서빙되어야 함
-    //   - APK 서명 인증서 SHA256과 assetlinks.json의 sha256_cert_fingerprints가 일치해야 함
-    //   - 일치하면 OS가 자동으로 우리 앱을 우선 호출 → "Open with..." 선택창 안 뜸
-    console.log('[요보망] WebView → Chrome Custom Tab으로 카카오 OAuth 시작');
+    // [전략]
+    //   1) 1순위: kakaokompassauth:// scheme으로 직접 KakaoTalk 앱 호출
+    //      MainActivity.shouldOverrideUrlLoading의 라인 358 분기가 이 URL 잡아서
+    //      new Intent(ACTION_VIEW, Uri.parse) → KakaoTalk 앱 직접 실행
+    //   2) 2순위: KakaoTalk 미설치 또는 인텐트 매칭 실패 시 Custom Tab으로 OAuth 페이지
+    //      Custom Tab은 진짜 Chrome → 거기서 사용자가 "카카오톡으로 로그인" 버튼 클릭 가능
+    //   3) 3순위: 둘 다 실패 시 WebView에 OAuth URL 직접 로드
+    console.log('[요보망] WebView → kakaokompassauth:// 직접 호출 시도');
 
     var authUrl = 'https://kauth.kakao.com/oauth/authorize'
       + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
       + '&redirect_uri=' + encodeURIComponent(redirectUri)
       + '&response_type=code';
 
-    // 네이티브 Custom Tab 호출 — MainActivity의 NativeStorage 인터페이스 (라인 117-137)
-    if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
-      try {
-        NativeStorage.openInCustomTab(authUrl);
-        console.log('[요보망] Custom Tab 호출 성공 — 카카오 인증 페이지 열림');
-      } catch(e){
-        console.warn('[요보망] Custom Tab 실패, window.location 폴백:', e);
-        window.location.href = authUrl;
+    // 1순위: kakaokompassauth:// 직접 호출 (KakaoTalk 앱 즉시 실행)
+    var kakaoAppUrl = 'kakaokompassauth://authorize'
+      + '?client_id=caab60a0d7759feab93abb6cb6a8b331'
+      + '&redirect_uri=' + encodeURIComponent(redirectUri)
+      + '&response_type=code';
+
+    // KakaoTalk 호출 시도 + 실패 시 Custom Tab으로 폴백 타이머
+    var fallbackToCustomTab = function(){
+      console.warn('[요보망] kakaokompassauth 실패 추정 → Custom Tab으로 폴백');
+      if(window.NativeStorage && typeof NativeStorage.openInCustomTab === 'function'){
+        try { NativeStorage.openInCustomTab(authUrl); return; }
+        catch(e){ console.warn('[요보망] Custom Tab도 실패:', e); }
       }
-    } else {
-      // NativeStorage 인터페이스가 없는 구버전 앱 → 직접 OAuth URL로 이동
-      console.warn('[요보망] NativeStorage.openInCustomTab 없음 — 직접 URL 이동');
+      // 마지막 폴백 — WebView에서 직접 (id/비번 화면 뜨지만 최소한 보임)
       window.location.href = authUrl;
+    };
+
+    // 페이지 visibility 변화로 KakaoTalk 호출 성공 여부 감지
+    // KakaoTalk이 실행되면 우리 앱이 background 됨 → visibility 변화
+    var didLeave = false;
+    var visHandler = function(){
+      if(document.hidden) didLeave = true;
+    };
+    document.addEventListener('visibilitychange', visHandler);
+
+    try {
+      window.location.href = kakaoAppUrl;
+    } catch(e){
+      console.warn('[요보망] kakaokompassauth 즉시 실패:', e);
+      document.removeEventListener('visibilitychange', visHandler);
+      fallbackToCustomTab();
+      return;
     }
+
+    // 1.5초 안에 visibility 변화 없으면 KakaoTalk 호출 실패로 간주 → Custom Tab 폴백
+    setTimeout(function(){
+      document.removeEventListener('visibilitychange', visHandler);
+      if(!didLeave){
+        // KakaoTalk이 안 떴음 → MainActivity가 이미 kauth.kakao.com 폴백 했을 수도 있음
+        // 그래도 Custom Tab 변종으로 한 번 더 시도
+        fallbackToCustomTab();
+      }
+    }, 1500);
   } else {
     // 일반 브라우저에서는 SDK 사용 (카카오톡 앱 연동 지원)
     Kakao.Auth.authorize({ redirectUri: redirectUri, throughTalk: true });
