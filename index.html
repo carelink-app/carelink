@@ -912,8 +912,15 @@
 
 <!-- ===== CHAT LIST ===== -->
 <div id="screen-chat" class="screen">
-  <div class="header">
-    <div class="header-title">채팅</div>
+  <div class="header" id="chat-header" style="display:flex;align-items:center;justify-content:space-between;padding:0 14px">
+    <div class="header-title" id="chat-header-title" style="flex:1">채팅</div>
+    <div id="chat-header-actions" style="display:flex;gap:6px">
+      <span id="chat-select-btn" onclick="enterChatSelectionMode()" style="font-size:14px;color:var(--primary);font-weight:700;cursor:pointer;padding:6px 4px">선택</span>
+    </div>
+    <div id="chat-header-select-actions" style="display:none;gap:8px;align-items:center">
+      <span id="chat-delete-btn" onclick="deleteSelectedChats()" style="font-size:14px;color:#E53935;font-weight:700;cursor:pointer;padding:6px 4px">삭제 (0)</span>
+      <span onclick="exitChatSelectionMode()" style="font-size:14px;color:#666;cursor:pointer;padding:6px 4px">취소</span>
+    </div>
   </div>
   <div id="firebase-setup-notice" class="firebase-notice" style="display:none">
     ⚙️ <b>Firebase 설정 필요</b><br>
@@ -2179,6 +2186,7 @@ const state = {
   currentScreen:'login', user:null, role:null,
   listings:[], selectedListing:null,
   postType:'employer', filter:'all', homePostType:'employer',
+  _chatSelectionMode: false, _chatSelectedIds: {},
   viewMode:'list', mapInstance:null, mapMarkers:[],
   pendingMatchId:null, pendingRepostId:null,
   bookmarks: new Set(),
@@ -7088,6 +7096,10 @@ function renderChatListDraw(){
     const unreadBadge = unreadCount > 0
       ? `<div style="background:#FF3B30;color:#fff;border-radius:11px;font-size:11px;font-weight:700;padding:2px 6px;min-width:20px;text-align:center;line-height:16px">${unreadCount > 99 ? '99+' : unreadCount}</div>`
       : '';
+    var isSelected = state._chatSelectedIds && state._chatSelectedIds[chatId];
+    var checkboxHtml = state._chatSelectionMode
+      ? `<div class="chat-checkbox" style="width:24px;height:24px;border-radius:50%;border:2px solid ${isSelected?'var(--primary)':'#ccc'};background:${isSelected?'var(--primary)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px">${isSelected?'<span style=\'color:#fff;font-size:14px\'>✓</span>':''}</div>`
+      : '';
     html+=`<div class="chat-item" data-chatid="${chatId}" onclick="handleChatItemClick(event,'${chatId}')"
       ontouchstart="startChatItemLongPress(event,'${chatId}')"
       ontouchend="cancelChatItemLongPress()"
@@ -7097,6 +7109,7 @@ function renderChatListDraw(){
       onmouseup="cancelChatItemLongPress()"
       onmouseleave="cancelChatItemLongPress()"
       oncontextmenu="event.preventDefault();return false;">
+      ${checkboxHtml}
       <div class="chat-avatar">${chat.otherIcon||'👤'}</div>
       <div style="flex:1;overflow:hidden;min-width:0">
         <div style="display:flex;align-items:center;gap:6px">
@@ -7175,12 +7188,63 @@ function cancelChatItemLongPress(){
 // 채팅 목록 항목 클릭 처리: 롱프레스로 시트가 떴으면 일반 클릭 무시
 function handleChatItemClick(e, chatId){
   if(_chatLongPressFired){
-    // 시트 뜬 직후의 click은 무시하고 플래그만 리셋
     _chatLongPressFired = false;
     if(e){ try{ e.preventDefault(); e.stopPropagation(); }catch(ex){} }
     return;
   }
+  // ★ 선택 모드: 클릭 시 체크 토글
+  if(state._chatSelectionMode){
+    if(!state._chatSelectedIds) state._chatSelectedIds = {};
+    if(state._chatSelectedIds[chatId]){ delete state._chatSelectedIds[chatId]; }
+    else { state._chatSelectedIds[chatId] = true; }
+    updateChatSelectionUI();
+    renderChatListDraw();
+    return;
+  }
   reopenChat(chatId);
+}
+
+// ============================================================
+//  채팅 다중 선택/삭제 (카카오톡 스타일)
+// ============================================================
+function enterChatSelectionMode(){
+  state._chatSelectionMode = true;
+  state._chatSelectedIds = {};
+  updateChatSelectionUI();
+  renderChatListDraw();
+}
+function exitChatSelectionMode(){
+  state._chatSelectionMode = false;
+  state._chatSelectedIds = {};
+  updateChatSelectionUI();
+  renderChatListDraw();
+}
+function updateChatSelectionUI(){
+  var titleEl = document.getElementById('chat-header-title');
+  var normalActions = document.getElementById('chat-header-actions');
+  var selectActions = document.getElementById('chat-header-select-actions');
+  var deleteBtn = document.getElementById('chat-delete-btn');
+  if(state._chatSelectionMode){
+    var count = Object.keys(state._chatSelectedIds||{}).length;
+    if(titleEl) titleEl.textContent = count > 0 ? count + '개 선택' : '선택';
+    if(normalActions) normalActions.style.display = 'none';
+    if(selectActions) selectActions.style.display = 'flex';
+    if(deleteBtn) deleteBtn.textContent = '삭제 (' + count + ')';
+  } else {
+    if(titleEl) titleEl.textContent = '채팅';
+    if(normalActions) normalActions.style.display = 'flex';
+    if(selectActions) selectActions.style.display = 'none';
+  }
+}
+function deleteSelectedChats(){
+  var ids = Object.keys(state._chatSelectedIds||{});
+  if(ids.length === 0){ showToast('삭제할 채팅을 선택해 주세요'); return; }
+  if(!confirm(ids.length + '개의 채팅방을 나가시겠습니까?\n\n선택한 대화 목록이 사라지고,\n새 메시지가 와도 알림을 받지 않습니다.')) return;
+  ids.forEach(function(chatId){
+    try { doLeaveChatRoom(chatId); } catch(e){ console.warn('채팅 삭제 실패:', chatId, e); }
+  });
+  showToast(ids.length + '개의 채팅방에서 나갔습니다');
+  exitChatSelectionMode();
 }
 
 function showChatLeaveSheet(chatId){
@@ -7198,6 +7262,9 @@ function showChatLeaveSheet(chatId){
       '</div>'+
       '<div onclick="confirmLeaveChatRoom(\''+chatId+'\')" style="padding:18px 22px;font-size:16px;font-weight:700;color:#E53935;cursor:pointer;display:flex;align-items:center;gap:14px">'+
         '<span style="font-size:22px">🚪</span><span>채팅방 나가기</span>'+
+      '</div>'+
+      '<div onclick="document.getElementById(\'chat-leave-sheet\').remove();enterChatSelectionMode();state._chatSelectedIds[\''+chatId+'\']=true;updateChatSelectionUI();renderChatListDraw();" style="padding:18px 22px;font-size:16px;font-weight:700;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:14px;border-top:1px solid #f0f0f0">'+
+        '<span style="font-size:22px">☑️</span><span>여러 채팅방 선택</span>'+
       '</div>'+
       '<div onclick="document.getElementById(\'chat-leave-sheet\').remove()" style="padding:16px 22px;font-size:15px;color:#666;cursor:pointer;text-align:center;border-top:1px solid #f0f0f0">취소</div>'+
     '</div>';
