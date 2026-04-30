@@ -128,6 +128,9 @@
     .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
     .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
     .badge-employer{background:#E8F5E9;color:#2E7D32}
+    /* 홈 카테고리 칩 (한 줄 4분할 균등) */
+    .home-cat-chip{padding:9px 4px;border-radius:10px;background:#f0f0f0;color:#666;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;user-select:none}
+    .home-cat-chip.active{background:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(255,107,53,.25)}
     .org-chip{display:inline-block;padding:7px 14px;border-radius:18px;background:#f0f0f0;color:#666;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px;transition:all .15s}
     .org-chip.active{background:var(--primary);color:#fff;font-weight:700}
     .org-card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;transition:transform .15s}
@@ -341,10 +344,17 @@
     .nav-badge{animation:badgePulse 2s ease-in-out infinite}
     /* 이미지 로딩 최적화 */
     img{loading:lazy}
-    /* Safe area 대응 (노치 폰) */
-    .bottom-nav{padding-bottom:max(env(safe-area-inset-bottom), 8px); height:auto; min-height:var(--nav-h)}
-    body{padding-bottom:env(safe-area-inset-bottom)}
-    .screen{padding-bottom:env(safe-area-inset-bottom)}
+    /* Safe area 대응 (Android 3버튼 시스템 네비 + 노치 폰)
+       — 핵심: 하단 네비만 safe-area를 흡수해서 시스템 버튼 바로 위에 딱 붙음
+       — body/.screen에는 padding-bottom을 주지 않아야 빈 공간이 생기지 않음 */
+    .bottom-nav{
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      height: auto;
+      min-height: var(--nav-h);
+      box-sizing: content-box;
+    }
+    body{padding-bottom:0}
+    .screen{padding-bottom:0}
     .header{padding-top:env(safe-area-inset-top)}
     /* 면접/매칭 시스템 */
     .interview-banner{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;flex-shrink:0;cursor:pointer}
@@ -709,15 +719,6 @@
   <!-- 지역별 광고 배너 (검색창 위 — 스크롤 시 자동 숨김) -->
   <div class="ad-banner-wrap home-collapsible" id="ad-banner-area"></div>
 
-  <!-- 검색 바 -->
-  <div class="home-collapsible" style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
-    <div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;border-radius:10px;padding:8px 12px">
-      <span style="font-size:14px">🔍</span>
-      <input type="text" id="home-search-input" placeholder="공고 제목, 지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none" onkeyup="searchListings()">
-      <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;display:none">✕</button>
-    </div>
-  </div>
-
   <!-- 미니 액션 바 — 3개 버튼 (보수교육/요양보호사 교육/요양기관) -->
   <div class="home-collapsible" style="background:#fff;border-bottom:1px solid var(--border);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px">
     <span onclick="quickGoRefresher()" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:#E8FFF1;color:#2E7D32;font-size:12px;font-weight:700;padding:8px 6px;border-radius:18px;cursor:pointer;border:1px solid #C8E6C9">
@@ -734,18 +735,25 @@
   <!-- 역할 기반 자동 필터 안내 (토글 제거) -->
   <div id="home-type-label" style="background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;font-size:15px;font-weight:700;color:var(--primary);text-align:center"></div>
 
-  <!-- 목록/지도 토글 -->
-  <div style="background:#fff;border-bottom:1px solid var(--border);padding:6px 12px;display:flex;gap:6px;align-items:center">
+  <!-- 목록/지도 토글 + 검색 (한 줄) -->
+  <div style="background:#fff;border-bottom:1px solid #f0f0f0;padding:6px 10px;display:flex;gap:8px;align-items:center">
     <div style="display:flex;background:#f0f0f0;border-radius:10px;overflow:hidden;flex-shrink:0">
-      <div id="toggle-list" class="map-toggle-btn active" onclick="setViewMode('list')">📋 목록</div>
-      <div id="toggle-map" class="map-toggle-btn" onclick="setViewMode('map')">🗺️ 지도</div>
+      <div id="toggle-list" class="map-toggle-btn active" onclick="setViewMode('list')">📋</div>
+      <div id="toggle-map" class="map-toggle-btn" onclick="setViewMode('map')">🗺️</div>
     </div>
-    <div class="tag-scroll" style="padding:0;border:none;background:transparent;flex:1">
-      <div class="tag active" onclick="filterTag(this,'all')">전체</div>
-      <div class="tag" onclick="filterTag(this,'visit')">방문요양</div>
-      <div class="tag" onclick="filterTag(this,'live')">입주요양</div>
-      <div class="tag" onclick="filterTag(this,'matched')">매칭완료</div>
+    <div style="flex:1;display:flex;align-items:center;gap:4px;background:#f5f5f5;border-radius:10px;padding:6px 10px">
+      <span style="font-size:13px">🔍</span>
+      <input type="text" id="home-search-input" placeholder="공고/지역 검색" style="flex:1;border:none;background:transparent;font-size:13px;outline:none;min-width:0" onkeyup="searchListings()">
+      <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:13px;display:none">✕</button>
     </div>
+  </div>
+
+  <!-- 카테고리 필터 (한 줄, 4분할 균등 — 어르신도 한눈에) -->
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:6px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+    <div class="home-cat-chip active" data-cat="all" onclick="setHomeCat(this,'all')">전체</div>
+    <div class="home-cat-chip" data-cat="visit" onclick="setHomeCat(this,'visit')">방문</div>
+    <div class="home-cat-chip" data-cat="day" onclick="setHomeCat(this,'day')">주간</div>
+    <div class="home-cat-chip" data-cat="facility" onclick="setHomeCat(this,'facility')">시설</div>
   </div>
 
   <!-- 목록 뷰 -->
@@ -1026,7 +1034,27 @@
     <div class="menu-item" onclick="openMyCommunityPosts()"><span class="menu-icon">🏘</span>내가 쓴 커뮤니티 글<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="navigate('settings')"><span class="menu-icon">⚙️</span>설정<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="doLogout()"><span class="menu-icon">🚪</span>로그아웃<span class="menu-arrow">›</span></div>
-    <div style="padding:28px;text-align:center;font-size:13px;color:#ccc;line-height:2">요보망 v1.0<br>공고는 등록 후 14일 자동 삭제됩니다<br>문의: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5bdb0b9a595b6b4a7b0b9bcbbbefbbea7">[email&#160;protected]</a></div>
+    <!-- 사업자 정보 푸터 (전자상거래법·정보통신망법 표시 의무) -->
+    <div style="padding:24px 20px;background:#fafafa;border-top:1px solid var(--border);font-size:11px;color:#888;line-height:1.7">
+      <div style="font-weight:800;color:#666;margin-bottom:6px;font-size:12px">요보망 (yobomang)</div>
+      <div>상호: (사업자등록 후 기재) · 대표: 심상욱</div>
+      <div>사업자등록번호: <span style="color:#bbb">(등록 진행 중)</span></div>
+      <div>통신판매업 신고: <span style="color:#bbb">(신고 진행 중)</span></div>
+      <div>위치기반서비스사업: <span style="color:#bbb">(방통위 신고 진행 중)</span></div>
+      <div>직업소개사업: <span style="color:#bbb">(무료직업소개 신고 진행 중)</span></div>
+      <div>문의: ssw112300@gmail.com</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <span onclick="navigate('terms')" style="color:var(--primary);cursor:pointer;text-decoration:underline">이용약관</span>
+        <span onclick="navigate('privacy')" style="color:var(--primary);cursor:pointer;text-decoration:underline">개인정보처리방침</span>
+        <span onclick="navigate('youth')" style="color:var(--primary);cursor:pointer;text-decoration:underline">청소년보호정책</span>
+        <span onclick="openReportToOperator()" style="color:#E53935;cursor:pointer;text-decoration:underline">불법정보 신고</span>
+      </div>
+      <div style="margin-top:10px;color:#bbb;font-size:10px;line-height:1.6">
+        ⚠️ 요보망은 통신판매중개자(전자상거래법 §20)이자 정보 게시 플랫폼으로, 회원 간 거래·고용계약의 당사자가 아닙니다. 회원이 직접 등록한 정보의 정확성·합법성은 등록자 본인이 책임집니다.<br>
+        공고는 등록 후 14일 자동 삭제됩니다.
+      </div>
+    </div>
+    <div style="padding:14px;text-align:center;font-size:11px;color:#ccc">요보망 v1.0</div>
   </div>
   <div class="bottom-nav">
     <div class="nav-item" id="nav-home2" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
@@ -1187,6 +1215,10 @@
     <span class="org-chip" data-type="복지용구" onclick="setOrgFilter(this,'복지용구')">🦽 복지용구</span>
     <span class="org-chip" data-type="기타" onclick="setOrgFilter(this,'기타')">기타</span>
   </div>
+  <!-- 의료법 §57 대응: 의료광고 X, 단순 정보 게시판 안내 -->
+  <div style="background:#FFF8E1;border-bottom:1px solid #FFE082;padding:8px 14px;font-size:11px;color:#795548;line-height:1.5">
+    ⚠️ 본 페이지는 <b>회원이 직접 등록한 시설 정보 게시판</b>으로, 의료법 §57의 의료광고에 해당하지 않습니다. 진료내용·치료실적 등 의료광고성 정보는 표시되지 않으며, 운영자는 등록 정보의 정확성을 보장하지 않습니다.
+  </div>
   <div class="scroll-area" id="orgs-list-area" style="padding:12px 12px 80px">
     <div style="text-align:center;padding:60px 20px;color:#aaa">
       <div style="font-size:48px;margin-bottom:14px">⏳</div>
@@ -1215,9 +1247,15 @@
 
 <!-- ===== 지역 커뮤니티 ===== -->
 <div id="screen-community" class="screen">
-  <div class="header">
-    <div class="header-title" style="flex:1">🏘 우리 동네 커뮤니티</div>
-    <div onclick="openCommunityRegionModal()" id="community-region-label" style="font-size:13px;color:var(--primary);font-weight:700;cursor:pointer;padding:4px 10px;background:#FFF3E0;border-radius:14px">📍 지역 선택</div>
+  <div class="header" style="padding-right:8px">
+    <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <div style="font-size:11px;color:var(--text-sub);font-weight:600">🏘 우리 동네 커뮤니티</div>
+      <div onclick="openCommunityRegionModal()" id="community-region-label" style="font-size:16px;font-weight:800;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:4px">
+        📍 <span id="community-region-name">지역 불러오는 중...</span>
+        <span style="font-size:11px;color:#999;font-weight:600">▼</span>
+      </div>
+    </div>
+    <div onclick="openCommunityRegionModal()" style="font-size:11px;color:var(--primary);font-weight:700;cursor:pointer;padding:6px 10px;background:#FFF3E0;border-radius:12px;flex-shrink:0">지역 변경</div>
   </div>
   <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
     <button onclick="openCommunityWriteModal()" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B35,#FF8A50);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,53,.25)">✏️ 글쓰기 — 우리 동네 이웃과 이야기 나눠요</button>
@@ -3476,6 +3514,71 @@ function quickGoCertEdu(){
   state._eduMode = 'cert';
   navigate('edu');
 }
+
+// 홈 카테고리 칩 (전체/방문/주간/시설) — 한 페이지에 안 넘기고 바로 필터
+function setHomeCat(el, cat){
+  document.querySelectorAll('.home-cat-chip').forEach(function(c){ c.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  state.homeCat = cat;
+  // 기존 filter system과 매핑
+  if(typeof renderListings === 'function') renderListings();
+}
+
+// 워크타입 → 그룹 매핑
+function homeCategoryMatch(wt, cat){
+  if(!cat || cat === 'all') return true;
+  if(cat === 'visit')    return wt === 'visit' || wt === 'hospital';
+  if(cat === 'day')      return wt === 'center' || wt === 'daycenter';
+  if(cat === 'facility') return wt === 'live' || wt === 'facility';
+  return true;
+}
+
+// ============================================================
+//  위치정보 별도 동의 (위치정보의 보호 및 이용 등에 관한 법률 §15)
+// ============================================================
+function ensureLocationConsent(){
+  if(localStorage.getItem('cl_location_consent') === '1') return true;
+  var ok = confirm(
+    '📍 위치정보 수집·이용 동의 (필수)\n\n' +
+    '위치정보의 보호 및 이용 등에 관한 법률 §15에 따라 별도 동의를 받습니다.\n\n' +
+    '【수집 항목】 가입 지역 (시/구 단위), 공고 작성 시 도로명주소 좌표\n' +
+    '【이용 목적】 지역별 구인구직 매칭, 지도 기반 정보 표시\n' +
+    '【보유 기간】 회원 탈퇴 또는 삭제 요청 시까지\n' +
+    '【제3자 제공】 다른 회원 (동 단위 음영처리, 정확한 주소는 매칭 후 본인이 직접 공유)\n\n' +
+    '동의 거부 시 지도/지역 매칭 기능 사용이 제한됩니다.\n동의하시면 [확인]을 눌러주세요.'
+  );
+  if(ok){
+    localStorage.setItem('cl_location_consent', '1');
+    localStorage.setItem('cl_location_consent_at', String(Date.now()));
+  }
+  return ok;
+}
+
+// ============================================================
+//  사업자 인증 6개월 재확인 (표시·광고법 — 허위 인증 방지)
+// ============================================================
+function checkBizReverification(){
+  if(!state.user || !state.user.bizVerified || !state.user.bizVerifiedAt) return;
+  var SIX_MONTHS = 180 * 24 * 60 * 60 * 1000;
+  var elapsed = Date.now() - state.user.bizVerifiedAt;
+  if(elapsed > SIX_MONTHS && !state.user._bizReverifyDismissed){
+    setTimeout(function(){
+      var months = Math.floor(elapsed / (30*24*60*60*1000));
+      var ok = confirm(
+        '🏢 사업자 인증 재확인 권장\n\n' +
+        '인증 후 ' + months + '개월이 경과했습니다.\n' +
+        '휴/폐업 여부 등 정보가 변경되었을 수 있어 재확인을 권장합니다.\n\n' +
+        '[확인] 지금 재인증하기\n[취소] 나중에 (24시간 후 다시 안내)'
+      );
+      if(ok){
+        if(typeof openBizVerifyModal === 'function') openBizVerifyModal();
+      } else {
+        state.user._bizReverifyDismissed = Date.now();
+        try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+      }
+    }, 1500);
+  }
+}
 function updateQuickActionLabels(){
   // 역할에 맞게 라벨 업데이트 — 사용자에게 명확히
   var ll = document.getElementById('quick-listings-label');
@@ -3922,17 +4025,28 @@ function switchTab(tab){
     loadVerifiedOrgs();
   }
   if(tab==='community'){
+    // 자동 진입: 사용자 등록 지역(=현 위치 기반)으로 기본 설정
+    if(!state.communityRegion){
+      if(state.user && state.user.area){
+        state.communityRegion = state.user.area;
+      }
+    }
+    // 항상 리렌더 (다른 화면에서 들어오면 데이터 갱신 필요)
     if(getCommunityRegion()){
       loadCommunityPosts();
     } else {
-      // 처음 진입: 사용자 등록 지역으로 자동 설정 또는 모달 열기
-      if(state.user && state.user.area){
-        state.communityRegion = state.user.area;
-        loadCommunityPosts();
-      } else {
-        setTimeout(openCommunityRegionModal, 200);
-      }
+      // 가입 지역도 없으면 안내 + 자동으로 지역 선택 모달
+      var area = document.getElementById('community-list-area');
+      if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px">지역을 선택해 주세요</div></div>';
+      setTimeout(openCommunityRegionModal, 300);
     }
+  }
+  if(tab==='home'){
+    // 첫 홈 진입 시 위치정보 동의 확인 + 사업자 인증 재확인
+    setTimeout(function(){
+      if(typeof ensureLocationConsent === 'function') ensureLocationConsent();
+      if(typeof checkBizReverification === 'function') checkBizReverification();
+    }, 800);
   }
   if(tab !== 'edu'){
     state._eduMode = null;  // 다른 화면으로 나가면 보수교육 전용 모드 해제
@@ -4368,6 +4482,12 @@ function confirmRole(){
 // 역할 선택 화면 사진 업로드 처리
 function handleRoleCertPhoto(input){
   if(!input.files||!input.files[0]) return;
+  // 민감정보 처리 별도 동의 (개인정보보호법 §23)
+  if(!state._sensitiveConsentTemp){
+    var ok = confirm('⚠️ 민감정보 처리 동의 (필수)\n\n자격증/사업자등록증 사진은 개인정보보호법 §23 민감정보로 분류됩니다.\n\n수집 항목: 자격증·사업자등록증 사진\n이용 목적: 회원 자격 검증\n보유 기간: 탈퇴/삭제 요청 시까지\n제3자 제공: 없음\n\n동의하시면 [확인], 거부 시 [취소] (가입은 사진 없이 가능)');
+    if(!ok){ if(input) input.value=''; return; }
+    state._sensitiveConsentTemp = Date.now();
+  }
   const file=input.files[0];
   const reader=new FileReader();
   reader.onload=function(e){
@@ -4919,6 +5039,11 @@ function renderListings(filter){
   // 구인/구직 토글 필터: 홈 화면에서 선택한 타입에 따라 필터링
   if(state.homePostType){
     list = list.filter(l => l.type === state.homePostType);
+  }
+
+  // 홈 카테고리 칩 필터 (전체/방문/주간/시설)
+  if(state.homeCat && state.homeCat !== 'all' && typeof homeCategoryMatch === 'function'){
+    list = list.filter(function(l){ return homeCategoryMatch(l.workType, state.homeCat); });
   }
 
   // 지역 기반 필터: 사용자가 설정한 지역(시/도 + 시군구)의 공고만 표시
@@ -6100,6 +6225,13 @@ function submitPost(){
     showToast('⚠️ 상세내용에 '+descCheck.label+'이 포함되어 있어 등록할 수 없습니다.');
     return;
   }
+  // 차별 표현 검사 (남녀고용평등법 §7, 고용상연령차별금지법 §4)
+  if(typeof checkRecruitDiscrimination === 'function'){
+    if(checkRecruitDiscrimination(title) || checkRecruitDiscrimination(desc)){
+      alert('⚠️ 차별적 표현 감지\n\n채용공고에 성별·연령·종교 등을 이유로 한 차별 표현(여성만/남성만/N세 이하만 등)은 남녀고용평등법 §7과 고용상연령차별금지법 §4에 따라 금지되어 있습니다.\n\n예) "여성만 가능" → "여성 우대" 또한 권장 X\n예) "60세 이하" → 연령 제한 X\n\n표현을 수정해 주세요.');
+      return;
+    }
+  }
 
   let workType='visit', days='협의', salary='협의', exactAddress='';
 
@@ -6370,6 +6502,24 @@ function doLogout(){
 // ============================================================
 function handleCertPhoto(input){
   if(!input.files||!input.files[0]) return;
+  // 민감정보 처리 별도 동의 (개인정보보호법 §23)
+  if(!state.user || !state.user.sensitiveConsent){
+    var ok = confirm(
+      '⚠️ 민감정보 처리 동의 (필수)\n\n' +
+      '자격증·건강보험증명서 등은 개인정보보호법 §23에 따라 민감정보로 분류됩니다.\n\n' +
+      '【수집 항목】 자격증/사업자등록증 사진\n' +
+      '【이용 목적】 회원 자격 검증 및 신뢰 정보 표시\n' +
+      '【보유 기간】 회원 탈퇴 또는 본인 삭제 요청 시까지\n' +
+      '【제3자 제공】 없음 (단, 법령에 따른 수사·재판 협조 제외)\n\n' +
+      '동의하시면 [확인]을 눌러주세요. 거부 시 업로드 없이 가입은 가능합니다.'
+    );
+    if(!ok){ if(input) input.value=''; return; }
+    if(state.user){
+      state.user.sensitiveConsent = true;
+      state.user.sensitiveConsentAt = Date.now();
+      try { SecureStorage.setItem('carelink_profile', state.user); } catch(e){}
+    }
+  }
   const file=input.files[0];
   const reader=new FileReader();
   reader.onload=function(e){
@@ -9363,7 +9513,8 @@ function renderAdBanners(){
   area.style.display='flex';
   area.innerHTML = regions.map(r=>{
     const d = regionEduData[r];
-    return `<div class="ad-banner-card" onclick="state._keepEduRegion=true;selectEduRegion('${r}');switchTab('edu')">
+    return `<div class="ad-banner-card" onclick="state._keepEduRegion=true;selectEduRegion('${r}');switchTab('edu')" style="position:relative">
+      <span style="position:absolute;top:6px;right:8px;background:rgba(0,0,0,.35);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:.5px">광고</span>
       <div style="font-size:26px">🏫</div>
       <div>
         <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:2px">${r} · 교육기관</div>
@@ -10021,13 +10172,15 @@ state.communityCat = '';
 state.communityPosts = [];
 state._communityListener = null;
 
-// 욕설/광고/개인정보 자동 감지 정규식
+// 욕설/광고/개인정보/차별 자동 감지 정규식
 var COMM_BAD_PATTERNS = {
   abuse: /(씨발|시발|개새|좆|병신|미친\s?새|존나|꺼져|씹|니미|애미|애비|fuck|shit|asshole)/i,
   ads:   /(불법\s?대출|불법광고|돈\s?빌려|투자\s?수익|코인\s?수익|매수\s?매도|텔레@?그램|카톡\s?id\s?[:：]|ㅋr톡|와츠앱|whatsapp)/i,
   phone: /(\b01[016789][-\s]?\d{3,4}[-\s]?\d{4}\b|\b02[-\s]?\d{3,4}[-\s]?\d{4}\b|\b0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}\b)/,
   account: /(\b\d{3,6}[-\s]\d{2,6}[-\s]\d{4,8}\b|계좌번호|입금\s?하시면)/,
-  url:   /(https?:\/\/|www\.|\.com\b|\.kr\b|\.net\b|bit\.ly|me2\.kr|xn--)/i
+  url:   /(https?:\/\/|www\.|\.com\b|\.kr\b|\.net\b|bit\.ly|me2\.kr|xn--)/i,
+  // 남녀고용평등법 §7, 고용상연령차별금지법 §4 — 직접적 차별 표현
+  discrimination: /(여성만\b|남성만\b|여자만\b|남자만\b|남자\s?사절|여자\s?사절|\d{2}세\s?이하만|\d{2}세\s?미만만|\d{2}세\s?이상만|특정\s?종교|장애인\s?사절|기혼자\s?사절|미혼자\s?사절)/
 };
 
 function checkCommunityContent(text){
@@ -10037,7 +10190,14 @@ function checkCommunityContent(text){
   if(COMM_BAD_PATTERNS.phone.test(t)) return { ok:false, reason:'전화번호는 게시할 수 없습니다 (개인정보 보호)' };
   if(COMM_BAD_PATTERNS.account.test(t)) return { ok:false, reason:'계좌번호 등 금융정보는 게시할 수 없습니다' };
   if(COMM_BAD_PATTERNS.url.test(t))   return { ok:false, reason:'외부 링크는 등록할 수 없습니다' };
+  if(COMM_BAD_PATTERNS.discrimination.test(t)) return { ok:false, reason:'성별/연령 등 차별적 표현은 등록할 수 없습니다 (남녀고용평등법 §7, 고용상연령차별금지법 §4)' };
   return { ok:true };
+}
+
+// 채용공고용 차별 필터 (글쓰기에서 사용)
+function checkRecruitDiscrimination(text){
+  var t = String(text || '');
+  return COMM_BAD_PATTERNS.discrimination.test(t);
 }
 
 function getCommunityRegion(){
@@ -10045,16 +10205,26 @@ function getCommunityRegion(){
 }
 
 function openCommunityRegionModal(){
-  // 기존 지역 선택 모달 재활용
+  // 기존 지역 선택 모달 재활용 — 다른 동네 커뮤니티 보기 가능
   if(typeof openAreaSelectModal === 'function'){
     openAreaSelectModal(function(area){
       state.communityRegion = area;
-      var lbl = document.getElementById('community-region-label');
-      if(lbl) lbl.innerHTML = '📍 ' + escapeHtml(area);
       loadCommunityPosts();
+      showToast('📍 ' + area + ' 커뮤니티로 전환됨');
     });
   } else {
     showToast('지역 선택 기능을 불러올 수 없습니다');
+  }
+}
+
+// 내 가입 지역으로 빠르게 복귀
+function resetToMyCommunity(){
+  if(state.user && state.user.area){
+    state.communityRegion = state.user.area;
+    loadCommunityPosts();
+    showToast('📍 내 동네(' + state.user.area + ')로 돌아왔습니다');
+  } else {
+    openCommunityRegionModal();
   }
 }
 
@@ -10068,12 +10238,13 @@ function setCommunityCat(el, cat){
 function loadCommunityPosts(){
   var region = getCommunityRegion();
   var area = document.getElementById('community-list-area');
+  // 헤더 라벨 갱신 (지역명만 또는 전체)
+  var nameEl = document.getElementById('community-region-name');
+  if(nameEl) nameEl.textContent = region || '지역 선택';
   if(!region){
-    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px">지역을 선택하면 우리 동네 게시판이 열려요</div></div>';
+    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px;line-height:1.6">지역을 선택해 주세요<br><span style="font-size:12px;color:#bbb">상단의 지역명을 누르면 다른 지역도 볼 수 있어요</span></div><button onclick="openCommunityRegionModal()" style="margin-top:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">지역 선택하기</button></div>';
     return;
   }
-  var lbl = document.getElementById('community-region-label');
-  if(lbl) lbl.innerHTML = '📍 ' + escapeHtml(region);
   if(!fbDB){
     if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa">서버 연결이 필요합니다</div>';
     return;
@@ -10105,8 +10276,16 @@ function communityRegionKey(region){
 function renderCommunityPosts(){
   var area = document.getElementById('community-list-area');
   if(!area) return;
+  var now = Date.now();
+  var BLIND_MS = 24 * 60 * 60 * 1000;
+  var myId = state.user && state.user.kakaoId;
+  var isAdmin = typeof ADMIN_KAKAO_ID !== 'undefined' && myId === ADMIN_KAKAO_ID;
   var posts = (state.communityPosts || []).filter(function(p){
     if(state.communityCat && p.category !== state.communityCat) return false;
+    // 정보통신망법 §44-2 — 신고 후 24시간 임시조치 (블라인드)
+    if(p.reportedAt && (now - p.reportedAt) < BLIND_MS && p.authorId !== myId && !isAdmin){
+      return false;
+    }
     return true;
   });
   if(posts.length === 0){
@@ -10211,8 +10390,9 @@ function renderCommunityDetail(){
       + '<span style="font-size:12px;color:#666">'+escapeHtml(p.authorName||'이웃')+'</span>'
       + '<span style="font-size:12px;color:#aaa">·</span>'
       + '<span style="font-size:12px;color:#aaa">'+escapeHtml(when)+'</span>'
-      + (canDelete ? '<span onclick="deleteCommunityPost()" style="margin-left:auto;color:#E53935;font-size:12px;cursor:pointer">삭제</span>' : '')
+      + (canDelete ? '<span onclick="deleteCommunityPost()" style="margin-left:auto;color:#E53935;font-size:12px;cursor:pointer">삭제</span>' : (myId && myId !== p.authorId ? '<span onclick="reportCommunityPost()" style="margin-left:auto;color:#999;font-size:12px;cursor:pointer">🚩 신고</span>' : ''))
     + '</div>'
+    + (p.reportedAt ? '<div style="background:#FFF8E1;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:12px;color:#F57C00">⚠️ 이 글은 신고가 접수되어 검토 중입니다 (24시간 임시조치)</div>' : '')
     + '<div style="font-size:18px;font-weight:800;color:var(--text);padding:0 4px;margin-bottom:8px">'+escapeHtml(p.title||'')+'</div>'
     + '<div style="font-size:15px;color:var(--text);line-height:1.7;padding:0 4px;white-space:pre-wrap;margin-bottom:14px">'+escapeHtml(p.body||'')+'</div>'
     + '<div style="display:flex;gap:8px;padding:0 4px;margin-bottom:14px">'
@@ -10230,7 +10410,7 @@ function renderCommunityDetail(){
             + '<span style="font-size:12px;font-weight:700;color:#666">'+escapeHtml(c.authorName||'이웃')+'</span>'
             + '<span style="font-size:11px;color:#aaa">·</span>'
             + '<span style="font-size:11px;color:#aaa">'+escapeHtml(cWhen)+'</span>'
-            + (cCanDel ? '<span onclick="deleteCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#E53935;cursor:pointer">삭제</span>' : '')
+            + (cCanDel ? '<span onclick="deleteCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#E53935;cursor:pointer">삭제</span>' : (myId && myId !== c.authorId ? '<span onclick="reportCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#999;cursor:pointer">🚩 신고</span>' : ''))
           + '</div>'
           + '<div style="font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap">'+escapeHtml(c.body||'')+'</div>'
         + '</div>';
@@ -10279,6 +10459,64 @@ function submitCommunityComment(){
       renderCommunityDetail();
     })
     .catch(function(e){ showToast('댓글 등록 실패'); console.error(e); });
+}
+
+// 운영자 직접 신고 (전자상거래법·정보통신망법 의무)
+function openReportToOperator(){
+  var msg = prompt(
+    '🚩 불법/유해정보 신고\n\n' +
+    '신고 사유를 적어주세요.\n(예: 명예훼손, 사기, 음란물, 광고, 개인정보 노출 등)\n\n' +
+    '운영자가 24시간 내 검토하여 임시조치(블라인드/삭제)합니다.'
+  );
+  if(!msg || msg.trim().length < 5) return;
+  if(!fbDB){ showToast('서버 연결이 필요합니다'); return; }
+  var report = {
+    reason: sanitizeInput(msg),
+    reporterId: (state.user && state.user.kakaoId) || 'anonymous',
+    reporterName: getMyDisplayName ? getMyDisplayName() : '익명',
+    at: Date.now(),
+    status: 'pending'
+  };
+  fbDB.ref('operator_reports').push(report)
+    .then(function(){ showToast('🚩 신고가 접수되었습니다. 24시간 내 검토하겠습니다.'); })
+    .catch(function(e){ showToast('신고 접수 실패'); });
+}
+
+// 정보통신망법 §44-2 — 게시물 신고 → 24시간 임시조치 (블라인드)
+function reportCommunityPost(){
+  var p = state._currentCommPost; if(!p || !fbDB) return;
+  var myId = state.user && state.user.kakaoId; if(!myId){ showToast('로그인이 필요합니다'); return; }
+  if(p.authorId === myId){ showToast('본인 글은 신고할 수 없습니다'); return; }
+  var reason = prompt('신고 사유를 입력해 주세요\n(욕설/스팸/허위정보/사기/개인정보 노출 등)');
+  if(!reason || reason.trim().length < 2) return;
+  var region = p.region || getCommunityRegion();
+  var basePath = 'community/'+communityRegionKey(region)+'/posts/'+p._id;
+  var updates = {};
+  updates[basePath+'/reportedAt'] = Date.now();
+  updates[basePath+'/reports/'+myId] = { reason: sanitizeInput(reason), at: Date.now() };
+  fbDB.ref().update(updates).then(function(){
+    p.reportedAt = Date.now();
+    showToast('🚩 신고가 접수되었습니다. 24시간 동안 임시 비공개됩니다.');
+    closeModal('modal-community-detail');
+    renderCommunityPosts();
+  }).catch(function(e){ console.error(e); showToast('신고 접수 실패'); });
+}
+
+function reportCommunityComment(commentId){
+  var p = state._currentCommPost; if(!p || !fbDB) return;
+  var myId = state.user && state.user.kakaoId; if(!myId){ showToast('로그인이 필요합니다'); return; }
+  var reason = prompt('이 댓글을 신고하는 사유를 입력해 주세요');
+  if(!reason || reason.trim().length < 2) return;
+  var region = p.region || getCommunityRegion();
+  var basePath = 'community/'+communityRegionKey(region)+'/posts/'+p._id+'/comments/'+commentId;
+  var updates = {};
+  updates[basePath+'/reportedAt'] = Date.now();
+  updates[basePath+'/reports/'+myId] = { reason: sanitizeInput(reason), at: Date.now() };
+  fbDB.ref().update(updates).then(function(){
+    if(p.comments && p.comments[commentId]){ p.comments[commentId].reportedAt = Date.now(); }
+    showToast('🚩 댓글 신고 접수');
+    renderCommunityDetail();
+  });
 }
 
 function deleteCommunityPost(){
