@@ -382,6 +382,83 @@
     }
     /* 텍스트 크기 조절 지원 */
     html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  
+    /* ============================================================
+       디자인 업그레이드 — 버튼/카드/마이크로 인터랙션
+       ============================================================ */
+    .btn {
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+      letter-spacing: -0.2px;
+    }
+    .btn:active { transform: translateY(1px) scale(.98); }
+    .btn-primary {
+      box-shadow: 0 3px 10px rgba(255,107,53,.28), 0 1px 2px rgba(0,0,0,.04);
+    }
+    .btn-primary:hover { box-shadow: 0 5px 14px rgba(255,107,53,.36); }
+    .btn-kakao {
+      box-shadow: 0 3px 10px rgba(254,229,0,.4), 0 1px 2px rgba(0,0,0,.04);
+    }
+    .btn-green {
+      box-shadow: 0 3px 10px rgba(76,175,80,.28);
+    }
+
+    /* 빠른 기능 카드 인터랙션 */
+    #home-quick-actions > div {
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    #home-quick-actions > div:active {
+      transform: scale(.96);
+    }
+
+    /* 공고 카드 — 미세하게 다듬기 */
+    .listing-card { transition: transform .15s ease, box-shadow .15s ease; }
+    .listing-card:active { transform: scale(.98); }
+
+    /* 메뉴 아이템 hover */
+    .menu-item { transition: background-color .12s ease; }
+    .menu-item:active { background-color: #f8f8f8; }
+
+    /* sticky 액션 바 */
+    #detail-quick-actions {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    #detail-quick-actions button {
+      transition: transform .12s, box-shadow .12s;
+    }
+    #detail-quick-actions button:active { transform: translateY(1px) scale(.98); }
+
+    /* 토스트 — 부드럽게 */
+    .toast {
+      box-shadow: 0 4px 18px rgba(0,0,0,.28);
+      backdrop-filter: blur(8px);
+      background: rgba(40,40,40,.92);
+    }
+
+    /* 입력 필드 포커스 — 컬러 강조 */
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px rgba(255,107,53,.12);
+      outline: none;
+    }
+
+    /* 칩/태그 인터랙션 */
+    .tag { transition: all .15s ease; }
+    .tag:active { transform: scale(.94); }
+
+    /* 모달 슬라이드인 부드럽게 */
+    @keyframes modalSlideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal.open .modal-box { animation: modalSlideIn .22s ease-out; }
+
+    /* 카카오톡 스타일 메시지 버블 약간 둥글게 */
+    .msg-bubble { line-height: 1.45; }
+
   </style>
   <!-- PWA Manifest -->
   <link rel="manifest" id="pwa-manifest">
@@ -605,7 +682,9 @@
   <div class="header">
     <div style="font-size:20px;font-weight:900;color:var(--primary)">요보망</div>
     <div style="flex:1;margin-left:8px;font-size:15px;color:var(--text-sub);cursor:pointer" onclick="openAreaSelectModal(function(area){ var el=document.getElementById('home-area-label'); if(el) el.textContent=area; if(state.mapInstance){ var c=DISTRICT_COORDS[area]; if(c) state.mapInstance.setView(c,13); } })">📍 <span id="home-area-label">내 지역</span> <span style="font-size:11px;color:#ccc">▼</span></div>
-    <div class="header-right" onclick="showToast('새 알림이 없습니다')">🔔</div>
+    <div class="header-right" id="home-notify-toggle" onclick="toggleNearbyNotify(event)" style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--text-sub);background:#f5f5f5;padding:6px 10px;border-radius:14px;cursor:pointer">
+      <span style="font-size:14px" id="home-notify-icon">🔔</span><span id="home-notify-label">알림 OFF</span>
+    </div>
   </div>
 
   <!-- 만료 임박 알림바 -->
@@ -627,6 +706,26 @@
       <span style="font-size:14px">🔍</span>
       <input type="text" id="home-search-input" placeholder="공고 제목, 지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none" onkeyup="searchListings()">
       <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:14px;display:none">✕</button>
+    </div>
+  </div>
+
+  <!-- 빠른 기능 (요양보호사용) -->
+  <div id="home-quick-actions" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 12px 4px;background:#fff;border-bottom:1px solid var(--border)">
+    <div onclick="navigate('home');state.homePostType='employer';renderListings();showToast('🔎 취업 정보 보기')" style="background:linear-gradient(135deg,#FFF3E8,#FFE5D0);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:transform .15s">
+      <div style="font-size:26px">🔎</div>
+      <div style="font-size:12px;font-weight:800;color:#FF6B35;margin-top:4px;line-height:1.3">취업정보</div>
+    </div>
+    <div onclick="state.role==='caregiver'?navigate('post'):showToast('요양보호사로 가입한 분만 이용 가능합니다')" style="background:linear-gradient(135deg,#E8F4FF,#D0E8FF);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
+      <div style="font-size:26px">📝</div>
+      <div style="font-size:12px;font-weight:800;color:#1976D2;margin-top:4px;line-height:1.3">취업신청</div>
+    </div>
+    <div onclick="navigate('edu');setTimeout(function(){var el=document.querySelector('[onclick*=\'refresher\']');if(el)el.click();},150)" style="background:linear-gradient(135deg,#E8FFF1,#D0F8DD);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
+      <div style="font-size:26px">🔄</div>
+      <div style="font-size:11px;font-weight:800;color:#2E7D32;margin-top:4px;line-height:1.3">보수교육<br>신청</div>
+    </div>
+    <div onclick="navigate('edu')" style="background:linear-gradient(135deg,#FFF8E1,#FFECB3);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
+      <div style="font-size:26px">🏫</div>
+      <div style="font-size:12px;font-weight:800;color:#F57C00;margin-top:4px;line-height:1.3">교육신청</div>
     </div>
   </div>
 
@@ -717,6 +816,11 @@
       <div class="header-right" onclick="openReportModal(state.selectedListing&&state.selectedListing.id)" style="font-size:16px;cursor:pointer">⋯</div>
       <div class="header-right" onclick="shareDetail()" style="font-size:14px;font-weight:700;color:var(--primary)">공유</div>
     </div>
+  </div>
+  <!-- 상단 sticky 액션 바 (스크롤해도 항상 보이는 빠른 연락 버튼) -->
+  <div id="detail-quick-actions" style="display:none;background:#fff;border-bottom:1px solid var(--border);padding:8px 12px;gap:8px">
+    <button id="detail-quick-call" onclick="quickCallFromDetail()" style="flex:1;background:#fff;border:2px solid #4CAF50;color:#2E7D32;font-weight:800;font-size:14px;padding:10px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">📞 전화</button>
+    <button id="detail-quick-chat" onclick="quickChatFromDetail()" style="flex:1;background:var(--primary);color:#fff;border:none;font-weight:800;font-size:14px;padding:10px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(255,107,53,.3)">💬 채팅</button>
   </div>
   <div class="scroll-area" id="detail-content" style="padding-bottom:120px"></div>
   <div class="contact-bar" id="contact-bar"></div>
@@ -949,6 +1053,7 @@
     <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;text-align:center">
       <div class="header-title" id="chatroom-title" style="font-size:16px;font-weight:700;text-align:center">상대방 이름</div>
     </div>
+    <div id="chatroom-send-addr-btn" class="header-right" onclick="sendExactAddress()" style="display:none;font-size:14px;font-weight:700;color:var(--primary);cursor:pointer;padding:0 8px">📍 주소</div>
     <div id="chatroom-phone-btn" class="header-right" onclick="openContactFromChat()" style="font-size:18px">📞</div>
     <div class="header-right" onclick="toggleChatroomMenu(event)" style="font-size:22px;font-weight:bold;cursor:pointer;user-select:none">⋮</div>
     <!-- 채팅방 메뉴 (⋮ 클릭 시) -->
@@ -958,6 +1063,12 @@
       </div>
       <div onclick="closeChatroomMenu()" style="padding:12px 18px;font-size:14px;color:#666;cursor:pointer;text-align:center">취소</div>
     </div>
+  </div>
+  <!-- 면책 안내 (작게, 한 번만) -->
+  <div id="chatroom-disclaimer" style="background:#FFF8E1;border-bottom:1px solid #FFE082;padding:8px 14px;font-size:11px;color:#7C5500;line-height:1.5;display:flex;align-items:flex-start;gap:6px;flex-shrink:0">
+    <span style="font-size:14px;flex-shrink:0">ℹ️</span>
+    <span style="flex:1">요보망은 단순 중개 플랫폼입니다. 거래/이동/계약 시 발생한 사고·분쟁은 사용자 간 책임이며, 운영자는 개입하지 않습니다.</span>
+    <span onclick="this.parentElement.style.display='none'" style="cursor:pointer;color:#999;flex-shrink:0;padding:0 4px">✕</span>
   </div>
   <!-- 공고 정보 배너 -->
   <div id="chatroom-listing-banner" style="background:#F8F8F8;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;cursor:pointer;flex-shrink:0" onclick="openListingFromChat()">
@@ -1608,8 +1719,11 @@
 
       <b style="font-size:14px;color:#333">제8조 (면책조항)</b><br>
       ① 회사는 천재지변, 전쟁, 통신장애 등 불가항력적 사유로 인한 서비스 중단에 대해 책임을 지지 않습니다.<br>
-      ② 회사는 이용자 간 구인·구직 과정에서 발생하는 분쟁에 대해 개입 의무가 없으며 이로 인한 손해에 대해 책임을 지지 않습니다.<br>
-      ③ 회사는 이용자가 서비스를 이용하여 기대하는 수익을 얻지 못하거나 상실한 것에 대해 책임을 지지 않습니다.<br><br>
+      ② 회사는 「전자상거래 등에서의 소비자보호에 관한 법률」 제20조의2에 따라 통신판매중개자로서 회원 간의 구인·구직 거래에 직접 관여하지 않으며, 회원 간의 거래·계약·분쟁·사고·손해(이동 중 사고, 임금 미지급, 폭행·성희롱, 도난, 부상, 질병 등 일체의 사건 사고 포함)에 대하여 어떠한 책임도 지지 않습니다.<br>
+      ③ 회사는 이용자 간 구인·구직 과정에서 발생하는 분쟁에 대해 개입 의무가 없으며 이로 인한 손해에 대해 책임을 지지 않습니다.<br>
+      ④ 회사가 제공하는 정보(공고 내용, 연락처, 주소, 시급, 근무조건 등)는 작성자가 입력한 정보를 그대로 표시하는 것이며, 회사는 그 정확성·신뢰성·합법성에 대하여 보증하지 아니합니다. 이용자는 거래 전 직접 확인할 의무가 있습니다.<br>
+      ⑤ 회사는 이용자가 서비스를 이용하여 기대하는 수익을 얻지 못하거나 상실한 것에 대해 책임을 지지 않습니다.<br>
+      ⑥ 본 조항은 「민법」, 「전자상거래 등에서의 소비자보호에 관한 법률」, 「약관의 규제에 관한 법률」 등 강행규정에 위반되지 않는 범위에서 효력이 있습니다.<br><br>
 
       <b style="font-size:14px;color:#333">제9조 (분쟁해결)</b><br>
       ① 회사는 이용자로부터 제출되는 불만사항 및 의견을 신속히 처리합니다.<br>
@@ -3086,6 +3200,157 @@ function getApproxCoords(area, id, item){
 // ============================================================
 //  INIT
 // ============================================================
+// ============================================================
+//  알림 받기 토글 (근처 새 공고)
+// ============================================================
+function toggleNearbyNotify(ev){
+  if(ev) ev.stopPropagation();
+  var enabled = localStorage.getItem('cl_nearby_notify') === '1';
+  enabled = !enabled;
+  localStorage.setItem('cl_nearby_notify', enabled ? '1' : '0');
+  updateNearbyNotifyUI();
+  if(enabled){
+    // 브라우저 알림 권한 요청
+    try {
+      if('Notification' in window && Notification.permission !== 'granted'){
+        Notification.requestPermission();
+      }
+    } catch(e){}
+    var dist = parseInt(localStorage.getItem('cl_nearby_dist_km')||'5');
+    showToast('🔔 ' + dist + 'km 이내 새 공고 알림이 켜졌어요\n(설정에서 거리 변경 가능)');
+  } else {
+    showToast('🔕 알림이 꺼졌습니다');
+  }
+}
+function updateNearbyNotifyUI(){
+  var enabled = localStorage.getItem('cl_nearby_notify') === '1';
+  var icon = document.getElementById('home-notify-icon');
+  var label = document.getElementById('home-notify-label');
+  var wrap = document.getElementById('home-notify-toggle');
+  if(icon) icon.textContent = enabled ? '🔔' : '🔕';
+  if(label) label.textContent = enabled ? '알림 ON' : '알림 OFF';
+  if(wrap){
+    wrap.style.background = enabled ? 'var(--primary-light)' : '#f5f5f5';
+    wrap.style.color = enabled ? 'var(--primary)' : 'var(--text-sub)';
+  }
+}
+
+// ============================================================
+//  공고 상세 — 위쪽 sticky 빠른 연락 버튼
+// ============================================================
+function quickCallFromDetail(){
+  var item = state.selectedListing;
+  if(!item){ showToast('공고 정보가 없습니다'); return; }
+  if(item.sharePhone === false || !item.contact){
+    showToast('이 공고는 전화 비공개입니다. 채팅으로 문의해 주세요.');
+    return;
+  }
+  if(typeof openContactModal === 'function'){ openContactModal(); }
+  else { window.location.href = 'tel:' + item.contact.replace(/[^0-9]/g,''); }
+}
+function quickChatFromDetail(){
+  if(typeof openChatFromDetail === 'function'){ openChatFromDetail(); return; }
+  // 폴백: contact-bar의 채팅 버튼 클릭 시뮬레이션
+  var bar = document.getElementById('contact-bar');
+  if(bar){
+    var chatBtn = bar.querySelector('[onclick*="chat"]');
+    if(chatBtn) chatBtn.click();
+  }
+}
+function showDetailQuickActions(item){
+  var bar = document.getElementById('detail-quick-actions');
+  if(!bar) return;
+  // 본인 공고면 숨김
+  var myId = state.user && state.user.kakaoId;
+  if(item && item.postedByKakaoId === myId){
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  // 전화 공개 안 했으면 전화 버튼 비활성화
+  var callBtn = document.getElementById('detail-quick-call');
+  if(callBtn){
+    if(item && item.sharePhone === false){
+      callBtn.style.opacity = '0.4';
+      callBtn.style.cursor = 'not-allowed';
+    } else {
+      callBtn.style.opacity = '1';
+      callBtn.style.cursor = 'pointer';
+    }
+  }
+}
+
+// ============================================================
+//  채팅에서 정확한 주소 보내기 + 지도 길찾기 (구인자 전용)
+// ============================================================
+function shouldShowSendAddrBtn(){
+  // 현재 사용자가 이 채팅의 공고 작성자(구인자)일 때만 표시
+  var chatId = state.activeChatId;
+  if(!chatId) return false;
+  var chat = state.chats[chatId];
+  if(!chat) return false;
+  var myId = state.user && state.user.kakaoId;
+  // 내가 공고 작성자(posterId)이고, 공고가 employer 타입이면 표시
+  return chat.posterId === myId;
+}
+function updateSendAddrBtn(){
+  var btn = document.getElementById('chatroom-send-addr-btn');
+  if(btn) btn.style.display = shouldShowSendAddrBtn() ? 'block' : 'none';
+}
+function sendExactAddress(){
+  var chatId = state.activeChatId;
+  if(!chatId){ showToast('채팅방 정보가 없습니다'); return; }
+  var chat = state.chats[chatId];
+  if(!chat){ showToast('채팅방 정보가 없습니다'); return; }
+  // 공고 정보에서 주소 가져오기
+  var listing = state.listings.find(function(l){ return l.id == chat.listingId; });
+  if(!listing){ showToast('공고 정보를 찾을 수 없습니다'); return; }
+  var roadAddr = listing.roadAddress || '';
+  var detailAddr = listing.exactAddress || '';
+  var fullAddr = (roadAddr + (detailAddr ? ' ' + detailAddr : '')).trim();
+  if(!fullAddr){ showToast('이 공고에 등록된 주소가 없습니다'); return; }
+  if(!confirm('정확한 주소를 채팅으로 보냅니다.\n\n' + fullAddr + '\n\n* 보내신 주소는 상대방이 길찾기에 사용합니다.\n* 본 앱은 단순 중개 플랫폼이며, 사용자 간 이동/거래/계약에서 발생한 사고/분쟁에 책임지지 않습니다.\n\n계속 보내시겠습니까?')) return;
+  // 주소 메시지 전송 (특수 형식: [주소] ... [길찾기])
+  var lat = listing.lat || 0;
+  var lng = listing.lng || 0;
+  var msgText = '📍 정확한 주소\n' + fullAddr + (lat && lng ? '\n\n[길찾기:'+lat+','+lng+']' : '');
+  // 채팅 입력창에 넣고 전송
+  var inp = document.getElementById('chat-input-text');
+  if(inp){ inp.value = msgText; sendMessage(); }
+}
+
+// 메시지에 [길찾기:lat,lng] 형식이 있으면 길찾기 모달 띄우는 핸들러
+function openMapDirections(lat, lng, addrText){
+  // 기존 모달 제거
+  var old = document.getElementById('map-directions-sheet');
+  if(old) old.remove();
+  var sheet = document.createElement('div');
+  sheet.id = 'map-directions-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:3500;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;';
+  sheet.onclick = function(ev){ if(ev.target === sheet) sheet.remove(); };
+  var encoded = encodeURIComponent(addrText || '');
+  // 카카오맵 길찾기 URL: https://map.kakao.com/link/to/{name},{lat},{lng}
+  var kakaoTo = 'https://map.kakao.com/link/to/' + encoded + ',' + lat + ',' + lng;
+  // 네이버맵 길찾기: https://map.naver.com/v5/directions/-/{lng},{lat},{name}
+  var naverTo = 'https://map.naver.com/v5/directions/-/-/-/' + lng + ',' + lat + ',' + encoded + ',,PLACE_POI/-?c=14,0,0,0,dh';
+  sheet.innerHTML =
+    '<div style="background:#fff;width:100%;max-width:430px;border-radius:18px 18px 0 0;padding:20px 0 28px;animation:slideUpSheet .2s">'+
+      '<div style="text-align:center;font-size:13px;color:#999;padding:0 20px 14px;border-bottom:1px solid #f0f0f0">길찾기 — 이동 수단을 선택하세요</div>'+
+      '<div onclick="window.open(\''+kakaoTo+'?rt=BUS_PUB\',\'_blank\')" style="padding:18px 22px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px">'+
+        '<span style="font-size:26px">🚌</span><div style="flex:1"><div>대중교통</div><div style="font-size:11px;color:#999;font-weight:400;margin-top:2px">버스 · 지하철 · 도보</div></div><span style="color:#ccc">›</span>'+
+      '</div>'+
+      '<div onclick="window.open(\''+kakaoTo+'?rt=CAR\',\'_blank\')" style="padding:18px 22px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;border-top:1px solid #f5f5f5">'+
+        '<span style="font-size:26px">🚗</span><div style="flex:1"><div>자동차</div><div style="font-size:11px;color:#999;font-weight:400;margin-top:2px">실시간 교통 + 추천 경로</div></div><span style="color:#ccc">›</span>'+
+      '</div>'+
+      '<div onclick="window.open(\''+kakaoTo+'?rt=FOOT\',\'_blank\')" style="padding:18px 22px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;border-top:1px solid #f5f5f5">'+
+        '<span style="font-size:26px">🚶</span><div style="flex:1"><div>도보</div><div style="font-size:11px;color:#999;font-weight:400;margin-top:2px">가까운 거리</div></div><span style="color:#ccc">›</span>'+
+      '</div>'+
+      '<div style="padding:14px 22px 0;font-size:11px;color:#999;line-height:1.5;border-top:1px solid #f5f5f5;margin-top:8px">⚠️ 본 앱은 중개 플랫폼이며, 이동 중 발생한 사고에 책임지지 않습니다. 안전 운전/이동 부탁드립니다.</div>'+
+      '<div onclick="document.getElementById(\'map-directions-sheet\').remove()" style="padding:14px 22px 0;font-size:14px;color:#666;cursor:pointer;text-align:center">닫기</div>'+
+    '</div>';
+  document.body.appendChild(sheet);
+}
+
 function init(){
   // ★ 교육 학원 데이터 Firebase 동기화 시작 (fbDB 준비되면 실행)
   var _eduSyncTimer = setInterval(function(){
@@ -3678,6 +3943,8 @@ function doKakaoLogin(){
 //    /api/kakao/token  →  https://kauth.kakao.com/oauth/token  (server-to-server, CORS 없음)
 // ============================================================
 document.addEventListener('DOMContentLoaded', function(){
+  // 알림 토글 UI 초기화
+  setTimeout(function(){ if(typeof updateNearbyNotifyUI === 'function') updateNearbyNotifyUI(); }, 100);
   const urlParams = new URLSearchParams(window.location.search);
 
   // ★ ?kakao_login=auto 파라미터가 URL에 남아있으면 정리 (무한 루프 방지)
@@ -4404,6 +4671,12 @@ function filterTag(el,filter){
 //  DETAIL
 // ============================================================
 function openDetail(id){
+  // 잠시 후 sticky 액션 바 표시 (state.selectedListing 설정 후)
+  setTimeout(function(){
+    if(typeof showDetailQuickActions === 'function' && state.selectedListing){
+      showDetailQuickActions(state.selectedListing);
+    }
+  }, 50);
   // id는 숫자 또는 문자열로 올 수 있으므로 == 비교
   const item=state.listings.find(l=>l.id==id); if(!item) return;
   state.selectedListing=item;
@@ -6516,7 +6789,10 @@ function renderMessages(chatId){
         + '<img src="' + escapeHtml(msg.imageUrl||'') + '" style="max-width:100%;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)"/>'
         + '</div>';
     } else {
-      bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '">' + escapeHtml(msg.text||'') + '</div>';
+      var safeText = escapeHtml(msg.text||'').replace(/\n/g, '<br>');
+      // 길찾기 링크 처리
+      if(typeof processMessageTextForLinks === 'function'){ safeText = processMessageTextForLinks(safeText); }
+      bubbleHtml = '<div class="msg-bubble ' + (isMe?'me':'other') + '">' + safeText + '</div>';
     }
 
     // 조립
@@ -6605,6 +6881,14 @@ function sendDocFromChat(type){
     renderMessages(chatId);
   }
   showToast(label+' 전송 완료 ✅');
+}
+
+function processMessageTextForLinks(text){
+  if(!text || typeof text !== 'string') return text;
+  // [길찾기:lat,lng] 패턴 감지 → 클릭 가능한 버튼으로 변환
+  return text.replace(/\[길찾기:([\-0-9.]+),([\-0-9.]+)\]/g, function(_, lat, lng){
+    return '<br><span onclick="openMapDirections('+lat+','+lng+',\'\')" style="display:inline-flex;align-items:center;gap:4px;background:var(--primary);color:#fff;padding:6px 12px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px">🗺️ 길찾기 열기</span>';
+  });
 }
 
 function sendMessage(){
@@ -7147,6 +7431,8 @@ function reopenChat(chatId){
   // 해당 방 안읽은 수 초기화 + 읽은 시간 기록
   markChatAsRead(chatId);
   loadMessages(chatId);
+  // ★ 구인자(공고 작성자)일 때만 "정확한 주소 보내기" 버튼 표시
+  setTimeout(function(){ if(typeof updateSendAddrBtn === 'function') updateSendAddrBtn(); }, 100);
   navigate('chatroom');
 }
 
