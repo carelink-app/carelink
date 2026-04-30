@@ -232,6 +232,7 @@
     /* modal overrides */
     .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000}
     .modal-overlay.open{display:flex}
+    .modal-overlay.show{display:flex}  /* alias for newer code */
     .modal-content{background:#fff;border-radius:16px;padding:24px;max-width:90vw;max-height:80vh;overflow-y:auto;width:100%}
     .modal-header{font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;text-align:center}
     .modal-section-title{font-size:15px;font-weight:700;color:var(--text);margin:16px 0 12px 0}
@@ -760,9 +761,11 @@
   </div>
 
   <!-- 목록 뷰 -->
-  <div id="list-view" class="scroll-area" style="flex:1">
+  <div id="list-view" class="scroll-area" style="flex:1;-webkit-overflow-scrolling:touch">
     <div id="pull-indicator" class="pull-indicator">↻ 당겨서 새로고침</div>
     <div id="listing-list"></div>
+    <!-- 글이 적어도 스크롤이 가능해서 광고/버튼 숨김이 작동되도록 빈 여백 -->
+    <div id="list-spacer" style="min-height:60vh"></div>
   </div>
 
   <!-- 지도 뷰 -->
@@ -888,14 +891,14 @@
     <div class="form-group">
       <label class="form-label">🔒 연락처 공개 설정</label>
       <div id="post-share-phone-wrap" style="display:flex;gap:10px;margin-top:6px">
-        <div id="share-phone-yes" onclick="confirmSharePhone()" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
+        <div id="share-phone-yes" onclick="confirmSharePhone()" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:#999;transition:all .2s">
           📞 연락처 공개<br><span style="font-weight:400;font-size:12px">전화 + 채팅 가능</span>
         </div>
-        <div id="share-phone-no" onclick="setSharePhone(false)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:#999;transition:all .2s">
+        <div id="share-phone-no" onclick="setSharePhone(false)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
           💬 채팅만<br><span style="font-weight:400;font-size:12px">번호 비공개</span>
         </div>
       </div>
-      <div id="share-phone-hint" style="margin-top:8px;font-size:12px;color:#aaa;line-height:1.5">📌 연락처를 공개하면 전화와 채팅 모두 가능합니다.</div>
+      <div id="share-phone-hint" style="margin-top:8px;font-size:12px;color:#aaa;line-height:1.5">💬 기본은 채팅만 가능. 전화 공개는 신중히 결정해 주세요.</div>
     </div>
 
     <!-- 공통: 상세내용 -->
@@ -3513,14 +3516,34 @@ function quickGoApply(){
   navigate('post');
 }
 function quickGoRefresher(){
-  // 교육 화면을 보수교육 전용 모드로 진입 — 자격증 섹션 숨김 + 일정 섹션 강조
+  // 교육 화면을 보수교육 전용 모드로 진입
   state._eduMode = 'refresher';
-  navigate('edu');
+  _enterEduWithMode();
 }
 function quickGoCertEdu(){
-  // 요양보호사 자격증 교육 전용 모드 — 보수교육 섹션 숨김
+  // 요양보호사 자격증 교육 전용 모드
   state._eduMode = 'cert';
+  _enterEduWithMode();
+}
+function _enterEduWithMode(){
+  // edu 탭으로 전환 (switchTab은 _eduMode를 null로 리셋하지 않도록 우회)
+  _activeTab = 'edu';
+  _tabHistory['edu'] = ['edu'];
   navigate('edu');
+  // 네비 활성 표시
+  ['home','post','chat','edu','profile','community'].forEach(function(t){
+    [1,2,3,4,5].forEach(function(n){
+      var el = document.getElementById('nav-'+t+(n===1?'':n));
+      if(el) el.classList.toggle('active', t==='edu');
+    });
+  });
+  // 지역 선택 모달 열기 (없는 경우) 또는 기존 지역 콘텐츠 다시 렌더
+  if(typeof selectedEduRegion !== 'undefined' && selectedEduRegion){
+    // 기존 선택 지역이 있으면 모드 반영하여 다시 렌더
+    if(typeof renderEduRegionContent === 'function') renderEduRegionContent();
+  } else {
+    if(typeof openEduRegionModal === 'function') openEduRegionModal();
+  }
 }
 
 // 홈 카테고리 칩 (전체/방문/주간/시설) — 한 페이지에 안 넘기고 바로 필터
@@ -3944,9 +3967,10 @@ function goBack(){
 
 // 열린 모달 닫기 함수 (뒤로가기 시 사용)
 function closeAnyOpenModal(){
-  var modals = document.querySelectorAll('.modal-overlay.open');
+  // .open 또는 .show 모두 처리
+  var modals = document.querySelectorAll('.modal-overlay.open, .modal-overlay.show');
   if(modals.length > 0){
-    modals.forEach(function(m){ m.classList.remove('open'); m.style.display='none'; });
+    modals.forEach(function(m){ m.classList.remove('open'); m.classList.remove('show'); m.style.display='none'; });
     return true;
   }
   // display:flex로 열린 모달도 체크
@@ -3964,22 +3988,36 @@ function closeAnyOpenModal(){
 // 브라우저 뒤로가기 버튼 처리 — 모달 먼저 닫고, 탭 내 뒤로 이동
 window.addEventListener('popstate', function(e){
   // ★ 모달이 떠 있으면 모달만 닫고 화면 전환 차단 ★
-  // 1) Daum Postcode (주소 검색) 레이어
-  var postcodeLayer = document.getElementById('postcode-layer');
-  var bizPostcodeLayer = document.getElementById('biz-postcode-layer');
-  if(postcodeLayer || bizPostcodeLayer){
-    if(postcodeLayer && postcodeLayer.parentNode) postcodeLayer.parentNode.removeChild(postcodeLayer);
-    if(bizPostcodeLayer && bizPostcodeLayer.parentNode) bizPostcodeLayer.parentNode.removeChild(bizPostcodeLayer);
-    // 모달 닫기만 — 화면 그대로 유지 (뒤로가기 history 다시 push)
+
+  // 0) 동적으로 추가된 임시 오버레이들 (주소검색 / 연락처 공개 주의 등)
+  var dynamicOverlays = ['postcode-layer','biz-postcode-layer','share-phone-confirm-sheet','share-phone-warn-overlay','consent-overlay','sticker-panel-overlay'];
+  for(var i=0;i<dynamicOverlays.length;i++){
+    var el = document.getElementById(dynamicOverlays[i]);
+    if(el){
+      if(el.parentNode) el.parentNode.removeChild(el);
+      history.pushState({screen:(state._currentScreen||'home')}, '', window.location.hash);
+      return;
+    }
+  }
+
+  // 1) 일반 modal-overlay 가 떠있으면 닫기 (가장 위에 있는 것부터)
+  var modals = document.querySelectorAll('.modal-overlay.show');
+  if(modals.length > 0){
+    modals[modals.length - 1].classList.remove('show');
     history.pushState({screen:(state._currentScreen||'home')}, '', window.location.hash);
     return;
   }
-  // 2) 일반 modal-overlay 가 떠있으면 닫기
-  var openModal = document.querySelector('.modal-overlay.show');
-  if(openModal){
-    openModal.classList.remove('show');
-    history.pushState({screen:(state._currentScreen||'home')}, '', window.location.hash);
-    return;
+
+  // 2) modal-overlay 클래스가 아니지만 visible inline-style로 떠있는 모달 (display:flex/block)
+  var inlineModals = document.querySelectorAll('[id^="modal-"]');
+  for(var k=0;k<inlineModals.length;k++){
+    var m = inlineModals[k];
+    var disp = (m.style.display||'').toLowerCase();
+    if((disp === 'flex' || disp === 'block') && !m.classList.contains('modal-overlay')){
+      m.style.display = 'none';
+      history.pushState({screen:(state._currentScreen||'home')}, '', window.location.hash);
+      return;
+    }
   }
 
   // ★ 로그인 상태에서 로그인/역할선택/프로필설정 화면으로 뒤로가기 차단
@@ -4028,9 +4066,9 @@ function switchTab(tab){
   _activeTab = tab;
   // 탭 히스토리 초기화 (탭 전환 시 이전 탭 내 깊은 화면 초기화)
   _tabHistory[tab] = [tab];
-  const screenMap={home:'home',post:'post',profile:'profile',chat:'chat',edu:'edu'};
+  const screenMap={home:'home',post:'post',profile:'profile',chat:'chat',edu:'edu',community:'community',orgs:'orgs'};
   navigate(screenMap[tab]||'home');
-  ['home','post','chat','edu','profile'].forEach(t=>{
+  ['home','post','chat','edu','profile','community'].forEach(t=>{
     [1,2,3,4,5].forEach(n=>{
       const el=document.getElementById('nav-'+t+(n===1?'':n));
       if(el) el.classList.toggle('active',t===tab);
@@ -12451,24 +12489,81 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
     return arr;
   }
 
-  // 배너가 접힐 때 scrollTop이 자동으로 줄어드는 현상을 "위로 스크롤"로 오인해
   // 무한 진동(깜빡임)이 발생하던 버그를 animating 쿨다운으로 방지한다.
   listView.addEventListener('scroll', function(){
     var st = listView.scrollTop;
     if(animating){ lastScroll = st; return; }
 
-    if(st > 80 && st > lastScroll + 5 && !hidden){
+    if(st > 25 && st > lastScroll + 3 && !hidden){
       animating = true;
       getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
       hidden = true;
-      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 320);
-    } else if(hidden && (st < 20 || st < lastScroll - 40)){
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 280);
+    } else if(hidden && (st < 5 || st < lastScroll - 25)){
       animating = true;
       getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
       hidden = false;
-      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 320);
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 280);
     }
     lastScroll = st;
+  }, {passive:true});
+
+  var touchStartY = 0;
+  listView.addEventListener('touchstart', function(e){
+    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  listView.addEventListener('touchmove', function(e){
+    if(animating || !e.touches || !e.touches[0]) return;
+    var dy = touchStartY - e.touches[0].clientY;
+    if(dy > 30 && !hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
+      hidden = true;
+      setTimeout(function(){ animating = false; }, 280);
+    } else if(dy < -25 && hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; }, 280);
+    }
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
+lse;
+      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 280);
+    }
+    lastScroll = st;
+  }, {passive:true});
+
+  var touchStartY = 0;
+  listView.addEventListener('touchstart', function(e){
+    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  listView.addEventListener('touchmove', function(e){
+    if(animating || !e.touches || !e.touches[0]) return;
+    var dy = touchStartY - e.touches[0].clientY;
+    if(dy > 30 && !hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
+      hidden = true;
+      setTimeout(function(){ animating = false; }, 280);
+    } else if(dy < -25 && hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; }, 280);
+    }
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
+-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; }, 280);
+    }
   }, {passive:true});
 })();
 </script>
