@@ -709,17 +709,17 @@
     </div>
   </div>
 
-  <!-- 빠른 기능 (요양보호사용) -->
+  <!-- 빠른 기능 — 역할 기반 자동 필터 유지 (다른 역할 정보 노출 방지) -->
   <div id="home-quick-actions" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 12px 4px;background:#fff;border-bottom:1px solid var(--border)">
-    <div onclick="navigate('home');state.homePostType='employer';renderListings();showToast('🔎 취업 정보 보기')" style="background:linear-gradient(135deg,#FFF3E8,#FFE5D0);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:transform .15s">
+    <div onclick="quickGoListings()" style="background:linear-gradient(135deg,#FFF3E8,#FFE5D0);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:transform .15s">
       <div style="font-size:26px">🔎</div>
-      <div style="font-size:12px;font-weight:800;color:#FF6B35;margin-top:4px;line-height:1.3">취업정보</div>
+      <div style="font-size:12px;font-weight:800;color:#FF6B35;margin-top:4px;line-height:1.3" id="quick-listings-label">공고 보기</div>
     </div>
-    <div onclick="state.role==='caregiver'?navigate('post'):showToast('요양보호사로 가입한 분만 이용 가능합니다')" style="background:linear-gradient(135deg,#E8F4FF,#D0E8FF);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
+    <div onclick="quickGoApply()" style="background:linear-gradient(135deg,#E8F4FF,#D0E8FF);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
       <div style="font-size:26px">📝</div>
-      <div style="font-size:12px;font-weight:800;color:#1976D2;margin-top:4px;line-height:1.3">취업신청</div>
+      <div style="font-size:12px;font-weight:800;color:#1976D2;margin-top:4px;line-height:1.3" id="quick-apply-label">내 글쓰기</div>
     </div>
-    <div onclick="navigate('edu');setTimeout(function(){var el=document.querySelector('[onclick*=\'refresher\']');if(el)el.click();},150)" style="background:linear-gradient(135deg,#E8FFF1,#D0F8DD);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
+    <div onclick="quickGoRefresher()" style="background:linear-gradient(135deg,#E8FFF1,#D0F8DD);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
       <div style="font-size:26px">🔄</div>
       <div style="font-size:11px;font-weight:800;color:#2E7D32;margin-top:4px;line-height:1.3">보수교육<br>신청</div>
     </div>
@@ -3202,6 +3202,43 @@ function getApproxCoords(area, id, item){
 //  INIT
 // ============================================================
 // ============================================================
+//  빠른 기능 — 역할 기반 자동 처리 (권한 노출 방지)
+// ============================================================
+function quickGoListings(){
+  // 역할에 맞는 글만 보임 (caregiver→구인글/employer→구직글). homePostType 강제 변경 X
+  navigate('home');
+  // 라벨/필터는 init/role 진입 시 이미 자동 설정됨
+}
+function quickGoApply(){
+  // 본인이 글쓰는 곳 — 역할에 맞는 form 자동 표시 (post 화면이 state.role에 따라 분기)
+  if(!state.user || !state.role){ showToast('로그인이 필요합니다'); return; }
+  navigate('post');
+}
+function quickGoRefresher(){
+  navigate('edu');
+  // 보수교육 탭 자동 선택
+  setTimeout(function(){
+    var btn = document.querySelector('[onclick*="refresher"]');
+    if(btn && btn.click) btn.click();
+  }, 200);
+}
+function updateQuickActionLabels(){
+  // 역할에 맞게 라벨 업데이트 — 사용자에게 명확히
+  var ll = document.getElementById('quick-listings-label');
+  var al = document.getElementById('quick-apply-label');
+  if(state.role === 'caregiver'){
+    if(ll) ll.textContent = '취업정보';
+    if(al) al.innerHTML = '내 구직<br>글쓰기';
+  } else if(state.role === 'employer'){
+    if(ll) ll.textContent = '구직정보';
+    if(al) al.innerHTML = '내 구인<br>공고작성';
+  } else {
+    if(ll) ll.textContent = '공고 보기';
+    if(al) al.textContent = '내 글쓰기';
+  }
+}
+
+// ============================================================
 //  알림 받기 토글 (근처 새 공고)
 // ============================================================
 function toggleNearbyNotify(ev){
@@ -3945,7 +3982,10 @@ function doKakaoLogin(){
 // ============================================================
 document.addEventListener('DOMContentLoaded', function(){
   // 알림 토글 UI 초기화
-  setTimeout(function(){ if(typeof updateNearbyNotifyUI === 'function') updateNearbyNotifyUI(); }, 100);
+  setTimeout(function(){
+    if(typeof updateNearbyNotifyUI === 'function') updateNearbyNotifyUI();
+    if(typeof updateQuickActionLabels === 'function') updateQuickActionLabels();
+  }, 100);
   const urlParams = new URLSearchParams(window.location.search);
 
   // ★ ?kakao_login=auto 파라미터가 URL에 남아있으면 정리 (무한 루프 방지)
