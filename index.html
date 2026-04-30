@@ -128,9 +128,9 @@
     .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
     .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
     .badge-employer{background:#E8F5E9;color:#2E7D32}
-    /* 홈 카테고리 칩 (한 줄 4분할 균등) */
-    .home-cat-chip{padding:9px 4px;border-radius:10px;background:#f0f0f0;color:#666;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;user-select:none}
-    .home-cat-chip.active{background:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(255,107,53,.25)}
+    /* 홈 카테고리 칩 (한 줄 4분할 균등 — 토글 옆에 콤팩트하게) */
+    .home-cat-chip{padding:7px 2px;border-radius:9px;background:#f5f5f5;color:#666;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;user-select:none;border:1px solid transparent}
+    .home-cat-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 5px rgba(255,107,53,.22)}
     .org-chip{display:inline-block;padding:7px 14px;border-radius:18px;background:#f0f0f0;color:#666;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px;transition:all .15s}
     .org-chip.active{background:var(--primary);color:#fff;font-weight:700}
     .org-card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;transition:transform .15s}
@@ -735,25 +735,28 @@
   <!-- 역할 기반 자동 필터 안내 (토글 제거) -->
   <div id="home-type-label" style="background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;font-size:15px;font-weight:700;color:var(--primary);text-align:center"></div>
 
-  <!-- 목록/지도 토글 + 검색 (한 줄) -->
-  <div style="background:#fff;border-bottom:1px solid #f0f0f0;padding:6px 10px;display:flex;gap:8px;align-items:center">
-    <div style="display:flex;background:#f0f0f0;border-radius:10px;overflow:hidden;flex-shrink:0">
-      <div id="toggle-list" class="map-toggle-btn active" onclick="setViewMode('list')">📋</div>
-      <div id="toggle-map" class="map-toggle-btn" onclick="setViewMode('map')">🗺️</div>
-    </div>
-    <div style="flex:1;display:flex;align-items:center;gap:4px;background:#f5f5f5;border-radius:10px;padding:6px 10px">
+  <!-- 검색 바 (스크롤 시 자동 숨김) -->
+  <div class="home-collapsible" style="background:#fff;border-bottom:1px solid #f0f0f0;padding:6px 12px">
+    <div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;border-radius:10px;padding:7px 12px">
       <span style="font-size:13px">🔍</span>
-      <input type="text" id="home-search-input" placeholder="공고/지역 검색" style="flex:1;border:none;background:transparent;font-size:13px;outline:none;min-width:0" onkeyup="searchListings()">
+      <input type="text" id="home-search-input" placeholder="공고/지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none;min-width:0" onkeyup="searchListings()">
       <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:13px;display:none">✕</button>
     </div>
   </div>
 
-  <!-- 카테고리 필터 (한 줄, 4분할 균등 — 어르신도 한눈에) -->
-  <div style="background:#fff;border-bottom:1px solid var(--border);padding:6px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
-    <div class="home-cat-chip active" data-cat="all" onclick="setHomeCat(this,'all')">전체</div>
-    <div class="home-cat-chip" data-cat="visit" onclick="setHomeCat(this,'visit')">방문</div>
-    <div class="home-cat-chip" data-cat="day" onclick="setHomeCat(this,'day')">주간</div>
-    <div class="home-cat-chip" data-cat="facility" onclick="setHomeCat(this,'facility')">시설</div>
+  <!-- 목록/지도 토글 + 카테고리 (한 줄, 항상 보임) -->
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:7px 10px;display:flex;align-items:center;gap:8px">
+    <div style="display:flex;background:#f0f0f0;border-radius:10px;overflow:hidden;flex-shrink:0">
+      <div id="toggle-list" onclick="setViewMode('list')" style="padding:8px 12px;font-size:13px;font-weight:700;color:var(--primary);background:#fff;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06)">목록</div>
+      <div id="toggle-map" onclick="setViewMode('map')" style="padding:8px 12px;font-size:13px;font-weight:700;color:#888;cursor:pointer">지도</div>
+    </div>
+    <div style="width:1px;height:22px;background:#e0e0e0;flex-shrink:0"></div>
+    <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+      <div class="home-cat-chip active" data-cat="all" onclick="setHomeCat(this,'all')">전체</div>
+      <div class="home-cat-chip" data-cat="visit" onclick="setHomeCat(this,'visit')">방문</div>
+      <div class="home-cat-chip" data-cat="day" onclick="setHomeCat(this,'day')">주간</div>
+      <div class="home-cat-chip" data-cat="facility" onclick="setHomeCat(this,'facility')">시설</div>
+    </div>
   </div>
 
   <!-- 목록 뷰 -->
@@ -1249,13 +1252,18 @@
 <div id="screen-community" class="screen">
   <div class="header" style="padding-right:8px">
     <div style="display:flex;flex-direction:column;flex:1;min-width:0">
-      <div style="font-size:11px;color:var(--text-sub);font-weight:600">🏘 우리 동네 커뮤니티</div>
+      <div style="font-size:11px;color:var(--text-sub);font-weight:600">🏘 커뮤니티</div>
       <div onclick="openCommunityRegionModal()" id="community-region-label" style="font-size:16px;font-weight:800;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:4px">
         📍 <span id="community-region-name">지역 불러오는 중...</span>
         <span style="font-size:11px;color:#999;font-weight:600">▼</span>
       </div>
     </div>
     <div onclick="openCommunityRegionModal()" style="font-size:11px;color:var(--primary);font-weight:700;cursor:pointer;padding:6px 10px;background:#FFF3E0;border-radius:12px;flex-shrink:0">지역 변경</div>
+  </div>
+  <!-- 보드 전환: 내 동네 / 전국 -->
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:0 8px;display:flex">
+    <div id="comm-tab-mine" onclick="setCommunityScope('mine')" style="flex:1;padding:11px 0;text-align:center;font-size:14px;font-weight:800;color:var(--primary);border-bottom:3px solid var(--primary);cursor:pointer">🏘 내 동네</div>
+    <div id="comm-tab-all" onclick="setCommunityScope('all')" style="flex:1;padding:11px 0;text-align:center;font-size:14px;font-weight:700;color:#888;border-bottom:3px solid transparent;cursor:pointer">🌐 전국</div>
   </div>
   <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
     <button onclick="openCommunityWriteModal()" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B35,#FF8A50);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,53,.25)">✏️ 글쓰기 — 우리 동네 이웃과 이야기 나눠요</button>
@@ -3955,6 +3963,25 @@ function closeAnyOpenModal(){
 
 // 브라우저 뒤로가기 버튼 처리 — 모달 먼저 닫고, 탭 내 뒤로 이동
 window.addEventListener('popstate', function(e){
+  // ★ 모달이 떠 있으면 모달만 닫고 화면 전환 차단 ★
+  // 1) Daum Postcode (주소 검색) 레이어
+  var postcodeLayer = document.getElementById('postcode-layer');
+  var bizPostcodeLayer = document.getElementById('biz-postcode-layer');
+  if(postcodeLayer || bizPostcodeLayer){
+    if(postcodeLayer && postcodeLayer.parentNode) postcodeLayer.parentNode.removeChild(postcodeLayer);
+    if(bizPostcodeLayer && bizPostcodeLayer.parentNode) bizPostcodeLayer.parentNode.removeChild(bizPostcodeLayer);
+    // 모달 닫기만 — 화면 그대로 유지 (뒤로가기 history 다시 push)
+    history.pushState({screen:(state._currentScreen||'home')}, '', window.location.hash);
+    return;
+  }
+  // 2) 일반 modal-overlay 가 떠있으면 닫기
+  var openModal = document.querySelector('.modal-overlay.show');
+  if(openModal){
+    openModal.classList.remove('show');
+    history.pushState({screen:(state._currentScreen||'home')}, '', window.location.hash);
+    return;
+  }
+
   // ★ 로그인 상태에서 로그인/역할선택/프로필설정 화면으로 뒤로가기 차단
   var blockedScreens = ['login','role','profile-setup'];
   var poppedScreen = (e.state && e.state.screen) || (window.location.hash || '').replace('#','');
@@ -4690,8 +4717,17 @@ function setViewMode(mode){
   state.viewMode=mode;
   document.getElementById('list-view').style.display=mode==='list'?'':'none';
   document.getElementById('map-view').style.display=mode==='map'?'flex':'none';
-  document.getElementById('toggle-list').classList.toggle('active',mode==='list');
-  document.getElementById('toggle-map').classList.toggle('active',mode==='map');
+  // 새 인라인 스타일 토글 (텍스트 버튼)
+  var tList = document.getElementById('toggle-list');
+  var tMap = document.getElementById('toggle-map');
+  if(tList){
+    if(mode==='list'){ tList.style.background='#fff'; tList.style.color='var(--primary)'; tList.style.boxShadow='0 1px 3px rgba(0,0,0,.06)'; }
+    else { tList.style.background=''; tList.style.color='#888'; tList.style.boxShadow=''; }
+  }
+  if(tMap){
+    if(mode==='map'){ tMap.style.background='#fff'; tMap.style.color='var(--primary)'; tMap.style.boxShadow='0 1px 3px rgba(0,0,0,.06)'; }
+    else { tMap.style.background=''; tMap.style.color='#888'; tMap.style.boxShadow=''; }
+  }
   if(mode==='map'){
     initMap();
     // 숨겨진 컨테이너 → 보이기 전환 시 타일 렌더링 깨짐 방지
@@ -5021,7 +5057,7 @@ function openDetailFromMap(id){
 // ============================================================
 //  LISTING RENDER
 // ============================================================
-function getWorkTypeLabel(wt){return{visit:'방문요양',live:'입주요양',facility:'요양원/요양병원',center:'주간보호',daycenter:'주야간보호센터',hospital:'병원동행'}[wt]||wt;}
+function getWorkTypeLabel(wt){return{visit:'방문요양',live:'요양원/요양병원/공동생활가정',facility:'요양원/요양병원/공동생활가정',center:'주·야간보호센터',daycenter:'주·야간보호센터',hospital:'병원동행'}[wt]||wt;}
 function getDaysAgo(createdAt){
   const days=Math.floor((Date.now()-createdAt)/86400000);
   if(days===0) return '오늘';
@@ -5374,8 +5410,8 @@ const EMPLOYER_FIELDS = `
     <select class="form-select" id="post-worktype" style="padding:10px 12px;font-size:14px" onchange="onWorktypeChange()">
       <option value="">선택</option>
       <option value="visit">방문요양</option>
-      <option value="facility">요양원/요양병원/공동생활시설</option>
-      <option value="daycenter">주야간보호센터</option>
+      <option value="facility">요양원/요양병원/공동생활가정</option>
+      <option value="daycenter">주·야간보호센터</option>
       <option value="hospital">병원동행</option>
     </select>
   </div>
@@ -5459,10 +5495,10 @@ const CAREGIVER_FIELDS = `
         <input type="checkbox" id="wt-visit" value="visit" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('visit',this.checked)"/> 방문요양
       </label>
       <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-live">
-        <input type="checkbox" id="wt-live" value="live" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('live',this.checked)"/> 입주요양
+        <input type="checkbox" id="wt-live" value="live" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('live',this.checked)"/> 요양원/요양병원/공동생활가정
       </label>
       <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-center">
-        <input type="checkbox" id="wt-center" value="center" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('center',this.checked)"/> 주간보호센터
+        <input type="checkbox" id="wt-center" value="center" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('center',this.checked)"/> 주·야간보호센터
       </label>
       <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-hospital">
         <input type="checkbox" id="wt-hospital" value="hospital" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('hospital',this.checked)"/> 병원동행
@@ -5485,7 +5521,7 @@ const CAREGIVER_FIELDS = `
         </select>
       </div>
       <div id="exp-row-daycenter" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:2px solid var(--border);border-radius:10px;background:#fff;transition:all .2s">
-        <div style="font-size:14px;font-weight:600">🏠 주간보호센터</div>
+        <div style="font-size:14px;font-weight:600">🏠 주·야간보호센터</div>
         <select class="form-select" id="exp-daycenter" style="width:120px;font-size:13px;padding:6px 8px" onchange="highlightExpRow('daycenter',this.value)">
           <option value="">없음</option><option value="약 1년">약 1년</option><option value="약 2년">약 2년</option>
           <option value="약 3년">약 3년</option><option value="약 4년">약 4년</option><option value="약 5년 이상">약 5년+</option>
@@ -5755,7 +5791,7 @@ function collectDaysTime(dayClass, startHourId, startMinId, endHourId, endMinId,
 }
 
 // 연락처 공개 설정 (기본값: 공개)
-var sharePhoneSelected = true;
+var sharePhoneSelected = false;  // 기본값: 채팅으로만 (전화 비공개)
 // ============================================================
 //  연락처 공개 동의 모달 (개인정보보호법 + 전자상거래법 면책)
 // ============================================================
@@ -6255,7 +6291,7 @@ function submitPost(){
       const el=document.getElementById('wt-'+t); return el&&el.checked;
     });
     workType=types[0]||'visit';
-    const labels={visit:'방문요양',live:'입주요양',center:'주간보호',hospital:'병원동행'};
+    const labels={visit:'방문요양',live:'요양원/요양병원/공동생활가정',center:'주·야간보호센터',hospital:'병원동행'};
     days=collectDaysTime('cg-day-cb','cg-start-hour','cg-start-min','cg-end-hour','cg-end-min','cg-time-flexible');
     exactAddress=''; // 구직자는 상세주소 없음
     salary='협의';
@@ -6363,7 +6399,7 @@ function resetPostForm(){
     const el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('post-area').value='';
-  sharePhoneSelected=true; setSharePhone(true);
+  sharePhoneSelected=false; setSharePhone(false);  // 기본: 채팅으로만
   window._bizVerifyPromptShown = false;  // 다음 글쓰기 세션에서 다시 권유
 
   // 주소 초기화
@@ -10170,7 +10206,32 @@ function submitBizVerify(){
 state.communityRegion = '';
 state.communityCat = '';
 state.communityPosts = [];
+state.communityScope = 'mine';   // 'mine' (내 동네) / 'all' (전국)
 state._communityListener = null;
+var COMMUNITY_NATIONAL_KEY = '__national__';
+
+function setCommunityScope(scope){
+  state.communityScope = scope;
+  var tMine = document.getElementById('comm-tab-mine');
+  var tAll  = document.getElementById('comm-tab-all');
+  if(tMine && tAll){
+    if(scope === 'mine'){
+      tMine.style.color='var(--primary)'; tMine.style.borderBottomColor='var(--primary)'; tMine.style.fontWeight='800';
+      tAll.style.color='#888'; tAll.style.borderBottomColor='transparent'; tAll.style.fontWeight='700';
+    } else {
+      tAll.style.color='var(--primary)'; tAll.style.borderBottomColor='var(--primary)'; tAll.style.fontWeight='800';
+      tMine.style.color='#888'; tMine.style.borderBottomColor='transparent'; tMine.style.fontWeight='700';
+    }
+  }
+  // 헤더 라벨 갱신
+  var nameEl = document.getElementById('community-region-name');
+  if(scope === 'all'){
+    if(nameEl) nameEl.textContent = '🌐 전국 통합 게시판';
+  } else {
+    if(nameEl) nameEl.textContent = state.communityRegion || '지역 선택';
+  }
+  loadCommunityPosts();
+}
 
 // 욕설/광고/개인정보/차별 자동 감지 정규식
 var COMM_BAD_PATTERNS = {
@@ -10201,7 +10262,12 @@ function checkRecruitDiscrimination(text){
 }
 
 function getCommunityRegion(){
+  if(state.communityScope === 'all') return COMMUNITY_NATIONAL_KEY;
   return state.communityRegion || (state.user && state.user.area) || '';
+}
+function getCommunityRegionLabel(){
+  if(state.communityScope === 'all') return '🌐 전국 통합 게시판';
+  return state.communityRegion || '지역 선택';
 }
 
 function openCommunityRegionModal(){
@@ -10238,9 +10304,9 @@ function setCommunityCat(el, cat){
 function loadCommunityPosts(){
   var region = getCommunityRegion();
   var area = document.getElementById('community-list-area');
-  // 헤더 라벨 갱신 (지역명만 또는 전체)
+  // 헤더 라벨 갱신 (지역명 또는 🌐 전국)
   var nameEl = document.getElementById('community-region-name');
-  if(nameEl) nameEl.textContent = region || '지역 선택';
+  if(nameEl) nameEl.textContent = getCommunityRegionLabel();
   if(!region){
     if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px;line-height:1.6">지역을 선택해 주세요<br><span style="font-size:12px;color:#bbb">상단의 지역명을 누르면 다른 지역도 볼 수 있어요</span></div><button onclick="openCommunityRegionModal()" style="margin-top:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">지역 선택하기</button></div>';
     return;
@@ -10298,11 +10364,15 @@ function renderCommunityPosts(){
     var comments = p.comments ? Object.keys(p.comments).length : 0;
     var when = p.createdAt ? getRelativeTime(p.createdAt) : '';
     var catEmoji = ({자유:'💬',질문:'❓',정보공유:'📢',후기:'⭐',구함:'🤝'}[p.category] || '');
+    var views = p.views || 0;
+    var isAllBoard = state.communityScope === 'all';
+    var authorRegionTag = isAllBoard && p.authorRegion ? '<span style="font-size:10px;color:#1976D2;background:#E3F2FD;padding:1px 6px;border-radius:6px;margin-left:4px">📍'+escapeHtml(p.authorRegion)+'</span>' : '';
     html += '<div onclick="openCommunityDetail(\''+escapeHtmlAttr(p._id)+'\')" style="background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer">'
-      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'
         + '<span style="font-size:11px;font-weight:700;color:var(--primary)">'+catEmoji+' '+escapeHtml(p.category||'자유')+'</span>'
         + '<span style="font-size:11px;color:#aaa">·</span>'
         + '<span style="font-size:11px;color:#aaa">'+escapeHtml(p.authorName||'이웃')+'</span>'
+        + authorRegionTag
         + '<span style="font-size:11px;color:#aaa">·</span>'
         + '<span style="font-size:11px;color:#aaa">'+escapeHtml(when)+'</span>'
       + '</div>'
@@ -10311,6 +10381,7 @@ function renderCommunityPosts(){
       + '<div style="display:flex;gap:12px;margin-top:8px;font-size:12px;color:#999">'
         + '<span>❤️ '+likes+'</span>'
         + '<span>💬 '+comments+'</span>'
+        + '<span style="margin-left:auto">👁 '+views+'</span>'
       + '</div>'
     + '</div>';
   });
@@ -10347,6 +10418,9 @@ function submitCommunityPost(){
     authorId: state.user.kakaoId,
     authorName: getMyDisplayName(),
     region: region,
+    scope: state.communityScope || 'mine',
+    authorRegion: (state.user && state.user.area) || '',
+    views: 0,
     createdAt: Date.now()
   };
   fbDB.ref('community/' + communityRegionKey(region) + '/posts').push(post)
@@ -10364,6 +10438,14 @@ function openCommunityDetail(postId){
   var p = (state.communityPosts || []).find(function(x){ return x._id === postId; });
   if(!p){ showToast('글을 찾을 수 없습니다'); return; }
   state._currentCommPost = p;
+  // 조회수 증가 (본인 글 제외)
+  var myId = state.user && state.user.kakaoId;
+  if(fbDB && p.authorId !== myId){
+    var region = p.region || getCommunityRegion();
+    var ref = fbDB.ref('community/'+communityRegionKey(region)+'/posts/'+p._id+'/views');
+    ref.transaction(function(curr){ return (curr||0) + 1; }).catch(function(e){});
+    p.views = (p.views || 0) + 1;
+  }
   renderCommunityDetail();
   document.getElementById('modal-community-detail').classList.add('show');
 }
@@ -12323,7 +12405,6 @@ function getStickerSvg(stickerId){
   var found = null;
   Object.keys(STICKERS).forEach(function(tab){
     STICKERS[tab].forEach(function(s){
-      if(s.id === stickerId) found = s.svg;
     });
   });
   return found;
