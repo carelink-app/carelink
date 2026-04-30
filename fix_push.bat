@@ -33,7 +33,7 @@ REM 3) Commit only the new biz-verify diff on top
 echo.
 echo [3/4] Committing biz-verify changes...
 git add -A
-git commit -m "feat: business verification system + verified-org directory (list/map view, address, click-to-action with directions)"
+git commit -m "feat: home redesign (3-button bar, scroll-hide ads), edu cert/refresher modes, regional community board (likes/comments/auto-mod), my posts in profile, new app icon"
 if errorlevel 1 (
     echo No changes to commit, or commit failed.
 )

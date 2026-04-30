@@ -706,8 +706,11 @@
     <button onclick="closeNoticeBanner()" style="background:rgba(0,0,0,.2);color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px">✕</button>
   </div>
 
+  <!-- 지역별 광고 배너 (검색창 위 — 스크롤 시 자동 숨김) -->
+  <div class="ad-banner-wrap home-collapsible" id="ad-banner-area"></div>
+
   <!-- 검색 바 -->
-  <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
+  <div class="home-collapsible" style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
     <div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;border-radius:10px;padding:8px 12px">
       <span style="font-size:14px">🔍</span>
       <input type="text" id="home-search-input" placeholder="공고 제목, 지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none" onkeyup="searchListings()">
@@ -715,38 +718,18 @@
     </div>
   </div>
 
-  <!-- 빠른 기능 — 역할 기반 자동 필터 유지 (다른 역할 정보 노출 방지) -->
-  <div id="home-quick-actions" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 12px 4px;background:#fff;border-bottom:1px solid var(--border)">
-    <div onclick="quickGoListings()" style="background:linear-gradient(135deg,#FFF3E8,#FFE5D0);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:transform .15s">
-      <div style="font-size:26px">🔎</div>
-      <div style="font-size:12px;font-weight:800;color:#FF6B35;margin-top:4px;line-height:1.3" id="quick-listings-label">공고 보기</div>
-    </div>
-    <div onclick="quickGoApply()" style="background:linear-gradient(135deg,#E8F4FF,#D0E8FF);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
-      <div style="font-size:26px">📝</div>
-      <div style="font-size:12px;font-weight:800;color:#1976D2;margin-top:4px;line-height:1.3" id="quick-apply-label">내 글쓰기</div>
-    </div>
-    <div onclick="quickGoRefresher()" style="background:linear-gradient(135deg,#E8FFF1,#D0F8DD);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
-      <div style="font-size:26px">🔄</div>
-      <div style="font-size:11px;font-weight:800;color:#2E7D32;margin-top:4px;line-height:1.3">보수교육<br>신청</div>
-    </div>
-    <div onclick="navigate('edu')" style="background:linear-gradient(135deg,#FFF8E1,#FFECB3);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer">
-      <div style="font-size:26px">🏫</div>
-      <div style="font-size:12px;font-weight:800;color:#F57C00;margin-top:4px;line-height:1.3">교육신청</div>
-    </div>
+  <!-- 미니 액션 바 — 3개 버튼 (보수교육/요양보호사 교육/요양기관) -->
+  <div class="home-collapsible" style="background:#fff;border-bottom:1px solid var(--border);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px">
+    <span onclick="quickGoRefresher()" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:#E8FFF1;color:#2E7D32;font-size:12px;font-weight:700;padding:8px 6px;border-radius:18px;cursor:pointer;border:1px solid #C8E6C9">
+      🔄 보수교육
+    </span>
+    <span onclick="quickGoCertEdu()" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:#FFF3E8;color:#FF6B35;font-size:12px;font-weight:700;padding:8px 6px;border-radius:18px;cursor:pointer;border:1px solid #FFCC80">
+      📋 자격증 교육
+    </span>
+    <span onclick="navigate('orgs')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;background:#E3F2FD;color:#1976D2;font-size:12px;font-weight:700;padding:8px 6px;border-radius:18px;cursor:pointer;border:1px solid #BBDEFB">
+      🏢 요양기관
+    </span>
   </div>
-
-  <!-- 인증 기관 둘러보기 배너 (요양보호사에게 특히 유용) -->
-  <div onclick="navigate('orgs')" style="margin:10px 12px;background:linear-gradient(135deg,#1976D2,#1565C0);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;color:#fff;box-shadow:0 4px 14px rgba(25,118,210,.25)">
-    <div style="font-size:30px;flex-shrink:0">🏢</div>
-    <div style="flex:1">
-      <div style="font-size:15px;font-weight:800">인증 기관 둘러보기</div>
-      <div style="font-size:12px;opacity:.92;margin-top:2px">국세청 진위확인 완료 기관만 모았어요 · 종류별 필터</div>
-    </div>
-    <div style="font-size:20px;opacity:.85">›</div>
-  </div>
-
-  <!-- 지역별 광고 배너 (교육기관 유료 광고 슬롯) -->
-  <div class="ad-banner-wrap" id="ad-banner-area"></div>
 
   <!-- 역할 기반 자동 필터 안내 (토글 제거) -->
   <div id="home-type-label" style="background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;font-size:15px;font-weight:700;color:var(--primary);text-align:center"></div>
@@ -816,7 +799,7 @@
     <div class="nav-item active" id="nav-home" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
     <div class="nav-item" id="nav-chat" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span id="chat-badge" style="display:none;position:absolute;top:6px;background:#FF3B30;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;line-height:14px">N</span></div>
-    <div class="nav-item" id="nav-edu" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
+    <div class="nav-item" id="nav-community" onclick="switchTab('community')"><span class="nav-icon">🏘</span><span class="nav-label">커뮤니티</span></div>
     <div class="nav-item" id="nav-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
 </div>
@@ -1040,6 +1023,7 @@
     <div id="admin-dashboard-menu" class="menu-item" onclick="navigate('admin')" style="display:none"><span class="menu-icon">🔧</span>관리자 대시보드<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="navigate('resume')"><span class="menu-icon">📄</span>이력서 관리<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="showBookmarks()"><span class="menu-icon">❤️</span>찜한 공고 <span id="bookmark-count-badge" style="background:var(--primary);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;margin-left:4px;display:none">0</span><span class="menu-arrow">›</span></div>
+    <div class="menu-item" onclick="openMyCommunityPosts()"><span class="menu-icon">🏘</span>내가 쓴 커뮤니티 글<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="navigate('settings')"><span class="menu-icon">⚙️</span>설정<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="doLogout()"><span class="menu-icon">🚪</span>로그아웃<span class="menu-arrow">›</span></div>
     <div style="padding:28px;text-align:center;font-size:13px;color:#ccc;line-height:2">요보망 v1.0<br>공고는 등록 후 14일 자동 삭제됩니다<br>문의: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5bdb0b9a595b6b4a7b0b9bcbbbefbbea7">[email&#160;protected]</a></div>
@@ -1048,7 +1032,7 @@
     <div class="nav-item" id="nav-home2" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post2" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
     <div class="nav-item" id="nav-chat2" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:6px;background:#FF3B30;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;line-height:14px"></span></div>
-    <div class="nav-item" id="nav-edu2" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
+    <div class="nav-item" id="nav-community2" onclick="switchTab('community')"><span class="nav-icon">🏘</span><span class="nav-label">커뮤니티</span></div>
     <div class="nav-item active" id="nav-profile2"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
 </div>
@@ -1080,7 +1064,7 @@
     <div class="nav-item" id="nav-home3" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post3" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
     <div class="nav-item active" id="nav-chat3"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:6px;background:#FF3B30;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;line-height:14px"></span></div>
-    <div class="nav-item" id="nav-edu3" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
+    <div class="nav-item" id="nav-community3" onclick="switchTab('community')"><span class="nav-icon">🏘</span><span class="nav-label">커뮤니티</span></div>
     <div class="nav-item" id="nav-profile3" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
 </div>
@@ -1224,8 +1208,81 @@
     <div class="nav-item active" id="nav-home-orgs" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
     <div class="nav-item" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span></div>
-    <div class="nav-item" onclick="switchTab('edu')"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
+    <div class="nav-item" onclick="switchTab('community')"><span class="nav-icon">🏘</span><span class="nav-label">커뮤니티</span></div>
     <div class="nav-item" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
+  </div>
+</div>
+
+<!-- ===== 지역 커뮤니티 ===== -->
+<div id="screen-community" class="screen">
+  <div class="header">
+    <div class="header-title" style="flex:1">🏘 우리 동네 커뮤니티</div>
+    <div onclick="openCommunityRegionModal()" id="community-region-label" style="font-size:13px;color:var(--primary);font-weight:700;cursor:pointer;padding:4px 10px;background:#FFF3E0;border-radius:14px">📍 지역 선택</div>
+  </div>
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
+    <button onclick="openCommunityWriteModal()" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#FF6B35,#FF8A50);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,53,.25)">✏️ 글쓰기 — 우리 동네 이웃과 이야기 나눠요</button>
+  </div>
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:6px 8px;overflow-x:auto;white-space:nowrap" id="community-cat-chips">
+    <span class="org-chip active" data-cat="" onclick="setCommunityCat(this,'')">전체</span>
+    <span class="org-chip" data-cat="자유" onclick="setCommunityCat(this,'자유')">💬 자유</span>
+    <span class="org-chip" data-cat="질문" onclick="setCommunityCat(this,'질문')">❓ 질문</span>
+    <span class="org-chip" data-cat="정보공유" onclick="setCommunityCat(this,'정보공유')">📢 정보공유</span>
+    <span class="org-chip" data-cat="후기" onclick="setCommunityCat(this,'후기')">⭐ 후기</span>
+    <span class="org-chip" data-cat="구함" onclick="setCommunityCat(this,'구함')">🤝 구해요</span>
+  </div>
+  <div class="scroll-area" id="community-list-area" style="padding:10px 12px 80px">
+    <div style="text-align:center;padding:60px 20px;color:#aaa">
+      <div style="font-size:48px;margin-bottom:12px">📍</div>
+      <div style="font-size:14px">지역을 선택하면 우리 동네 게시판이 열려요</div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
+    <div class="nav-item" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
+    <div class="nav-item" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span></div>
+    <div class="nav-item active"><span class="nav-icon">🏘</span><span class="nav-label">커뮤니티</span></div>
+    <div class="nav-item" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
+  </div>
+</div>
+
+<!-- 커뮤니티 글쓰기 모달 -->
+<div class="modal-overlay" id="modal-community-write" onclick="closeModal('modal-community-write')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ 커뮤니티 글쓰기</div>
+    <div style="padding:0 4px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="form-label" style="margin-bottom:6px">카테고리</div>
+        <select class="form-select" id="comm-write-cat" style="width:100%">
+          <option value="자유">💬 자유</option>
+          <option value="질문">❓ 질문</option>
+          <option value="정보공유">📢 정보공유</option>
+          <option value="후기">⭐ 후기</option>
+          <option value="구함">🤝 구해요</option>
+        </select>
+      </div>
+      <div>
+        <div class="form-label" style="margin-bottom:6px">제목 <span style="color:var(--primary)">*</span></div>
+        <input class="form-input" id="comm-write-title" type="text" placeholder="제목" maxlength="60"/>
+      </div>
+      <div>
+        <div class="form-label" style="margin-bottom:6px">내용 <span style="color:var(--primary)">*</span></div>
+        <textarea class="form-textarea" id="comm-write-body" placeholder="이웃들과 나누고 싶은 이야기를 적어주세요" maxlength="2000" style="min-height:160px"></textarea>
+        <div style="margin-top:4px;font-size:11px;color:#aaa">욕설/비방/광고/개인정보(전화번호·계좌)는 자동 감지되어 등록이 거부됩니다.</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn btn-outline" style="flex:1" onclick="closeModal('modal-community-write')">취소</button>
+        <button class="btn btn-primary" style="flex:1" onclick="submitCommunityPost()">등록</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 커뮤니티 상세 모달 -->
+<div class="modal-overlay" id="modal-community-detail" onclick="closeModal('modal-community-detail')">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:92vh;display:flex;flex-direction:column">
+    <div class="modal-handle"></div>
+    <div id="community-detail-body" style="padding:0 4px 16px;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -1248,7 +1305,7 @@
     <div class="nav-item" id="nav-home4" onclick="switchTab('home')"><span class="nav-icon">🏠</span><span class="nav-label">홈</span></div>
     <div class="nav-item" id="nav-post4" onclick="switchTab('post')"><span class="nav-icon">✏️</span><span class="nav-label">글쓰기</span></div>
     <div class="nav-item" id="nav-chat4" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">채팅</span><span class="chat-badge-all" style="display:none;position:absolute;top:6px;background:#FF3B30;color:#fff;border-radius:9px;font-size:10px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;line-height:14px"></span></div>
-    <div class="nav-item active" id="nav-edu4"><span class="nav-icon">🏫</span><span class="nav-label">교육</span></div>
+    <div class="nav-item active" id="nav-community4"><span class="nav-icon">🏘</span><span class="nav-label">커뮤니티</span></div>
     <div class="nav-item" id="nav-profile4" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">내정보</span></div>
   </div>
 </div>
@@ -3410,12 +3467,14 @@ function quickGoApply(){
   navigate('post');
 }
 function quickGoRefresher(){
+  // 교육 화면을 보수교육 전용 모드로 진입 — 자격증 섹션 숨김 + 일정 섹션 강조
+  state._eduMode = 'refresher';
   navigate('edu');
-  // 보수교육 탭 자동 선택
-  setTimeout(function(){
-    var btn = document.querySelector('[onclick*="refresher"]');
-    if(btn && btn.click) btn.click();
-  }, 200);
+}
+function quickGoCertEdu(){
+  // 요양보호사 자격증 교육 전용 모드 — 보수교육 섹션 숨김
+  state._eduMode = 'cert';
+  navigate('edu');
 }
 function updateQuickActionLabels(){
   // 역할에 맞게 라벨 업데이트 — 사용자에게 명확히
@@ -3861,6 +3920,22 @@ function switchTab(tab){
   }
   if(tab==='orgs'){
     loadVerifiedOrgs();
+  }
+  if(tab==='community'){
+    if(getCommunityRegion()){
+      loadCommunityPosts();
+    } else {
+      // 처음 진입: 사용자 등록 지역으로 자동 설정 또는 모달 열기
+      if(state.user && state.user.area){
+        state.communityRegion = state.user.area;
+        loadCommunityPosts();
+      } else {
+        setTimeout(openCommunityRegionModal, 200);
+      }
+    }
+  }
+  if(tab !== 'edu'){
+    state._eduMode = null;  // 다른 화면으로 나가면 보수교육 전용 모드 해제
   }
   if(tab==='edu'){
     checkAdminUI();
@@ -8390,6 +8465,8 @@ function renderEduRegionContent(){
     ? `<button class="edit-notice-btn" onclick="openEditModal('${key}')">${label}</button>`
     : '';
 
+  var isRefresherOnly = (state._eduMode === 'refresher');
+  var isCertOnly = (state._eduMode === 'cert');
   container.innerHTML = `
     <!-- 광고주 관리 모드 배너 -->
     ${isManager && !isAdmin ? `
@@ -8397,21 +8474,21 @@ function renderEduRegionContent(){
       ✏️ 내 학원 관리 모드 — 수정 버튼을 눌러 내용을 바꿔보세요
     </div>` : ''}
 
-    <!-- 기관 헤더 -->
-    <div style="background:linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%);padding:22px 20px;color:#fff">
-      <div style="font-size:12px;font-weight:700;opacity:.8;margin-bottom:3px">${selectedEduRegion}</div>
-      <div style="font-size:21px;font-weight:900;margin-bottom:3px">${escapeHtml(d.instName)}</div>
-      <div style="font-size:14px;opacity:.85;margin-bottom:${d.address?'4px':'14px'}">${escapeHtml(d.branch)}</div>
-      ${d.address?`<div style="font-size:13px;opacity:.8;margin-bottom:14px">📍 ${escapeHtml(d.address)}</div>`:''}
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="tel:${encodeURIComponent((d.phone||'').replace(/[^0-9-]/g,''))}" style="text-decoration:none">
-          <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.2);border-radius:10px;padding:9px 15px;font-size:14px;font-weight:700">
-            📞 ${escapeHtml(d.phone)}
-          </div>
-        </a>
-        ${canEdit?`<div onclick="openInstInfoForm()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.2);border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer">✏️ 학원정보 수정</div>`:''}
-        ${isAdmin?`<div onclick="openSetManagerModal()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.15);border-radius:10px;padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer">👤 광고주 설정</div>`:''}
+    <!-- 기관 헤더 (컴팩트: 기관명 + 전화번호 한 줄) -->
+    <div style="background:linear-gradient(135deg,#FF6B35 0%,#ff9a6c 100%);padding:16px 18px;color:#fff">
+      <div style="font-size:11px;font-weight:700;opacity:.85;margin-bottom:2px">${selectedEduRegion}${d.branch?' · '+escapeHtml(d.branch):''}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <div style="font-size:19px;font-weight:900;flex:1;min-width:0">${escapeHtml(d.instName)}</div>
+        ${d.phone?`<a href="tel:${encodeURIComponent((d.phone||'').replace(/[^0-9-]/g,''))}" style="text-decoration:none;flex-shrink:0">
+          <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.22);border-radius:9px;padding:6px 12px;font-size:13px;font-weight:700">📞 ${escapeHtml(d.phone)}</div>
+        </a>`:''}
       </div>
+      ${d.address?`<div style="font-size:12px;opacity:.85">📍 ${escapeHtml(d.address)}</div>`:''}
+      ${(canEdit || isAdmin || isRefresherOnly || isCertOnly) ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        ${(isRefresherOnly || isCertOnly)?`<div onclick="state._eduMode=null;renderEduRegionContent()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.18);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">📋 전체 일정</div>`:''}
+        ${canEdit?`<div onclick="openInstInfoForm()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.2);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">✏️ 학원정보 수정</div>`:''}
+        ${isAdmin?`<div onclick="openSetManagerModal()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.15);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 광고주 설정</div>`:''}
+      </div>`:''}
     </div>
 
     <!-- 공지사항 -->
@@ -8420,57 +8497,59 @@ function renderEduRegionContent(){
       <div style="font-size:15px;color:var(--text);line-height:1.8;white-space:pre-line">${d.notice}</div>
     </div>
 
-    <!-- 자격증 과정 -->
-    <div class="edu-section">
+    <!-- 자격증 과정 (보수교육 전용 모드에서는 숨김) -->
+    ${isRefresherOnly ? '' : `<div class="edu-section">
       <div class="edu-section-title">📋 요양보호사 교육 신청 ${editBtn('cert','일정수정')}</div>
       <div style="background:var(--primary-light);border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;color:var(--primary);line-height:1.7">${d.certInfo.replace(/\n/g,'<br>')}</div>
       <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 개강 일정 — 일정을 선택해서 신청하세요</div>
       ${d.certSchedule.map((s,i)=>{
         const region = selectedEduRegion;
         const fbKey = btoa(unescape(encodeURIComponent(region+'_cert_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
+        const seatsLeft = (typeof s.capacity === 'number' && typeof s.seats === 'number') ? Math.max(0, s.capacity - s.seats) : null;
         return `
-        <div class="edu-schedule-card" onclick="${s.status==='모집중'?`openCertApplyForm(${i})`:''}">
-          <div style="display:flex;align-items:flex-start;gap:10px">
-            <span class="schedule-badge" style="background:${s.status==='모집중'?'#E8F5E9':'#F5F5F5'};color:${s.status==='모집중'?'#2E7D32':'#999'}">${s.status}</span>
-            <div style="flex:1">
-              <div style="font-weight:700">${s.date}</div>
-              ${renderSeatInfo(s, i, 'cert', canEdit)}
+        <div class="edu-schedule-card" style="padding:14px;border:2px solid ${s.status==='모집중'?'#FFCC80':'#eee'};${s.status==='모집중'?'box-shadow:0 2px 8px rgba(255,107,53,.12)':''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:11px;font-weight:700;color:${s.status==='모집중'?'#2E7D32':'#999'};margin-bottom:3px">${s.status}</div>
+              <div style="font-size:17px;font-weight:900;color:var(--text);line-height:1.3">📅 ${s.date}</div>
+              ${seatsLeft !== null ? `<div style="margin-top:4px;font-size:13px;font-weight:700;color:${seatsLeft<=3?'#E53935':'#1976D2'}">남은 좌석 <span style="font-size:18px">${seatsLeft}</span> / ${s.capacity}석</div>` : `<div style="margin-top:4px;font-size:13px;color:var(--text-sub)">${renderSeatInfo(s, i, 'cert', canEdit)}</div>`}
             </div>
-            ${s.status==='모집중'?'<div style="font-size:13px;color:var(--primary);font-weight:800;flex-shrink:0">신청 ›</div>':''}
           </div>
+          ${s.status==='모집중'?`<button onclick="openCertApplyForm(${i})" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,53,.25)">📝 이 일정으로 신청하기</button>`:`<div style="text-align:center;padding:10px;color:#aaa;font-size:13px;background:#fafafa;border-radius:8px">${s.status}</div>`}
           ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('cert',${i})">📋 신청자 보기</button>
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('cert',${i})">📥 엑셀</button>
           </div>`:''}
         </div>`;
       }).join('')}
-    </div>
+    </div>`}
 
-    <!-- 보수교육 -->
-    <div class="edu-section">
+    <!-- 보수교육 (자격증 전용 모드에서는 숨김) -->
+    ${isCertOnly ? '' : `<div class="edu-section">
       <div class="edu-section-title">🔄 보수교육 신청 ${editBtn('refresher','일정수정')}</div>
       <div style="background:#E8F5E9;border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;color:#2E7D32;line-height:1.7">${d.refresherInfo.replace(/\n/g,'<br>')}</div>
       <div style="font-size:14px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📅 보수교육 일정 — 일정을 선택해서 신청하세요</div>
       ${d.refresherSchedule.map((s,i)=>{
         const region = selectedEduRegion;
         const fbKey = btoa(unescape(encodeURIComponent(region+'_refresher_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
+        const seatsLeft = (typeof s.capacity === 'number' && typeof s.seats === 'number') ? Math.max(0, s.capacity - s.seats) : null;
         return `
-        <div class="edu-schedule-card" onclick="${s.status==='모집중'?`openRefresherApplyForm(${i})`:''}">
-          <div style="display:flex;align-items:flex-start;gap:10px">
-            <span class="schedule-badge" style="background:${s.status==='모집중'?'#E3F2FD':'#F5F5F5'};color:${s.status==='모집중'?'#1565C0':'#999'}">${s.status}</span>
-            <div style="flex:1">
-              <div style="font-weight:700">${s.date}</div>
-              ${renderSeatInfo(s, i, 'refresher', canEdit)}
+        <div class="edu-schedule-card" style="padding:14px;border:2px solid ${s.status==='모집중'?'#90CAF9':'#eee'};${s.status==='모집중'?'box-shadow:0 2px 8px rgba(21,101,192,.12)':''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:11px;font-weight:700;color:${s.status==='모집중'?'#1565C0':'#999'};margin-bottom:3px">${s.status}</div>
+              <div style="font-size:17px;font-weight:900;color:var(--text);line-height:1.3">📅 ${s.date}</div>
+              ${seatsLeft !== null ? `<div style="margin-top:4px;font-size:13px;font-weight:700;color:${seatsLeft<=3?'#E53935':'#1565C0'}">남은 좌석 <span style="font-size:18px">${seatsLeft}</span> / ${s.capacity}석</div>` : `<div style="margin-top:4px;font-size:13px;color:var(--text-sub)">${renderSeatInfo(s, i, 'refresher', canEdit)}</div>`}
             </div>
-            ${s.status==='모집중'?'<div style="font-size:13px;color:#1565C0;font-weight:800;flex-shrink:0">신청 ›</div>':''}
           </div>
+          ${s.status==='모집중'?`<button onclick="openRefresherApplyForm(${i})" style="width:100%;padding:14px;border:none;border-radius:12px;background:#1565C0;color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(21,101,192,.25)">📝 이 일정으로 신청하기</button>`:`<div style="text-align:center;padding:10px;color:#aaa;font-size:13px;background:#fafafa;border-radius:8px">${s.status}</div>`}
           ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('refresher',${i})">📋 신청자 보기</button>
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('refresher',${i})">📥 엑셀</button>
           </div>`:''}
         </div>`;
       }).join('')}
-    </div>
+    </div>`}
 
     <!-- 결제 안내 & 환불 규정 -->
     <div class="edu-section" style="padding:16px 20px">
@@ -9931,6 +10010,330 @@ function submitBizVerify(){
       resultBox.style.color = '#C62828';
       resultBox.innerHTML = '❌ 네트워크 오류<br><span style="font-size:12px">잠시 후 다시 시도해 주세요.</span>';
     }
+  });
+}
+
+// ============================================================
+//  커뮤니티 (지역별 게시판)
+// ============================================================
+state.communityRegion = '';
+state.communityCat = '';
+state.communityPosts = [];
+state._communityListener = null;
+
+// 욕설/광고/개인정보 자동 감지 정규식
+var COMM_BAD_PATTERNS = {
+  abuse: /(씨발|시발|개새|좆|병신|미친\s?새|존나|꺼져|씹|니미|애미|애비|fuck|shit|asshole)/i,
+  ads:   /(불법\s?대출|불법광고|돈\s?빌려|투자\s?수익|코인\s?수익|매수\s?매도|텔레@?그램|카톡\s?id\s?[:：]|ㅋr톡|와츠앱|whatsapp)/i,
+  phone: /(\b01[016789][-\s]?\d{3,4}[-\s]?\d{4}\b|\b02[-\s]?\d{3,4}[-\s]?\d{4}\b|\b0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}\b)/,
+  account: /(\b\d{3,6}[-\s]\d{2,6}[-\s]\d{4,8}\b|계좌번호|입금\s?하시면)/,
+  url:   /(https?:\/\/|www\.|\.com\b|\.kr\b|\.net\b|bit\.ly|me2\.kr|xn--)/i
+};
+
+function checkCommunityContent(text){
+  var t = String(text || '');
+  if(COMM_BAD_PATTERNS.abuse.test(t)) return { ok:false, reason:'욕설/비방으로 보이는 표현이 감지되었습니다' };
+  if(COMM_BAD_PATTERNS.ads.test(t))   return { ok:false, reason:'광고/홍보성 내용으로 의심됩니다' };
+  if(COMM_BAD_PATTERNS.phone.test(t)) return { ok:false, reason:'전화번호는 게시할 수 없습니다 (개인정보 보호)' };
+  if(COMM_BAD_PATTERNS.account.test(t)) return { ok:false, reason:'계좌번호 등 금융정보는 게시할 수 없습니다' };
+  if(COMM_BAD_PATTERNS.url.test(t))   return { ok:false, reason:'외부 링크는 등록할 수 없습니다' };
+  return { ok:true };
+}
+
+function getCommunityRegion(){
+  return state.communityRegion || (state.user && state.user.area) || '';
+}
+
+function openCommunityRegionModal(){
+  // 기존 지역 선택 모달 재활용
+  if(typeof openAreaSelectModal === 'function'){
+    openAreaSelectModal(function(area){
+      state.communityRegion = area;
+      var lbl = document.getElementById('community-region-label');
+      if(lbl) lbl.innerHTML = '📍 ' + escapeHtml(area);
+      loadCommunityPosts();
+    });
+  } else {
+    showToast('지역 선택 기능을 불러올 수 없습니다');
+  }
+}
+
+function setCommunityCat(el, cat){
+  document.querySelectorAll('#community-cat-chips .org-chip').forEach(function(c){ c.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  state.communityCat = cat || '';
+  renderCommunityPosts();
+}
+
+function loadCommunityPosts(){
+  var region = getCommunityRegion();
+  var area = document.getElementById('community-list-area');
+  if(!region){
+    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px">지역을 선택하면 우리 동네 게시판이 열려요</div></div>';
+    return;
+  }
+  var lbl = document.getElementById('community-region-label');
+  if(lbl) lbl.innerHTML = '📍 ' + escapeHtml(region);
+  if(!fbDB){
+    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa">서버 연결이 필요합니다</div>';
+    return;
+  }
+  if(area) area.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa"><div style="font-size:32px;margin-bottom:8px">⏳</div>불러오는 중...</div>';
+  // 기존 리스너 해제
+  if(state._communityListener){ try { state._communityListener.off(); } catch(e){} state._communityListener = null; }
+  var key = communityRegionKey(region);
+  var ref = fbDB.ref('community/' + key + '/posts').orderByChild('createdAt').limitToLast(100);
+  ref.on('value', function(snap){
+    var posts = [];
+    snap.forEach(function(c){
+      var v = c.val() || {};
+      v._id = c.key;
+      posts.push(v);
+    });
+    posts.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    state.communityPosts = posts;
+    renderCommunityPosts();
+  });
+  state._communityListener = ref;
+}
+
+function communityRegionKey(region){
+  // Firebase 키로 안전하게 (한글 그대로 사용 가능)
+  return String(region || '').replace(/[.\#\$\[\]\/]/g, '_');
+}
+
+function renderCommunityPosts(){
+  var area = document.getElementById('community-list-area');
+  if(!area) return;
+  var posts = (state.communityPosts || []).filter(function(p){
+    if(state.communityCat && p.category !== state.communityCat) return false;
+    return true;
+  });
+  if(posts.length === 0){
+    area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">🌱</div><div style="font-size:14px;line-height:1.6">첫 글을 남겨보세요!<br><span style="font-size:12px;color:#bbb">우리 동네 이웃들과 이야기를 나눠보세요</span></div></div>';
+    return;
+  }
+  var html = '';
+  posts.forEach(function(p){
+    var likes = p.likes ? Object.keys(p.likes).length : 0;
+    var comments = p.comments ? Object.keys(p.comments).length : 0;
+    var when = p.createdAt ? getRelativeTime(p.createdAt) : '';
+    var catEmoji = ({자유:'💬',질문:'❓',정보공유:'📢',후기:'⭐',구함:'🤝'}[p.category] || '');
+    html += '<div onclick="openCommunityDetail(\''+escapeHtmlAttr(p._id)+'\')" style="background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+        + '<span style="font-size:11px;font-weight:700;color:var(--primary)">'+catEmoji+' '+escapeHtml(p.category||'자유')+'</span>'
+        + '<span style="font-size:11px;color:#aaa">·</span>'
+        + '<span style="font-size:11px;color:#aaa">'+escapeHtml(p.authorName||'이웃')+'</span>'
+        + '<span style="font-size:11px;color:#aaa">·</span>'
+        + '<span style="font-size:11px;color:#aaa">'+escapeHtml(when)+'</span>'
+      + '</div>'
+      + '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">'+escapeHtml(p.title||'')+'</div>'
+      + '<div style="font-size:13px;color:var(--text-sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+escapeHtml(p.body||'')+'</div>'
+      + '<div style="display:flex;gap:12px;margin-top:8px;font-size:12px;color:#999">'
+        + '<span>❤️ '+likes+'</span>'
+        + '<span>💬 '+comments+'</span>'
+      + '</div>'
+    + '</div>';
+  });
+  area.innerHTML = html;
+}
+
+function openCommunityWriteModal(){
+  if(!state.user || !state.user.kakaoId){ showToast('로그인이 필요합니다'); return; }
+  if(!getCommunityRegion()){ openCommunityRegionModal(); return; }
+  var t = document.getElementById('comm-write-title');
+  var b = document.getElementById('comm-write-body');
+  if(t) t.value = '';
+  if(b) b.value = '';
+  document.getElementById('modal-community-write').classList.add('show');
+}
+
+function submitCommunityPost(){
+  var region = getCommunityRegion();
+  if(!region){ showToast('지역을 먼저 선택해 주세요'); return; }
+  if(!state.user || !state.user.kakaoId){ showToast('로그인이 필요합니다'); return; }
+  var cat = document.getElementById('comm-write-cat').value;
+  var title = String(document.getElementById('comm-write-title').value || '').trim();
+  var body = String(document.getElementById('comm-write-body').value || '').trim();
+  if(title.length < 2){ showToast('제목을 입력해 주세요'); return; }
+  if(body.length < 5){ showToast('내용을 5자 이상 입력해 주세요'); return; }
+  // 자동 필터
+  var ck = checkCommunityContent(title + ' ' + body);
+  if(!ck.ok){ showToast('⚠️ ' + ck.reason); return; }
+  if(!fbDB){ showToast('서버 연결이 필요합니다'); return; }
+  var post = {
+    category: cat,
+    title: sanitizeInput(title),
+    body: sanitizeInput(body),
+    authorId: state.user.kakaoId,
+    authorName: getMyDisplayName(),
+    region: region,
+    createdAt: Date.now()
+  };
+  fbDB.ref('community/' + communityRegionKey(region) + '/posts').push(post)
+    .then(function(){
+      closeModal('modal-community-write');
+      showToast('✅ 글이 등록되었습니다');
+    })
+    .catch(function(e){
+      console.error(e);
+      showToast('등록 실패: ' + e.message);
+    });
+}
+
+function openCommunityDetail(postId){
+  var p = (state.communityPosts || []).find(function(x){ return x._id === postId; });
+  if(!p){ showToast('글을 찾을 수 없습니다'); return; }
+  state._currentCommPost = p;
+  renderCommunityDetail();
+  document.getElementById('modal-community-detail').classList.add('show');
+}
+
+function renderCommunityDetail(){
+  var p = state._currentCommPost; if(!p) return;
+  var likes = p.likes ? Object.keys(p.likes).length : 0;
+  var myId = state.user && state.user.kakaoId;
+  var iLiked = !!(p.likes && myId && p.likes[myId]);
+  var comments = [];
+  if(p.comments){
+    Object.keys(p.comments).forEach(function(k){
+      var c = p.comments[k]; if(c){ c._id = k; comments.push(c); }
+    });
+    comments.sort(function(a,b){ return (a.createdAt||0)-(b.createdAt||0); });
+  }
+  var canDelete = myId && (p.authorId === myId || (typeof ADMIN_KAKAO_ID !== 'undefined' && myId === ADMIN_KAKAO_ID));
+  var when = p.createdAt ? getRelativeTime(p.createdAt) : '';
+  var catEmoji = ({자유:'💬',질문:'❓',정보공유:'📢',후기:'⭐',구함:'🤝'}[p.category] || '');
+  var html = ''
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 4px">'
+      + '<span style="font-size:12px;font-weight:700;color:var(--primary)">'+catEmoji+' '+escapeHtml(p.category||'자유')+'</span>'
+      + '<span style="font-size:12px;color:#aaa">·</span>'
+      + '<span style="font-size:12px;color:#666">'+escapeHtml(p.authorName||'이웃')+'</span>'
+      + '<span style="font-size:12px;color:#aaa">·</span>'
+      + '<span style="font-size:12px;color:#aaa">'+escapeHtml(when)+'</span>'
+      + (canDelete ? '<span onclick="deleteCommunityPost()" style="margin-left:auto;color:#E53935;font-size:12px;cursor:pointer">삭제</span>' : '')
+    + '</div>'
+    + '<div style="font-size:18px;font-weight:800;color:var(--text);padding:0 4px;margin-bottom:8px">'+escapeHtml(p.title||'')+'</div>'
+    + '<div style="font-size:15px;color:var(--text);line-height:1.7;padding:0 4px;white-space:pre-wrap;margin-bottom:14px">'+escapeHtml(p.body||'')+'</div>'
+    + '<div style="display:flex;gap:8px;padding:0 4px;margin-bottom:14px">'
+      + '<button onclick="toggleCommunityLike()" style="flex:1;padding:10px;border:'+(iLiked?'none':'1px solid #ddd')+';border-radius:10px;background:'+(iLiked?'#FFEBEE':'#fff')+';color:'+(iLiked?'#E53935':'#666')+';font-size:14px;font-weight:700;cursor:pointer">'+(iLiked?'❤️':'🤍')+' 공감 '+likes+'</button>'
+      + '<div style="flex:1;padding:10px;border-radius:10px;background:#f5f5f5;color:#666;font-size:14px;font-weight:700;text-align:center">💬 댓글 '+comments.length+'</div>'
+    + '</div>'
+    + '<div style="border-top:1px solid #eee;padding-top:12px;padding:12px 4px 0">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:8px">댓글 '+comments.length+'</div>'
+      + (comments.length === 0 ? '<div style="text-align:center;color:#bbb;font-size:13px;padding:14px">첫 댓글을 남겨보세요</div>' : '')
+      + comments.map(function(c){
+        var cWhen = c.createdAt ? getRelativeTime(c.createdAt) : '';
+        var cCanDel = myId && (c.authorId === myId || (typeof ADMIN_KAKAO_ID !== 'undefined' && myId === ADMIN_KAKAO_ID));
+        return '<div style="background:#f8f8f8;border-radius:10px;padding:10px 12px;margin-bottom:6px">'
+          + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+            + '<span style="font-size:12px;font-weight:700;color:#666">'+escapeHtml(c.authorName||'이웃')+'</span>'
+            + '<span style="font-size:11px;color:#aaa">·</span>'
+            + '<span style="font-size:11px;color:#aaa">'+escapeHtml(cWhen)+'</span>'
+            + (cCanDel ? '<span onclick="deleteCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#E53935;cursor:pointer">삭제</span>' : '')
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap">'+escapeHtml(c.body||'')+'</div>'
+        + '</div>';
+      }).join('')
+      + '<div style="display:flex;gap:6px;margin-top:10px">'
+        + '<input class="form-input" id="comm-comment-input" placeholder="댓글 작성" maxlength="500" style="flex:1"/>'
+        + '<button onclick="submitCommunityComment()" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer">등록</button>'
+      + '</div>'
+    + '</div>';
+  document.getElementById('community-detail-body').innerHTML = html;
+}
+
+function toggleCommunityLike(){
+  var p = state._currentCommPost; if(!p || !fbDB) return;
+  var myId = state.user && state.user.kakaoId; if(!myId){ showToast('로그인이 필요합니다'); return; }
+  var region = p.region || getCommunityRegion();
+  var ref = fbDB.ref('community/'+communityRegionKey(region)+'/posts/'+p._id+'/likes/'+myId);
+  if(p.likes && p.likes[myId]){
+    ref.set(null).then(function(){ if(p.likes) delete p.likes[myId]; renderCommunityDetail(); });
+  } else {
+    ref.set(true).then(function(){ p.likes = p.likes || {}; p.likes[myId] = true; renderCommunityDetail(); });
+  }
+}
+
+function submitCommunityComment(){
+  var p = state._currentCommPost; if(!p || !fbDB) return;
+  var myId = state.user && state.user.kakaoId; if(!myId){ showToast('로그인이 필요합니다'); return; }
+  var input = document.getElementById('comm-comment-input');
+  var body = String((input||{value:''}).value || '').trim();
+  if(body.length < 1){ showToast('댓글 내용을 입력해 주세요'); return; }
+  var ck = checkCommunityContent(body);
+  if(!ck.ok){ showToast('⚠️ ' + ck.reason); return; }
+  var region = p.region || getCommunityRegion();
+  var c = {
+    body: sanitizeInput(body),
+    authorId: myId,
+    authorName: getMyDisplayName(),
+    createdAt: Date.now()
+  };
+  fbDB.ref('community/'+communityRegionKey(region)+'/posts/'+p._id+'/comments').push(c)
+    .then(function(ref){
+      p.comments = p.comments || {};
+      c._id = ref.key;
+      p.comments[ref.key] = c;
+      if(input) input.value = '';
+      renderCommunityDetail();
+    })
+    .catch(function(e){ showToast('댓글 등록 실패'); console.error(e); });
+}
+
+function deleteCommunityPost(){
+  var p = state._currentCommPost; if(!p || !fbDB) return;
+  if(!confirm('이 글을 삭제하시겠어요?')) return;
+  var region = p.region || getCommunityRegion();
+  fbDB.ref('community/'+communityRegionKey(region)+'/posts/'+p._id).set(null)
+    .then(function(){
+      closeModal('modal-community-detail');
+      showToast('🗑 삭제되었습니다');
+    });
+}
+
+function deleteCommunityComment(commentId){
+  var p = state._currentCommPost; if(!p || !fbDB) return;
+  if(!confirm('댓글을 삭제하시겠어요?')) return;
+  var region = p.region || getCommunityRegion();
+  fbDB.ref('community/'+communityRegionKey(region)+'/posts/'+p._id+'/comments/'+commentId).set(null)
+    .then(function(){
+      if(p.comments) delete p.comments[commentId];
+      renderCommunityDetail();
+    });
+}
+
+// 내가 쓴 커뮤니티 글 보기
+function openMyCommunityPosts(){
+  if(!state.user || !state.user.kakaoId){ showToast('로그인이 필요합니다'); return; }
+  if(!fbDB){ showToast('서버 연결이 필요합니다'); return; }
+  // 먼저 커뮤니티 화면으로 이동 후, 내 글만 필터
+  showToast('🔍 내가 쓴 글을 불러오는 중...');
+  var myId = state.user.kakaoId;
+  // 모든 지역에서 내 글 검색 (community 전체 스캔)
+  fbDB.ref('community').once('value', function(snap){
+    var mine = [];
+    snap.forEach(function(regionNode){
+      var posts = regionNode.child('posts').val() || {};
+      Object.keys(posts).forEach(function(k){
+        var p = posts[k];
+        if(p && p.authorId === myId){
+          p._id = k;
+          p._region = regionNode.key;
+          mine.push(p);
+        }
+      });
+    });
+    mine.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    state.communityPosts = mine;
+    state.communityRegion = '내가 쓴 글';
+    state.communityCat = '';
+    navigate('community');
+    setTimeout(function(){
+      var lbl = document.getElementById('community-region-label');
+      if(lbl) lbl.innerHTML = '📂 내가 쓴 글';
+      renderCommunityPosts();
+    }, 100);
   });
 }
 
