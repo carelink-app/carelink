@@ -7,7 +7,7 @@
   <meta http-equiv="X-Frame-Options" content="DENY"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes,viewport-fit=cover"/>
   <title>요보망 - 요양보호사 구인구직</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -336,7 +336,9 @@
     /* 이미지 로딩 최적화 */
     img{loading:lazy}
     /* Safe area 대응 (노치 폰) */
-    .bottom-nav{padding-bottom:env(safe-area-inset-bottom)}
+    .bottom-nav{padding-bottom:max(env(safe-area-inset-bottom), 8px); height:auto; min-height:var(--nav-h)}
+    body{padding-bottom:env(safe-area-inset-bottom)}
+    .screen{padding-bottom:env(safe-area-inset-bottom)}
     .header{padding-top:env(safe-area-inset-top)}
     /* 면접/매칭 시스템 */
     .interview-banner{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;flex-shrink:0;cursor:pointer}
@@ -895,7 +897,6 @@
     <div id="admin-dashboard-menu" class="menu-item" onclick="navigate('admin')" style="display:none"><span class="menu-icon">🔧</span>관리자 대시보드<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="navigate('resume')"><span class="menu-icon">📄</span>이력서 관리<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="showBookmarks()"><span class="menu-icon">❤️</span>찜한 공고 <span id="bookmark-count-badge" style="background:var(--primary);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;margin-left:4px;display:none">0</span><span class="menu-arrow">›</span></div>
-    <div class="menu-item" onclick="showMyKakaoId()"><span class="menu-icon">🪪</span>내 카카오ID 확인<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="navigate('settings')"><span class="menu-icon">⚙️</span>설정<span class="menu-arrow">›</span></div>
     <div class="menu-item" onclick="doLogout()"><span class="menu-icon">🚪</span>로그아웃<span class="menu-arrow">›</span></div>
     <div style="padding:28px;text-align:center;font-size:13px;color:#ccc;line-height:2">요보망 v1.0<br>공고는 등록 후 14일 자동 삭제됩니다<br>문의: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5bdb0b9a595b6b4a7b0b9bcbbbefbbea7">[email&#160;protected]</a></div>
@@ -1716,7 +1717,7 @@
       <div style="background:#FFF8F5;border-radius:8px;padding:12px;margin:6px 0">
         • 개인정보 보호책임자: 심상욱<br>
         • 전화번호: 010-4590-5949<br>
-        • 이메일: tkddnr5949@gmail.com<br>
+        • 이메일: ssw112300@gmail.com<br>
         • 문의: 앱 내 1:1 문의 채팅
       </div><br>
 
@@ -2012,7 +2013,7 @@
       문의: 앱 내 채팅으로 문의해 주세요<br>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#ccc;line-height:1.8">
         <b style="color:#bbb">요보망</b><br>
-        대표: 요보망 &nbsp;|&nbsp; 이메일: tkddnr5949@gmail.com<br>
+        대표: 요보망 &nbsp;|&nbsp; 이메일: ssw112300@gmail.com<br>
         본 서비스는 요양보호사 구인구직 정보 제공 플랫폼입니다<br>
         © 2026 요보망. All rights reserved.
       </div>
@@ -2043,7 +2044,7 @@
       • 개인정보처리자: <b>심상욱</b> (개인 개발자)<br>
       • 앱 이름: 요보망<br>
       • 전화번호: 010-4590-5949<br>
-      • 이메일: tkddnr5949@gmail.com<br>
+      • 이메일: ssw112300@gmail.com<br>
       • 문의: 앱 내 1:1 문의 채팅
     </div><br>
 
@@ -2097,7 +2098,7 @@
     &nbsp;&nbsp;2. 오류 등이 있을 경우 정정 요구<br>
     &nbsp;&nbsp;3. 삭제 요구<br>
     &nbsp;&nbsp;4. 처리정지 요구<br>
-    ② 위 권리 행사는 앱 내 1:1 문의 채팅 또는 이메일(tkddnr5949@gmail.com)을 통해 요청할 수 있습니다.<br>
+    ② 위 권리 행사는 앱 내 1:1 문의 채팅 또는 이메일(ssw112300@gmail.com)을 통해 요청할 수 있습니다.<br>
     ③ 앱을 삭제한 경우에도 로그인 화면의 "데이터 삭제 요청" 기능을 통해 삭제를 요청할 수 있습니다.<br><br>
 
     <b style="font-size:15px;color:#333">제10조 (개인정보 보호를 위한 안전성 확보조치)</b><br>
@@ -2124,7 +2125,7 @@
     <div style="background:#f5f5f5;border-radius:10px;padding:12px 14px;font-size:12px;color:#888;line-height:1.7">
       공고일: 2026년 3월 27일 &nbsp;|&nbsp; 시행일: 2026년 3월 27일<br>
       개인정보처리자: 심상욱 (개인 개발자)<br>
-      문의: tkddnr5949@gmail.com / 앱 내 1:1 채팅
+      문의: ssw112300@gmail.com / 앱 내 1:1 채팅
     </div>
     <div style="height:30px"></div>
   </div>
@@ -2161,7 +2162,7 @@
     <button class="btn btn-primary" style="width:100%;font-size:16px;padding:16px" onclick="submitDeleteRequest()">삭제 요청 제출</button>
 
     <div style="margin-top:16px;font-size:12px;color:#aaa;text-align:center;line-height:1.7">
-      문의: tkddnr5949@gmail.com
+      문의: ssw112300@gmail.com
     </div>
     <div style="height:30px"></div>
   </div>
@@ -3078,6 +3079,15 @@ function getApproxCoords(area, id, item){
 //  INIT
 // ============================================================
 function init(){
+  // ★ 교육 학원 데이터 Firebase 동기화 시작 (fbDB 준비되면 실행)
+  var _eduSyncTimer = setInterval(function(){
+    if(typeof fbDB !== 'undefined' && fbDB){
+      clearInterval(_eduSyncTimer);
+      try { loadEduRegionsFromFirebase(); } catch(e){ console.warn('[요보망] edu sync 실패', e); }
+    }
+  }, 200);
+  setTimeout(function(){ clearInterval(_eduSyncTimer); }, 10000); // 최대 10초만 대기
+
   // Kakao Maps SDK 미리 로드 시도 (도메인 미등록이면 실패 — Nominatim fallback 사용됨)
   try {
     if(window.kakao && kakao.maps && typeof kakao.maps.load === 'function'){
@@ -3443,7 +3453,7 @@ function processKakaoUser(res){
       window._kakaoCallbackProcessing = false; // ★ 플래그 해제 (버튼 복구)
       if(btn){ btn.innerHTML='<span style="font-size:22px">💬</span> 카카오로 시작하기'; btn.disabled=false; }
       // ★ 차단 사유는 사생활 보호상 일반 메시지로 표시 (구체 사유는 본인 문의 시에만 안내)
-      alert('⚠️ 이용이 제한된 계정입니다.\n\n자세한 사항은 아래 이메일로 문의해 주세요.\n\n문의: tkddnr5949@gmail.com');
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n자세한 사항은 아래 이메일로 문의해 주세요.\n\n문의: ssw112300@gmail.com');
       return;
     }
 
@@ -5200,14 +5210,19 @@ function openAddrSearch(){
       // 앱 WebView에서는 embed 모드 사용 (팝업 차단 방지)
       var container = document.createElement('div');
       container.id = 'postcode-layer';
-      container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;background:#fff;';
+      container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:5% 4%;box-sizing:border-box;';
+      var inner = document.createElement('div');
+      inner.style.cssText = 'width:100%;max-width:520px;height:90%;background:#fff;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 8px 30px rgba(0,0,0,0.3);';
+      container.appendChild(inner);
       var closeBtn = document.createElement('button');
       closeBtn.textContent = '\u2715 닫기';
-      closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;z-index:10001;padding:8px 16px;font-size:16px;background:#FF6B35;color:#fff;border:none;border-radius:8px;cursor:pointer;';
+      closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;z-index:10001;padding:8px 16px;font-size:14px;background:#FF6B35;color:#fff;border:none;border-radius:8px;cursor:pointer;';
       closeBtn.onclick = function(){ document.body.removeChild(container); };
-      container.appendChild(closeBtn);
+      inner.appendChild(closeBtn);
+      // 배경 클릭 시 닫기
+      container.addEventListener('click', function(e){ if(e.target === container){ document.body.removeChild(container); } });
       document.body.appendChild(container);
-      postcodeObj.embed(container);
+      postcodeObj.embed(inner);
     } else {
       // 웹 브라우저에서는 기존 임베드 오버레이 사용
       postcodeObj.embed(document.getElementById('daum-addr-embed-container'));
@@ -7368,6 +7383,49 @@ const regionEduData = {
   // '강원 춘천시': { instName:'...', branch:'...', phone:'...', address:'...', notice:'...', certInfo:'...', certSchedule:[...], refresherInfo:'...', refresherSchedule:[...] },
 };
 
+// ============================================================
+//  교육 학원 데이터 Firebase 동기화 (메모리 → Firebase 영구 저장)
+// ============================================================
+function loadEduRegionsFromFirebase(){
+  if(!fbDB) return;
+  fbDB.ref('edu-regions').on('value', function(snap){
+    var data = snap.val() || {};
+    Object.keys(data).forEach(function(region){
+      var fb = data[region];
+      if(!fb) return;
+      // 기존 하드코딩 데이터와 머지 (Firebase 값이 우선)
+      regionEduData[region] = Object.assign({}, regionEduData[region] || {}, fb, {
+        // 일정 데이터는 firebase에 있으면 사용, 없으면 기존
+        certSchedule: fb.certSchedule || (regionEduData[region] && regionEduData[region].certSchedule) || [{date:'일정 미정',time:'-',status:'예정',seats:'-',capacity:30}],
+        refresherSchedule: fb.refresherSchedule || (regionEduData[region] && regionEduData[region].refresherSchedule) || [{date:'일정 미정',time:'-',status:'예정',seats:'-',capacity:20}]
+      });
+    });
+    // 화면 새로고침
+    if(typeof renderEduRegionList === 'function') renderEduRegionList();
+    if(selectedEduRegion && typeof renderEduRegionContent === 'function') renderEduRegionContent();
+    if(typeof renderAdBanners === 'function') renderAdBanners();
+  }, function(err){
+    console.warn('[요보망] edu-regions 로드 실패:', err);
+  });
+}
+
+function saveEduRegionToFirebase(region){
+  if(!fbDB || !regionEduData[region]) return Promise.resolve();
+  // Firebase는 키에 . / [ ] # $ 못 씀 — region 이름은 한글이라 안전
+  return fbDB.ref('edu-regions/' + region).set(regionEduData[region]).catch(function(err){
+    console.error('[요보망] edu-regions 저장 실패:', err);
+    showToast('⚠️ 학원 정보 저장 실패: ' + err.message);
+  });
+}
+
+function deleteEduRegionFromFirebase(region){
+  if(!fbDB) return Promise.resolve();
+  return fbDB.ref('edu-regions/' + region).remove().catch(function(err){
+    console.error('[요보망] edu-regions 삭제 실패:', err);
+  });
+}
+
+
 // 현재 선택된 지역 (null = 목록 화면, 문자열 = 상세 화면)
 let selectedEduRegion = null;
 // 현재 수정 중인 항목 키
@@ -7850,6 +7908,8 @@ function addNewRegion(){
   selectedEduRegion = region;
   selectEduRegion(region);
   renderAdBanners();
+  // ★ Firebase에 저장 (영구 보존)
+  saveEduRegionToFirebase(region);
   // readOnly 상태였으면 해제
   const nameEl = document.getElementById('new-region-name');
   if(nameEl){ nameEl.readOnly=false; nameEl.style.background=''; }
@@ -7859,6 +7919,8 @@ function addNewRegion(){
 function deleteEduRegion(region){
   if(!confirm(`'${region}' 지역을 삭제하시겠습니까?`)) return;
   delete regionEduData[region];
+  // ★ Firebase에서도 삭제
+  deleteEduRegionFromFirebase(region);
   selectedEduRegion = null;
   renderEduRegionList();
   renderAdBanners();
@@ -7926,6 +7988,8 @@ function saveInstInfo(){
   d.notice        = document.getElementById('edit-inst-notice').value.trim()       || d.notice;
   d.certInfo      = document.getElementById('edit-inst-certinfo').value.trim()     || d.certInfo;
   d.refresherInfo = document.getElementById('edit-inst-refresherinfo').value.trim()|| d.refresherInfo;
+  // ★ Firebase에 저장 (영구 보존)
+  saveEduRegionToFirebase(selectedEduRegion);
   closeModal('modal-edu-instinfo');
   renderEduRegionContent();
   renderAdBanners();
@@ -7970,6 +8034,8 @@ function saveEduEdit(){
     if(titleEl && selectedEduRegion) titleEl.textContent = d.instName;
     renderAdBanners();
   }
+  // ★ Firebase에 저장 (영구 보존)
+  saveEduRegionToFirebase(selectedEduRegion);
   renderEduRegionContent();
   closeModal('modal-edu-edit');
   showToast('✅ 저장되었습니다!');
@@ -8536,12 +8602,12 @@ function renderAdBanners(){
       </div>
     </div>`;
   }).join('') + `
-    <div class="ad-banner-card" style="background:linear-gradient(135deg,#37474F,#607D8B);min-width:220px" onclick="showToast('광고 문의: tkddnr5949@gmail.com')">
+    <div class="ad-banner-card" style="background:linear-gradient(135deg,#37474F,#607D8B);min-width:220px" onclick="showToast('광고 문의: ssw112300@gmail.com')">
       <div style="font-size:26px">📣</div>
       <div>
         <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:2px">광고 슬롯 · 지역당 1곳</div>
         <div style="font-size:14px;font-weight:800;color:#fff">여기에 광고하세요</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">tkddnr5949@gmail.com 문의</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">ssw112300@gmail.com 문의</div>
       </div>
     </div>`;
 }
@@ -9269,7 +9335,7 @@ function loadBannedUsers(){
     if(state.user && state.user.kakaoId && isUserBanned(state.user.kakaoId)){
       var banInfo = state.bannedUsers[state.user.kakaoId] || {};
       // ★ 차단 사유는 사생활 보호상 일반 메시지로 표시 (구체 사유는 본인 문의 시에만 안내)
-      alert('⚠️ 이용이 제한된 계정입니다.\n\n자세한 사항은 아래 이메일로 문의해 주세요.\n\n문의: tkddnr5949@gmail.com');
+      alert('⚠️ 이용이 제한된 계정입니다.\n\n자세한 사항은 아래 이메일로 문의해 주세요.\n\n문의: ssw112300@gmail.com');
       try {
         SecureStorage.removeItem('carelink_profile');
         localStorage.removeItem('carelink_nickname');
@@ -9712,7 +9778,7 @@ function submitDeleteRequest(){
     var el3 = document.getElementById('delete-req-reason'); if(el3) el3.value='';
   }).catch(function(err){
     console.error('삭제 처리 실패:', err);
-    showToast('삭제 처리 중 오류가 발생했습니다. 이메일(tkddnr5949@gmail.com)로 문의해 주세요.');
+    showToast('삭제 처리 중 오류가 발생했습니다. 이메일(ssw112300@gmail.com)로 문의해 주세요.');
   });
 }
 
