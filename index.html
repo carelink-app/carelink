@@ -878,7 +878,7 @@
     <div class="form-group">
       <label class="form-label">🔒 연락처 공개 설정</label>
       <div id="post-share-phone-wrap" style="display:flex;gap:10px;margin-top:6px">
-        <div id="share-phone-yes" onclick="setSharePhone(true)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
+        <div id="share-phone-yes" onclick="confirmSharePhone()" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
           📞 연락처 공개<br><span style="font-weight:400;font-size:12px">전화 + 채팅 가능</span>
         </div>
         <div id="share-phone-no" onclick="setSharePhone(false)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:#999;transition:all .2s">
@@ -1722,8 +1722,9 @@
       ② 회사는 「전자상거래 등에서의 소비자보호에 관한 법률」 제20조의2에 따라 통신판매중개자로서 회원 간의 구인·구직 거래에 직접 관여하지 않으며, 회원 간의 거래·계약·분쟁·사고·손해(이동 중 사고, 임금 미지급, 폭행·성희롱, 도난, 부상, 질병 등 일체의 사건 사고 포함)에 대하여 어떠한 책임도 지지 않습니다.<br>
       ③ 회사는 이용자 간 구인·구직 과정에서 발생하는 분쟁에 대해 개입 의무가 없으며 이로 인한 손해에 대해 책임을 지지 않습니다.<br>
       ④ 회사가 제공하는 정보(공고 내용, 연락처, 주소, 시급, 근무조건 등)는 작성자가 입력한 정보를 그대로 표시하는 것이며, 회사는 그 정확성·신뢰성·합법성에 대하여 보증하지 아니합니다. 이용자는 거래 전 직접 확인할 의무가 있습니다.<br>
-      ⑤ 회사는 이용자가 서비스를 이용하여 기대하는 수익을 얻지 못하거나 상실한 것에 대해 책임을 지지 않습니다.<br>
-      ⑥ 본 조항은 「민법」, 「전자상거래 등에서의 소비자보호에 관한 법률」, 「약관의 규제에 관한 법률」 등 강행규정에 위반되지 않는 범위에서 효력이 있습니다.<br><br>
+      ⑤ 이용자가 본인의 연락처를 자발적으로 공개한 경우, 「개인정보 보호법」 제15조·제17조에 따라 본인 동의 하에 이루어진 정보 공개이며, 그로 인한 보이스피싱·스토킹·광고성 전화·금전 사기 등 일체의 피해(직접 손해, 간접 손해, 정신적 피해 포함)에 대하여 회사는 책임을 지지 않습니다. 회사는 동의 일시를 보관하여 분쟁 시 증거자료로 활용할 수 있습니다.<br>
+      ⑥ 회사는 이용자가 서비스를 이용하여 기대하는 수익을 얻지 못하거나 상실한 것에 대해 책임을 지지 않습니다.<br>
+      ⑦ 본 조항은 「민법」, 「전자상거래 등에서의 소비자보호에 관한 법률」, 「약관의 규제에 관한 법률」 등 강행규정에 위반되지 않는 범위에서 효력이 있습니다.<br><br>
 
       <b style="font-size:14px;color:#333">제9조 (분쟁해결)</b><br>
       ① 회사는 이용자로부터 제출되는 불만사항 및 의견을 신속히 처리합니다.<br>
@@ -5312,6 +5313,54 @@ function collectDaysTime(dayClass, startHourId, startMinId, endHourId, endMinId,
 
 // 연락처 공개 설정 (기본값: 공개)
 var sharePhoneSelected = true;
+// ============================================================
+//  연락처 공개 동의 모달 (개인정보보호법 + 전자상거래법 면책)
+// ============================================================
+function confirmSharePhone(){
+  // 이미 공개 선택 상태에서 또 누르면 그냥 유지
+  if(sharePhoneSelected === true) return;
+  // 기존 모달 제거
+  var old = document.getElementById('share-phone-confirm-sheet');
+  if(old) old.remove();
+  var sheet = document.createElement('div');
+  sheet.id = 'share-phone-confirm-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+  sheet.onclick = function(ev){ if(ev.target === sheet) sheet.remove(); };
+  sheet.innerHTML =
+    '<div style="background:#fff;width:100%;max-width:430px;border-radius:18px;padding:22px 22px 18px;animation:modalSlideIn .22s ease-out">'+
+      '<div style="text-align:center;font-size:22px;margin-bottom:8px">⚠️</div>'+
+      '<div style="text-align:center;font-size:17px;font-weight:800;color:#333;margin-bottom:14px">연락처 공개 주의사항</div>'+
+      '<div style="background:#FFF8E1;border-radius:10px;padding:12px 14px;font-size:13px;color:#7C5500;line-height:1.7;margin-bottom:12px">'+
+        '<b>공개 시 발생할 수 있는 위험</b><br>'+
+        '• 매칭된 다른 사용자에게 전화번호가 노출됩니다<br>'+
+        '• 보이스피싱·광고 전화·스토킹 등에 악용될 수 있습니다<br>'+
+        '• 한 번 노출된 정보는 회수하기 어렵습니다'+
+      '</div>'+
+      '<div style="background:#F5F5F5;border-radius:10px;padding:12px 14px;font-size:12px;color:#555;line-height:1.65;margin-bottom:14px">'+
+        '<b style="color:#333">법적 고지</b><br>'+
+        '본인이 동의하여 공개한 연락처에 대해, 「개인정보 보호법」 제15조·제17조 및 「전자상거래 등에서의 소비자보호에 관한 법률」 제20조의2에 따라 요보망은 단순 통신판매중개자로서 일체의 책임을 지지 않습니다.<br>'+
+        '연락처 노출로 인한 분쟁·금전적 손실·정신적 피해·범죄 피해 등 모든 결과는 본인의 책임이며, 의심스러운 연락이 오면 즉시 차단/신고해 주세요.'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:8px">'+
+        '<button onclick="document.getElementById(\'share-phone-confirm-sheet\').remove();_applySharePhone(true)" style="width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(255,107,53,.28)">위 사항을 충분히 인지하고 공개합니다</button>'+
+        '<button onclick="document.getElementById(\'share-phone-confirm-sheet\').remove();_applySharePhone(false)" style="width:100%;padding:14px;background:#fff;color:var(--primary);border:2px solid var(--primary);border-radius:12px;font-size:15px;font-weight:800;cursor:pointer">💬 채팅으로만 안전하게 받겠습니다</button>'+
+      '</div>'+
+      '<div style="text-align:center;margin-top:10px"><span onclick="document.getElementById(\'share-phone-confirm-sheet\').remove()" style="font-size:13px;color:#999;cursor:pointer;padding:4px 8px">취소</span></div>'+
+    '</div>';
+  document.body.appendChild(sheet);
+}
+
+function _applySharePhone(val){
+  // 동의 일시 기록 (분쟁 시 증거)
+  if(val){
+    try {
+      localStorage.setItem('cl_share_phone_consent', '1');
+      localStorage.setItem('cl_share_phone_consent_at', String(Date.now()));
+    } catch(e){}
+  }
+  setSharePhone(val);
+}
+
 function setSharePhone(val){
   sharePhoneSelected = val;
   const yesEl=document.getElementById('share-phone-yes');
