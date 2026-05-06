@@ -4092,11 +4092,11 @@ window.addEventListener('popstate', function(e){
   var tab = _activeTab;
   var stack = _tabHistory[tab];
 
-  // 현재 화면이 'home'이 아니면 무조건 홈으로 (앱 종료 절대 X)
+  // 현재 화면이 'home'이 아니면 → 한 단계 뒤로 또는 홈으로
   var curScreen = state.currentScreen || '';
   if(curScreen && curScreen !== 'home' && curScreen !== 'login'){
     if(stack && stack.length > 1){
-      // 탭 내부 깊이 있으면 한 단계 뒤로
+      // 탭 내부 깊이 있으면 한 단계 뒤로 (예: 글쓰기 안 주소검색 → 글쓰기 본화면)
       stack.pop();
       var prevScreen = stack[stack.length-1];
       navigate(prevScreen, true);
@@ -4107,7 +4107,22 @@ window.addEventListener('popstate', function(e){
     return;
   }
 
-  // 홈에서 뒤로가기 → 앱 종료 방지 (history만 유지)
+  // 홈 화면에서 뒤로가기 — "한 번 더 누르면 종료" 패턴
+  // 1번째: toast 표시 + history 유지
+  // 2번째 (2초 내): 실제 종료 (pushState X → WebView가 finish() 호출)
+  var now = Date.now();
+  if(window._lastHomeBackAt && (now - window._lastHomeBackAt) < 2000){
+    // 2초 내 두 번째 뒤로가기 → 종료 허용
+    window._lastHomeBackAt = 0;
+    // pushState 안 함 → 다음 popstate 시 WebView가 더 이상 history 없으면 finish
+    if(typeof showToast === 'function') showToast('👋 종료합니다');
+    // 빈 history 만들기 위해 한 번 더 back (브라우저는 이미 popstate 처리 후라 다음 액션 필요)
+    setTimeout(function(){ try { history.go(-1); } catch(e){} }, 50);
+    return;
+  }
+  // 1번째 뒤로가기 → 안내 toast + history 유지
+  window._lastHomeBackAt = now;
+  if(typeof showToast === 'function') showToast('한 번 더 누르면 종료됩니다');
   navigate('home', true);
   history.pushState({screen:'home', tab:'home'}, '', '#home');
 });
@@ -12761,6 +12776,32 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
 </body>
 </html>
 View.addEventListener('touchmove', function(e){
+    if(animating || !e.touches || !e.touches[0]) return;
+    var dy = touchStartY - e.touches[0].clientY;
+    if(dy > 30 && !hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
+      hidden = true;
+      setTimeout(function(){ animating = false; }, 280);
+    } else if(dy < -25 && hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; }, 280);
+    }
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
+    lastScroll = st;
+  }, {passive:true});
+
+  var touchStartY = 0;
+  listView.addEventListener('touchstart', function(e){
+    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  listView.addEventListener('touchmove', function(e){
     if(animating || !e.touches || !e.touches[0]) return;
     var dy = touchStartY - e.touches[0].clientY;
     if(dy > 30 && !hidden){
