@@ -522,11 +522,39 @@
             <span style="color:var(--primary);font-weight:700">[필수]</span> 연락처(전화번호) 수집 동의 <span style="color:#888;font-size:11px">(공고 매칭 시 상대 사용자에게 노출)</span>
           </label>
         </div>
-        <!-- ★ 마케팅·광고성 정보 수신 동의 (선택) — 정보통신망법 제50조 -->
-        <div style="display:flex;align-items:flex-start;gap:8px;padding-left:4px">
+        <!-- ★ 위치정보 (위치정보보호법 §15) -->
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-left:4px">
+          <input type="checkbox" id="agree-location" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
+          <label for="agree-location" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
+            <span style="color:var(--primary);font-weight:700">[필수]</span> 위치정보 수집·이용 동의 <span style="color:#888;font-size:11px">(시·구 단위 매칭, 동 단위 음영 표시)</span>
+          </label>
+        </div>
+        <!-- ★ 만 14세 이상 확인 (개인정보보호법 §22-2) -->
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-left:4px">
+          <input type="checkbox" id="agree-age" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
+          <label for="agree-age" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
+            <span style="color:var(--primary);font-weight:700">[필수]</span> 만 14세 이상 본인 확인 <span style="color:#888;font-size:11px">(미만은 가입 불가)</span>
+          </label>
+        </div>
+        <!-- ★ 통신판매중개자 면책 (전자상거래법 §20-2) -->
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-left:4px">
+          <input type="checkbox" id="agree-broker" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
+          <label for="agree-broker" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
+            <span style="color:var(--primary);font-weight:700">[필수]</span> 통신판매중개자 면책 확인 <span style="color:#888;font-size:11px">(요보망은 회원 간 거래·고용계약 당사자가 아님)</span>
+          </label>
+        </div>
+        <!-- ★ 마케팅·광고성 정보 수신 동의 (선택) — 정보통신망법 §50 -->
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding-left:4px">
           <input type="checkbox" id="agree-marketing" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
           <label for="agree-marketing" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
-            <span style="color:#888;font-weight:700">[선택]</span> 마케팅·광고성 정보 수신 동의 <span style="color:#888;font-size:11px">(이벤트·공지 발송용)</span>
+            <span style="color:#888;font-weight:700">[선택]</span> 마케팅·광고성 정보 수신 동의 <span style="color:#888;font-size:11px">(이벤트·공지)</span>
+          </label>
+        </div>
+        <!-- ★ 푸시 알림 (선택) -->
+        <div style="display:flex;align-items:flex-start;gap:8px;padding-left:4px">
+          <input type="checkbox" id="agree-push" class="consent-cb" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--primary)" onchange="checkConsent()"/>
+          <label for="agree-push" style="font-size:13px;color:#555;line-height:1.5;cursor:pointer">
+            <span style="color:#888;font-weight:700">[선택]</span> 푸시 알림 수신 동의 <span style="color:#888;font-size:11px">(주변 새 공고)</span>
           </label>
         </div>
       </div>
@@ -3578,6 +3606,13 @@ function ensureLocationConsent(){
     '【제3자 제공】 다른 회원 (동 단위 음영처리, 정확한 주소는 매칭 후 본인이 직접 공유)\n\n' +
     '동의 거부 시 지도/지역 매칭 기능 사용이 제한됩니다.\n동의하시면 [확인]을 눌러주세요.'
   );
+  if(typeof logConsent === 'function'){
+    logConsent('location', !!ok, {
+      purpose: '지역별 구인구직 매칭 + 지도 표시',
+      retention: '회원 탈퇴/삭제 요청 시까지',
+      thirdParty: '동 단위 음영 외 제공 없음'
+    });
+  }
   if(ok){
     localStorage.setItem('cl_location_consent', '1');
     localStorage.setItem('cl_location_consent_at', String(Date.now()));
@@ -4341,15 +4376,40 @@ function processKakaoUser(res){
 
 window.doKakaoLogin = doKakaoLogin;
 function doKakaoLogin(){
-  // 카카오 로그인 버튼 클릭 시 필수 약관 자동 동의 처리
-  var termsOk = document.getElementById('agree-terms');
-  var privacyOk = document.getElementById('agree-privacy');
-  var contactOk = document.getElementById('agree-contact');
+  // 필수 동의 검증 (개인정보보호법 §22 — 필수 동의는 자동 체크 X)
+  var requiredIds = ['agree-terms','agree-privacy','agree-contact','agree-location','agree-age','agree-broker'];
+  var missing = [];
+  requiredIds.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && !el.checked) missing.push(id);
+  });
+  if(missing.length > 0){
+    alert('⚠️ 필수 약관에 모두 동의해 주세요\n\n' +
+      '회원가입을 위해 [필수] 항목 6개에 동의가 필요합니다:\n' +
+      '• 이용약관\n• 개인정보 수집·이용\n• 연락처 수집\n• 위치정보 수집·이용\n• 만 14세 이상 본인 확인\n• 통신판매중개자 면책 확인\n\n' +
+      '관련 법령: 개인정보보호법 §15·§17·§22·§22-2, 위치정보보호법 §15, 전자상거래법 §20-2');
+    return;
+  }
+  // 동의 기록 영구 저장 (분쟁 시 증거)
+  var marketingOk = !!(document.getElementById('agree-marketing')||{}).checked;
+  var pushOk = !!(document.getElementById('agree-push')||{}).checked;
+  if(typeof logConsent === 'function'){
+    logConsent('terms', true, { version: TERMS_VERSION, scope:'서비스 이용약관' });
+    logConsent('privacy', true, { version: PRIVACY_VERSION, scope:'개인정보 수집·이용' });
+    logConsent('contact_collect', true, { scope:'연락처(전화번호) 수집' });
+    logConsent('location', true, { version: LOCATION_TERMS_VERSION, scope:'시·구 단위 위치 매칭' });
+    logConsent('age_14', true, { scope:'만 14세 이상 본인 확인' });
+    logConsent('broker_disclaimer', true, { legalBasis:'전자상거래법 §20-2', scope:'통신판매중개자 면책 인지' });
+    if(marketingOk) logConsent('marketing', true, { legalBasis:'정보통신망법 §50', scope:'광고성 정보 수신' });
+    if(pushOk) logConsent('push', true, { scope:'푸시 알림 수신' });
+  }
+  try {
+    localStorage.setItem('cl_marketing_consent', marketingOk ? '1' : '0');
+    localStorage.setItem('cl_push_consent', pushOk ? '1' : '0');
+    localStorage.setItem('cl_signup_terms_version', TERMS_VERSION);
+    localStorage.setItem('cl_location_consent', '1');
+  } catch(e){}
   var allCb = document.getElementById('agree-all');
-  if(termsOk) termsOk.checked = true;
-  if(privacyOk) privacyOk.checked = true;
-  if(contactOk) contactOk.checked = true;  // 연락처 수집 동의도 필수
-  // 전체동의 체크박스도 동기화
   if(allCb){
     var all = document.querySelectorAll('.consent-cb');
     var allChecked = true;
@@ -5875,6 +5935,13 @@ function _applySharePhone(val){
       localStorage.setItem('cl_share_phone_consent_at', String(Date.now()));
     } catch(e){}
   }
+  if(typeof logConsent === 'function'){
+    logConsent('phone_share', !!val, {
+      legalBasis: '개인정보보호법 §15·§17, 전자상거래법 §20-2',
+      purpose: '구인구직 매칭 후 전화 연락',
+      risk: '전화번호 노출 시 보이스피싱·광고 등 위험 본인 책임'
+    });
+  }
   setSharePhone(val);
 }
 
@@ -6390,6 +6457,12 @@ function submitPost(){
       updateMyListings(newItem);
       window._isSubmittingPost = false;
     }
+    if(typeof logConsent === 'function'){
+      logConsent('post_caregiver', true, {
+        sharePhone: !!sharePhoneSelected,
+        acknowledged: '구직 정보 공개에 동의 + 14일 후 자동 삭제'
+      });
+    }
     resetPostForm();
     showToast('✅ 구직 공고가 등록되었습니다! (14일 후 자동 삭제)');
     setTimeout(()=>switchTab('home'),1000);
@@ -6426,6 +6499,13 @@ function submitPost(){
     renderListings();
     updateMyListings(newItem);
     window._isSubmittingPost = false;
+  }
+  if(typeof logConsent === 'function'){
+    logConsent('post_employer', true, {
+      sharePhone: !!sharePhoneSelected,
+      bizVerified: !!(state.user && state.user.bizVerified),
+      acknowledged: '구인 정보 공개에 동의 + 14일 후 자동 삭제'
+    });
   }
   resetPostForm();
   showToast('✅ 구인 공고가 등록되었습니다! (14일 후 자동 삭제)');
@@ -6587,6 +6667,14 @@ function handleCertPhoto(input){
       '【제3자 제공】 없음 (단, 법령에 따른 수사·재판 협조 제외)\n\n' +
       '동의하시면 [확인]을 눌러주세요. 거부 시 업로드 없이 가입은 가능합니다.'
     );
+    if(typeof logConsent === 'function'){
+      logConsent('sensitive', !!ok, {
+        scope: '자격증·사업자등록증 사진',
+        legalBasis: '개인정보보호법 §23',
+        purpose: '회원 자격 검증',
+        retention: '탈퇴/삭제 요청 시까지'
+      });
+    }
     if(!ok){ if(input) input.value=''; return; }
     if(state.user){
       state.user.sensitiveConsent = true;
@@ -8336,6 +8424,76 @@ function formatChatTime(ts){
 // ⚠️ 관리자 카카오 ID — 이 계정으로 로그인하면 수정 버튼이 나타납니다
 // ⚠️ 관리자 카카오 ID — 이 계정으로 로그인하면 수정 버튼이 나타납니다
 const ADMIN_KAKAO_ID = '4818030525';
+
+// ============================================================
+//  동의 기록 시스템 (분쟁 시 증거자료)
+//  - TERMS_VERSION 변경 시 기존 회원 재동의 자동 트리거
+// ============================================================
+var TERMS_VERSION = '2026.05.06';   // 약관·개인정보처리방침 개정 시 변경
+var PRIVACY_VERSION = '2026.05.06';
+var LOCATION_TERMS_VERSION = '2026.05.06';
+
+/**
+ * 동의 기록을 영구 저장 (Firebase + localStorage 이중 백업)
+ * @param {string} type - 'terms' | 'privacy' | 'location' | 'sensitive' | 'marketing' | 'push' | 'phone_share' | 'biz_verify' | 'community_post' | 'chat_init'
+ * @param {boolean} agreed
+ * @param {object} extra - 부가 정보 (목적, 조항 등)
+ */
+function logConsent(type, agreed, extra){
+  var record = {
+    type: type,
+    agreed: !!agreed,
+    at: Date.now(),
+    atKr: new Date().toLocaleString('ko-KR'),
+    termsVersion: TERMS_VERSION,
+    privacyVersion: PRIVACY_VERSION,
+    locationTermsVersion: LOCATION_TERMS_VERSION,
+    ua: navigator.userAgent,
+    lang: navigator.language || '',
+    href: window.location.href
+  };
+  if(extra && typeof extra === 'object') Object.assign(record, extra);
+  // 1) localStorage 백업 (Firebase 연결 실패 대비)
+  try {
+    var key = 'consent_log_' + type;
+    var prev = JSON.parse(localStorage.getItem(key) || '[]');
+    prev.push(record);
+    if(prev.length > 50) prev = prev.slice(-50);  // 최대 50개만 유지
+    localStorage.setItem(key, JSON.stringify(prev));
+  } catch(e){}
+  // 2) Firebase 영구 기록 (사용자별)
+  if(typeof fbDB !== 'undefined' && fbDB && state.user && state.user.kakaoId){
+    try {
+      fbDB.ref('consent_logs/' + state.user.kakaoId).push(record).catch(function(e){
+        console.warn('consent log push failed:', e && e.message);
+      });
+    } catch(e){}
+  }
+  return record;
+}
+
+/**
+ * 마지막 동의 시점 조회 (재동의 필요 판정용)
+ */
+function getLastConsentVersion(type){
+  try {
+    var prev = JSON.parse(localStorage.getItem('consent_log_' + type) || '[]');
+    if(!prev.length) return null;
+    return prev[prev.length - 1];
+  } catch(e){ return null; }
+}
+
+/**
+ * 약관 개정 시 재동의 필요 여부
+ */
+function needsReconsent(type, currentVersion){
+  var last = getLastConsentVersion(type);
+  if(!last || !last.agreed) return true;
+  if(type === 'terms' && last.termsVersion !== currentVersion) return true;
+  if(type === 'privacy' && last.privacyVersion !== currentVersion) return true;
+  if(type === 'location' && last.locationTermsVersion !== currentVersion) return true;
+  return false;
+}
 
 // ============================================================
 //  지역별 교육 데이터 (원장님이 앱에서 직접 수정 가능)
@@ -10191,6 +10349,13 @@ function submitBizVerify(){
     }
     if(data.valid === true){
       // 인증 성공
+      if(typeof logConsent === 'function'){
+        logConsent('biz_verify', true, {
+          legalBasis: '국세청 사업자등록 진위확인 API (공공데이터)',
+          purpose: '기관 회원 자격 검증 + ✓ 인증 기관 배지',
+          dataKept: '사업자번호·기관명·종류·연락처·주소(인증일자 포함)'
+        });
+      }
       state.user.bizVerified = true;
       state.user.bizNo = bno;
       state.user.bizPname = pNm;
@@ -10461,6 +10626,13 @@ function submitCommunityPost(){
     views: 0,
     createdAt: Date.now()
   };
+  if(typeof logConsent === 'function'){
+    logConsent('community_post', true, {
+      region: region, scope: state.communityScope || 'mine', category: cat,
+      legalBasis: '약관·게시판 운영정책',
+      acknowledged: '욕설/광고/개인정보/외부링크 게시 시 자동 차단 + 24h 임시조치 동의'
+    });
+  }
   fbDB.ref('community/' + communityRegionKey(region) + '/posts').push(post)
     .then(function(){
       closeModal('modal-community-write');
@@ -12523,44 +12695,6 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
     } else if(dy < -25 && hidden){
       animating = true;
       getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
-      hidden = false;
-      setTimeout(function(){ animating = false; }, 280);
-    }
-  }, {passive:true});
-})();
-</script>
-</body>
-</html>
-lse;
-      setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 280);
-    }
-    lastScroll = st;
-  }, {passive:true});
-
-  var touchStartY = 0;
-  listView.addEventListener('touchstart', function(e){
-    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
-  }, {passive:true});
-  listView.addEventListener('touchmove', function(e){
-    if(animating || !e.touches || !e.touches[0]) return;
-    var dy = touchStartY - e.touches[0].clientY;
-    if(dy > 30 && !hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
-      hidden = true;
-      setTimeout(function(){ animating = false; }, 280);
-    } else if(dy < -25 && hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
-      hidden = false;
-      setTimeout(function(){ animating = false; }, 280);
-    }
-  }, {passive:true});
-})();
-</script>
-</body>
-</html>
--shown'); });
       hidden = false;
       setTimeout(function(){ animating = false; }, 280);
     }
