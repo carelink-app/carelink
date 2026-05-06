@@ -43,8 +43,13 @@
     .header-back{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer}
     .header-right{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer}
     .bottom-nav{height:var(--nav-h);background:#fff;border-top:1px solid var(--border);display:flex;flex-shrink:0}
-    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#666;transition:color .2s}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#888;transition:color .2s;position:relative;padding-top:8px}
     .nav-item.active{color:var(--primary)}
+    .nav-item.active::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--primary);border-radius:0 0 3px 3px}
+    .nav-icon{transition:transform .15s}
+    .nav-item.active .nav-icon{transform:scale(1.1)}
+    .nav-label{font-size:11px;font-weight:600}
+    .nav-item.active .nav-label{font-weight:800}
     .nav-item .nav-icon{font-size:22px}
     .nav-item .nav-label{font-size:14px;font-weight:600}
     /* 광고 배너 */
@@ -765,12 +770,21 @@
   <!-- 역할 기반 자동 필터 안내 (토글 제거) -->
   <div id="home-type-label" style="background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;font-size:15px;font-weight:700;color:var(--primary);text-align:center"></div>
 
-  <!-- 검색 바 (스크롤 시 자동 숨김) -->
+  <!-- 검색 바 + 인기 키워드 (스크롤 시 자동 숨김) -->
   <div class="home-collapsible" style="background:#fff;border-bottom:1px solid #f0f0f0;padding:6px 12px">
     <div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;border-radius:10px;padding:7px 12px">
       <span style="font-size:13px">🔍</span>
-      <input type="text" id="home-search-input" placeholder="공고/지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none;min-width:0" onkeyup="searchListings()">
+      <input type="text" id="home-search-input" placeholder="공고/지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none;min-width:0" onkeyup="searchListings()" onfocus="document.getElementById('search-suggest').style.display='flex'">
       <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:13px;display:none">✕</button>
+    </div>
+    <!-- 인기 검색어 칩 (네이버 스타일) -->
+    <div id="search-suggest" style="display:none;flex-wrap:wrap;gap:5px;margin-top:6px">
+      <span style="font-size:10px;color:#999;align-self:center">🔥 인기:</span>
+      <span onclick="quickSearch('방문요양')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">방문요양</span>
+      <span onclick="quickSearch('주야간')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">주야간</span>
+      <span onclick="quickSearch('요양원')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">요양원</span>
+      <span onclick="quickSearch('야간')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">야간근무</span>
+      <span onclick="quickSearch('주간')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">주간만</span>
     </div>
   </div>
 
@@ -3553,6 +3567,18 @@ function quickGoCertEdu(){
   // 요양보호사 자격증 교육 전용 모드
   state._eduMode = 'cert';
   _enterEduWithMode();
+}
+
+// 인기 키워드 클릭 → 검색바에 채우고 검색 (네이버 스타일)
+function quickSearch(keyword){
+  if(typeof hapticTap === 'function') hapticTap();
+  var input = document.getElementById('home-search-input');
+  if(input){
+    input.value = keyword;
+    if(typeof searchListings === 'function') searchListings();
+  }
+  var suggest = document.getElementById('search-suggest');
+  if(suggest) suggest.style.display = 'none';
 }
 function _enterEduWithMode(){
   // edu 탭으로 전환 (switchTab은 _eduMode를 null로 리셋하지 않도록 우회)
@@ -8456,6 +8482,20 @@ function formatChatTime(ts){
 const ADMIN_KAKAO_ID = '4818030525';
 
 // ============================================================
+//  햅틱 피드백 — 카카오/당근/네이버 스타일 짧은 진동
+// ============================================================
+function hapticTap(){    try { if(navigator.vibrate) navigator.vibrate(10); } catch(e){} }
+function hapticSuccess(){try { if(navigator.vibrate) navigator.vibrate([15, 50, 25]); } catch(e){} }
+function hapticError(){  try { if(navigator.vibrate) navigator.vibrate([50, 30, 50]); } catch(e){} }
+function hapticLong(){   try { if(navigator.vibrate) navigator.vibrate(30); } catch(e){} }
+
+// 모든 .nav-item 클릭에 자동 햅틱
+document.addEventListener('click', function(e){
+  var t = e.target.closest('.nav-item, .listing-card, .home-cat-chip, .org-chip, .org-card, .map-toggle-btn, .btn-primary, .btn-kakao');
+  if(t) hapticTap();
+}, {capture:true});
+
+// ============================================================
 //  동의 기록 시스템 (분쟁 시 증거자료)
 //  - TERMS_VERSION 변경 시 기존 회원 재동의 자동 트리거
 // ============================================================
@@ -12721,79 +12761,6 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
       hidden = false;
       setTimeout(function(){ animating = false; lastScroll = listView.scrollTop; }, 280);
     }
-    lastScroll = st;
-  }, {passive:true});
-
-  var touchStartY = 0;
-  listView.addEventListener('touchstart', function(e){
-    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
-  }, {passive:true});
-  listView.addEventListener('touchmove', function(e){
-    if(animating || !e.touches || !e.touches[0]) return;
-    var dy = touchStartY - e.touches[0].clientY;
-    if(dy > 30 && !hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
-      hidden = true;
-      setTimeout(function(){ animating = false; }, 280);
-    } else if(dy < -25 && hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
-      hidden = false;
-      setTimeout(function(){ animating = false; }, 280);
-    }
-  }, {passive:true});
-})();
-</script>
-</body>
-</html>
-80);
-    }
-    lastScroll = st;
-  }, {passive:true});
-
-  var touchStartY = 0;
-  listView.addEventListener('touchstart', function(e){
-    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
-  }, {passive:true});
-  listView.addEventListener('touchmove', function(e){
-    if(animating || !e.touches || !e.touches[0]) return;
-    var dy = touchStartY - e.touches[0].clientY;
-    if(dy > 30 && !hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
-      hidden = true;
-      setTimeout(function(){ animating = false; }, 280);
-    } else if(dy < -25 && hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
-      hidden = false;
-      setTimeout(function(){ animating = false; }, 280);
-    }
-  }, {passive:true});
-})();
-</script>
-</body>
-</html>
-View.addEventListener('touchmove', function(e){
-    if(animating || !e.touches || !e.touches[0]) return;
-    var dy = touchStartY - e.touches[0].clientY;
-    if(dy > 30 && !hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
-      hidden = true;
-      setTimeout(function(){ animating = false; }, 280);
-    } else if(dy < -25 && hidden){
-      animating = true;
-      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
-      hidden = false;
-      setTimeout(function(){ animating = false; }, 280);
-    }
-  }, {passive:true});
-})();
-</script>
-</body>
-</html>
     lastScroll = st;
   }, {passive:true});
 
