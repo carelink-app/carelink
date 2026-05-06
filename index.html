@@ -256,8 +256,9 @@
     .toggle-switch.on .toggle-switch-dot{left:22px}
 
     /* Pull-to-refresh indicator */
-    .pull-indicator{text-align:center;padding:12px;color:var(--primary);font-size:13px;font-weight:600;display:none}
-    .pull-indicator.visible{display:block}
+    .pull-indicator{text-align:center;padding:14px;color:var(--primary);font-size:14px;font-weight:700;display:none;background:linear-gradient(180deg,#FFF3E8,transparent);border-radius:12px;margin:6px 12px}
+    .pull-indicator.visible{display:block;animation:pullFadeIn .2s ease-out}
+    @keyframes pullFadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 
     /* Skeleton loading */
     @keyframes skeleton-pulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -4024,6 +4025,14 @@ function closeAnyOpenModal(){
 window.addEventListener('popstate', function(e){
   // ★ 모달이 떠 있으면 모달만 닫고 화면 전환 차단 ★
 
+  // -1) 지도 전체화면 모드 → 전체화면 해제만 (앱 종료 X)
+  var mapView = document.getElementById('map-view');
+  if(mapView && mapView.classList.contains('map-view-fullscreen')){
+    if(typeof toggleMapFullscreen === 'function') toggleMapFullscreen();
+    history.pushState({screen:state.currentScreen||'home', tab:_activeTab||'home'}, '', '#'+(state.currentScreen||'home'));
+    return;
+  }
+
   // 0) 동적으로 추가된 임시 오버레이들 (주소검색 / 연락처 공개 주의 등)
   var dynamicOverlays = ['postcode-layer','biz-postcode-layer','share-phone-confirm-sheet','share-phone-warn-overlay','consent-overlay','sticker-panel-overlay'];
   for(var i=0;i<dynamicOverlays.length;i++){
@@ -4083,18 +4092,24 @@ window.addEventListener('popstate', function(e){
   var tab = _activeTab;
   var stack = _tabHistory[tab];
 
-  if(stack && stack.length > 1){
-    stack.pop();
-    var prevScreen = stack[stack.length-1];
-    navigate(prevScreen, true);
-  } else if(tab !== 'home'){
-    // 탭 루트에서 뒤로가기 → 홈으로
-    switchTab('home');
-  } else {
-    // 홈 탭 루트 — 앱 종료 방지
-    navigate('home', true);
-    history.pushState({screen:'home', tab:'home'}, '', '#home');
+  // 현재 화면이 'home'이 아니면 무조건 홈으로 (앱 종료 절대 X)
+  var curScreen = state.currentScreen || '';
+  if(curScreen && curScreen !== 'home' && curScreen !== 'login'){
+    if(stack && stack.length > 1){
+      // 탭 내부 깊이 있으면 한 단계 뒤로
+      stack.pop();
+      var prevScreen = stack[stack.length-1];
+      navigate(prevScreen, true);
+    } else {
+      // 탭 루트 (글쓰기/채팅/커뮤니티/내정보 등) → 홈으로
+      switchTab('home');
+    }
+    return;
   }
+
+  // 홈에서 뒤로가기 → 앱 종료 방지 (history만 유지)
+  navigate('home', true);
+  history.pushState({screen:'home', tab:'home'}, '', '#home');
 });
 function switchTab(tab){
   // 탭 전환: 활성 탭 변경 + 해당 탭의 루트 화면으로 이동
@@ -12085,7 +12100,7 @@ function updateProfileCompletion(){
 
 
 // ============================================================
-//  Pull-to-refresh (당근마켓 스타일)
+//  Pull-to-refresh — 목록창에서 당겨서 새로고침 (앱/웹 모두 작동)
 // ============================================================
 let _pullRefreshCooldown = false;
 let _pullStartY = 0;
@@ -12094,47 +12109,61 @@ let _pullTriggered = false;
   var listView = document.getElementById('list-view');
   if(!listView) return;
   listView.addEventListener('touchstart', function(e){
-    // 앱 WebView에서는 pull-to-refresh 비활성화 (네이티브 오버스크롤 사용)
-    if(window.__DISABLE_PULL_REFRESH__) return;
-    // 홈 화면에서만 pull-to-refresh 활성화
     if(state.currentScreen !== 'home') return;
-    if(listView.scrollTop <= 0){
-      _pullStartY = e.touches[0].clientY;
+    if(listView.scrollTop <= 2){
+      _pullStartY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
       _pullTriggered = false;
     }
   }, {passive:true});
   listView.addEventListener('touchmove', function(e){
-    // 앱 WebView에서는 pull-to-refresh 비활성화
-    if(window.__DISABLE_PULL_REFRESH__) return;
-    // 홈 화면에서만 pull-to-refresh 활성화
     if(state.currentScreen !== 'home') return;
     if(_pullRefreshCooldown || _pullTriggered) return;
-    if(listView.scrollTop > 0) return;
+    if(listView.scrollTop > 2) return;
+    if(!e.touches || !e.touches[0]) return;
     var dy = e.touches[0].clientY - _pullStartY;
-    if(dy > 60){
+    // 시각적 피드백 — 끌어내릴 때 인디케이터 표시 (아직 발사 안 함)
+    var indicator = document.getElementById('pull-indicator');
+    if(indicator && dy > 20 && dy < 70){
+      indicator.classList.add('visible');
+      indicator.textContent = '↓ 더 내려서 새로고침';
+    } else if(indicator && dy >= 70 && !_pullTriggered){
+      indicator.textContent = '↑ 놓으면 새로고침';
+    }
+    if(dy > 80){
       _pullTriggered = true;
       doPullRefresh();
     }
   }, {passive:true});
+  listView.addEventListener('touchend', function(){
+    var indicator = document.getElementById('pull-indicator');
+    if(indicator && !_pullTriggered && !_pullRefreshCooldown){
+      indicator.classList.remove('visible');
+    }
+    _pullStartY = 0;
+  }, {passive:true});
 })();
 function doPullRefresh(){
-  // 앱 WebView에서는 동작하지 않음
-  if(window.__DISABLE_PULL_REFRESH__) return;
-  // 홈 화면에서만 동작
   if(state.currentScreen !== 'home') return;
   const indicator = document.getElementById('pull-indicator');
   if(!indicator || _pullRefreshCooldown) return;
   indicator.classList.add('visible');
   indicator.textContent = '↻ 새로고침 중...';
   _pullRefreshCooldown = true;
-  renderHomeScreen();
+  // 1) Firebase 최신 데이터 강제 재로드
+  if(typeof fbDB !== 'undefined' && fbDB && typeof loadListingsFromFirebase === 'function'){
+    try { loadListingsFromFirebase(); } catch(e){}
+  }
+  // 2) 광고배너 + 목록 다시 렌더
+  if(typeof renderAdBanners === 'function') renderAdBanners();
+  if(typeof renderListings === 'function') renderListings();
   setTimeout(()=>{
     indicator.textContent = '✅ 새로고침 완료';
     setTimeout(()=>{
       indicator.classList.remove('visible');
       _pullRefreshCooldown = false;
-    }, 800);
-  }, 600);
+      _pullTriggered = false;
+    }, 700);
+  }, 500);
 }
 
 // ============================================================
@@ -12685,6 +12714,53 @@ console.log('%c이 브라우저 기능은 개발자 전용입니다.\n누군가 
     if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
   }, {passive:true});
   listView.addEventListener('touchmove', function(e){
+    if(animating || !e.touches || !e.touches[0]) return;
+    var dy = touchStartY - e.touches[0].clientY;
+    if(dy > 30 && !hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
+      hidden = true;
+      setTimeout(function(){ animating = false; }, 280);
+    } else if(dy < -25 && hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; }, 280);
+    }
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
+80);
+    }
+    lastScroll = st;
+  }, {passive:true});
+
+  var touchStartY = 0;
+  listView.addEventListener('touchstart', function(e){
+    if(e.touches && e.touches[0]) touchStartY = e.touches[0].clientY;
+  }, {passive:true});
+  listView.addEventListener('touchmove', function(e){
+    if(animating || !e.touches || !e.touches[0]) return;
+    var dy = touchStartY - e.touches[0].clientY;
+    if(dy > 30 && !hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-shown'); el.classList.add('scroll-hidden'); });
+      hidden = true;
+      setTimeout(function(){ animating = false; }, 280);
+    } else if(dy < -25 && hidden){
+      animating = true;
+      getTargets().forEach(function(el){ el.classList.remove('scroll-hidden'); el.classList.add('scroll-shown'); });
+      hidden = false;
+      setTimeout(function(){ animating = false; }, 280);
+    }
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
+View.addEventListener('touchmove', function(e){
     if(animating || !e.touches || !e.touches[0]) return;
     var dy = touchStartY - e.touches[0].clientY;
     if(dy > 30 && !hidden){
