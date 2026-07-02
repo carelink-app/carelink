@@ -24,6 +24,7 @@ SECURITY_GUIDE.md
 
 # 자동화 스크립트
 git_push.bat
+check_syntax.js
 
 # 격리/삭제 후보 파일
 삭제할 파일/
@@ -35,3 +36,18 @@ desktop.ini
 *.swp
 .idea/
 .vscode/
+
+# ★ 비밀·내부 문서 (절대 공개 저장소에 올리지 말 것 — 키/비밀번호/수익모델 포함)
+HANDOFF_TO_CLAUDE_*.md
+WEBVIEW_APP_INSTRUCTIONS.md
+PLAY_CONSOLE_DEPLOY.md
+개선점_감사보고서_*.md
+요보망_제품기획서_*.md
+보안잠금_배포가이드_*.md
+변경요약_*.md
+보수교육_신청자_샘플출력.xlsx
+보수교육 수강신청 등록.xlsx
+
+# 로컬 백업·배포 산출물 (비공개)
+index_backup_*.html
+database.rules.locked.json

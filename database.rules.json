@@ -1,0 +1,62 @@
+{
+  "_comment_about_this_file": "Firebase Auth 미통합 상태 — 현재 앱은 카카오 OAuth만 사용하므로 auth==null. 그래서 이 규칙은 데이터 모양/길이만 검증하고 읽기/쓰기는 허용. 추후 Firebase Custom Token 통합 후 본격 규칙으로 업그레이드 예정 (database.rules.full.json 참고).",
+
+  "rules": {
+    ".read": true,
+    ".write": true,
+
+    "users": {
+      "$uid": {
+        ".validate": "newData.hasChild('kakaoId') || !newData.exists()",
+        "name":     { ".validate": "newData.isString() && newData.val().length <= 30" },
+        "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "phone":    { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "area":     { ".validate": "newData.isString() && newData.val().length <= 50" },
+        "bizNo":    { ".validate": "newData.isString() && newData.val().length == 10" },
+        "bizName":  { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "bizType":  { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "bizAddress": { ".validate": "newData.isString() && newData.val().length <= 200" }
+      }
+    },
+
+    "listings": {
+      ".indexOn": ["createdAt", "status", "type", "area", "postedByKakaoId"],
+      "$id": {
+        "title":   { ".validate": "newData.isString() && newData.val().length <= 100" },
+        "desc":    { ".validate": "newData.isString() && newData.val().length <= 2000" },
+        "area":    { ".validate": "newData.isString() && newData.val().length <= 100" },
+        "type":    { ".validate": "newData.val() == 'caregiver' || newData.val() == 'employer'" }
+      }
+    },
+
+    "chats": {
+      "$chatId": {
+        "messages": {
+          ".indexOn": "time",
+          "$msgId": {
+            "text":      { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 2000)" },
+            "imageUrl":  { ".validate": "!newData.exists() || (newData.isString() && (newData.val().matches(/^https:\\/\\//) || newData.val().matches(/^data:image\\//)))" },
+            "time":      { ".validate": "newData.isNumber()" }
+          }
+        }
+      }
+    },
+
+    "community": {
+      "$region": {
+        "posts": {
+          ".indexOn": "createdAt",
+          "$postId": {
+            "title": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "body":  { ".validate": "newData.isString() && newData.val().length <= 2000" },
+            "comments": {
+              "$cid": {
+                "body": { ".validate": "newData.isString() && newData.val().length <= 500" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

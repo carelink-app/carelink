@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0">
+  <title>CBT 시험 — 동의 모듈 데모</title>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', sans-serif; margin: 0; padding: 0; background: #f5f7fa; min-height: 100vh; }
+    .wrap { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    h1 { color: #1976D2; }
+    .card { background: #fff; border-radius: 14px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .btn { display: inline-block; padding: 12px 22px; background: #1976D2; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-right: 8px; }
+    .btn-admin { background: #555; }
+    .info { background: #E3F2FD; border-radius: 10px; padding: 14px; font-size: 13px; color: #0D47A1; line-height: 1.7; margin-top: 14px; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📚 CBT 시험 — 동의 모듈 데모</h1>
+
+    <div class="card">
+      <h3>1️⃣ 응시자 본인확인 + 동의서 받기</h3>
+      <button class="btn" onclick="startConsent()">동의서 받기 → 시험 시작</button>
+      <div class="info">
+        실제 사용 시: 로그인 직후 <code>ConsentModule.start()</code> 호출.
+        한 번 동의하면 같은 기기에서는 다시 묻지 않음 (약관 버전 변경 시 재동의).
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>2️⃣ 관리자 — 응시자 동의서 목록</h3>
+      <button class="btn btn-admin" onclick="openAdmin()">관리자 비밀번호 입력</button>
+      <div class="info">
+        기본 비밀번호: <code>admin1234</code> (consent.js의 <code>ADMIN_PW_HASH</code>에서 변경 가능)
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>3️⃣ 저장된 동의 정보 확인</h3>
+      <button class="btn" onclick="showCurrent()">내 동의 정보 보기</button>
+      <button class="btn btn-admin" onclick="clearConsent()">동의 초기화</button>
+      <pre id="output">버튼을 눌러보세요.</pre>
+    </div>
+
+    <div class="card" style="background:#FFF8E1;border:1px solid #FFE082">
+      <h3 style="color:#E65100">📌 통합 가이드 (CBT 웹에 붙이기)</h3>
+      <ol style="line-height:1.9;font-size:14px">
+        <li><b>consent.js</b> 파일을 웹 폴더에 복사</li>
+        <li>HTML <code>&lt;head&gt;</code>에 추가:
+          <pre>&lt;script src="consent.js"&gt;&lt;/script&gt;</pre>
+        </li>
+        <li>로그인 처리 직후 호출:
+          <pre>ConsentModule.start({
+  onComplete: function(record) {
+    // 시험 화면으로 이동
+    window.location.href = '/exam';
+  },
+  onCancel: function() {
+    alert('동의가 필요합니다');
+  }
+});</pre>
+        </li>
+        <li>(선택) Firebase 클라우드 저장 — Firebase 초기화 후:
+          <pre>window.CONSENT_FB = firebase.database();</pre>
+        </li>
+        <li>관리자 페이지에서:
+          <pre>ConsentModule.openAdmin('비밀번호')</pre>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <!-- 모듈 로드 -->
+  <script src="consent.js"></script>
+
+  <!-- (선택) Firebase 연결 — 실제 사용 시 주석 해제 -->
+  <!--
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "YOUR_API_KEY",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com"
+    });
+    window.CONSENT_FB = firebase.database();
+  </script>
+  -->
+
+  <script>
+    function startConsent(){
+      ConsentModule.start({
+        onComplete: function(record){
+          document.getElementById('output').textContent =
+            '✅ 동의 완료!\n\n' + JSON.stringify({
+              name: record.name,
+              birth6: record.birth6,
+              userId: record.userId,
+              agreedAtKr: record.agreedAtKr,
+              version: record.version,
+              signatureLength: record.signatureDataUrl.length + ' bytes'
+            }, null, 2);
+        },
+        onCancel: function(){
+          alert('동의를 취소했습니다. 시험에 응시할 수 없습니다.');
+        }
+      });
+    }
+    function openAdmin(){
+      var pw = prompt('관리자 비밀번호:');
+      if(pw) ConsentModule.openAdmin(pw);
+    }
+    function showCurrent(){
+      var r = ConsentModule.getCurrent();
+      document.getElementById('output').textContent =
+        r ? JSON.stringify(r, null, 2) : '저장된 동의 없음';
+    }
+    function clearConsent(){
+      if(confirm('동의 정보를 초기화하시겠습니까?')){
+        ConsentModule.clear();
+        document.getElementById('output').textContent = '✅ 초기화됨';
+      }
+    }
+  </script>
+</body>
+</html>
