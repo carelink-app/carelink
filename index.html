@@ -69,7 +69,7 @@
     /* 광고 배너 */
     .ad-banner-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;background:#fff;border-bottom:1px solid var(--border);padding:10px 14px;display:flex;gap:10px}
     .ad-banner-wrap::-webkit-scrollbar{display:none}
-    .ad-banner-card{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#FF6B35,#FF9A6C);border-radius:12px;padding:10px 16px;cursor:pointer;min-width:260px;flex-shrink:0}
+    .ad-banner-card{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--primary),#FF8A50);border-radius:12px;padding:10px 16px;cursor:pointer;min-width:260px;flex-shrink:0}
     .ad-banner-card.blue{background:linear-gradient(135deg,#1565C0,#42A5F5)}
     .ad-banner-card.green{background:linear-gradient(135deg,#2E7D32,#66BB6A)}
 
@@ -88,7 +88,7 @@
     .edu-form-group{margin-bottom:20px}
     .edu-form-group label{display:block;font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
     .edu-form-group input,.edu-form-group select{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box}
-    .edu-form-group input:focus,.edu-form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,53,.12)}
+    .edu-form-group input:focus,.edu-form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(229,90,43,.12)}
     .edu-form-check{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f9f9f9;border-radius:12px;cursor:pointer;margin-bottom:8px}
     .edu-form-check input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary)}
     .cert-license-btn.selected{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important;font-weight:700}
@@ -178,7 +178,7 @@
     body.fs-xl .listing-card{padding:18px}
     /* 홈 카테고리 칩 (한 줄 4분할 균등 — 토글 옆에 콤팩트하게) */
     .home-cat-chip{padding:7px 2px;border-radius:8px;background:#f5f5f5;color:#666;font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;user-select:none;border:1px solid transparent}
-    .home-cat-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 5px rgba(255,107,53,.22)}
+    .home-cat-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 5px rgba(229,90,43,.22)}
     .org-chip{display:inline-block;padding:7px 14px;border-radius:16px;background:#f0f0f0;color:#666;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px;transition:all .15s}
     .org-chip.active{background:var(--primary);color:#fff;font-weight:700}
     .org-chip:active{transform:scale(.95)}
@@ -262,7 +262,7 @@
     .admin-menu-text{flex:1}
     .admin-menu-text-title{font-size:15px;font-weight:700;color:var(--text)}
     .admin-menu-text-sub{font-size:12px;color:var(--text-sub);margin-top:2px}
-    .admin-menu-arrow{color:#999;font-size:18px}
+    .admin-menu-arrow{color:var(--text-hint);font-size:18px}
 
     /* listing card */
     .listing-card-compact{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
@@ -326,7 +326,7 @@
     .share-btn:active{opacity:.5;transform:scale(.9)}
 
     /* PWA install banner */
-    .pwa-banner{background:linear-gradient(135deg,#FF6B35,#FF9A6C);color:#fff;padding:14px 16px;display:none;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.2)}
+    .pwa-banner{background:linear-gradient(135deg,var(--primary),#FF8A50);color:#fff;padding:14px 16px;display:none;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.2)}
     .pwa-banner.show{display:flex}
     .pwa-banner-text{flex:1;font-size:14px;font-weight:600}
     .pwa-banner-btn{background:#fff;color:var(--primary);border:none;border-radius:20px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer}
@@ -355,9 +355,9 @@
     /* 지도 팝업 스타일 강화 */
     .map-popup-card{padding:2px 0}
     .map-popup-title{font-size:14px;font-weight:800;color:#333;margin-bottom:4px;line-height:1.3}
-    .map-popup-salary{font-size:15px;font-weight:900;color:#FF6B35;margin-bottom:4px}
+    .map-popup-salary{font-size:15px;font-weight:900;color:var(--primary);margin-bottom:4px}
     .map-popup-area{font-size:12px;color:#555;margin-bottom:8px}
-    .map-popup-btn{width:100%;padding:8px;background:#FF6B35;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+    .map-popup-btn{width:100%;padding:8px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
     .map-popup-btn:active{background:#E55A2B}
     /* 토스트 알림 개선 */
     .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.82);color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:all .3s cubic-bezier(.2,1,.3,1);pointer-events:none;text-align:center;max-width:85%;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -451,7 +451,7 @@
     .btn-primary {
       box-shadow: 0 3px 10px rgba(229,90,43,.28), 0 1px 2px rgba(0,0,0,.04);
     }
-    .btn-primary:hover { box-shadow: 0 5px 14px rgba(255,107,53,.36); }
+    .btn-primary:hover { box-shadow: 0 5px 14px rgba(229,90,43,.36); }
     .btn-kakao {
       box-shadow: 0 3px 10px rgba(254,229,0,.4), 0 1px 2px rgba(0,0,0,.04);
     }
@@ -498,7 +498,7 @@
     /* 입력 필드 포커스 — 컬러 강조 */
     .form-input:focus, .form-textarea:focus {
       border-color: var(--primary) !important;
-      box-shadow: 0 0 0 3px rgba(255,107,53,.12);
+      box-shadow: 0 0 0 3px rgba(229,90,43,.12);
       outline: none;
     }
 
@@ -697,7 +697,7 @@
     <h1 style="font-size:32px;font-weight:900;color:#3C1E1E;margin-bottom:8px">요보망</h1>
     <p style="font-size:17px;color:#666;text-align:center;line-height:1.6;margin-bottom:48px">요양보호사 구인구직<br>이제 쉽고 빠르게 찾으세요</p>
     <div style="background:#fff;border-radius:20px;padding:28px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,.08)">
-      <p style="font-size:15px;color:#999;text-align:center;margin-bottom:18px">카카오톡으로 3초만에 시작</p>
+      <p style="font-size:15px;color:var(--text-hint);text-align:center;margin-bottom:18px">카카오톡으로 3초만에 시작</p>
       <!-- 개인정보보호법 제22조: 필수/선택 동의 분리 -->
       <div style="margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0f0f0">
@@ -765,8 +765,8 @@
       </button>
       <p style="margin-top:10px;font-size:13px;color:#666;text-align:center;line-height:1.6">필수 약관에 동의하신 후 카카오로 로그인됩니다</p>
     </div>
-    <p style="margin-top:24px;font-size:13px;color:#aaa;text-align:center;line-height:1.7">가입 시 <span onclick="openModal('modal-terms')" style="color:var(--primary);cursor:pointer;text-decoration:underline">이용약관</span> 및 <span onclick="navigate('privacy')" style="color:var(--primary);cursor:pointer;text-decoration:underline">개인정보처리방침</span>에<br>동의하게 됩니다.</p>
-    <p style="margin-top:12px;font-size:12px;color:#bbb;text-align:center;line-height:1.7">
+    <p style="margin-top:24px;font-size:13px;color:var(--text-hint);text-align:center;line-height:1.7">가입 시 <span onclick="openModal('modal-terms')" style="color:var(--primary);cursor:pointer;text-decoration:underline">이용약관</span> 및 <span onclick="navigate('privacy')" style="color:var(--primary);cursor:pointer;text-decoration:underline">개인정보처리방침</span>에<br>동의하게 됩니다.</p>
+    <p style="margin-top:12px;font-size:12px;color:var(--text-hint);text-align:center;line-height:1.7">
       <span onclick="navigate('delete-request')" style="color:var(--primary);cursor:pointer;text-decoration:underline">데이터 삭제 요청</span>
     </p>
   </div>
@@ -811,7 +811,7 @@
           <div style="font-size:22px;flex-shrink:0">📷</div>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700;color:var(--primary)">사진 선택하기</div>
-            <div style="font-size:11px;color:#aaa">나중에 등록해도 됩니다</div>
+            <div style="font-size:11px;color:var(--text-hint)">나중에 등록해도 됩니다</div>
           </div>
           <div style="font-size:12px;font-weight:700;color:#fff;background:var(--primary);padding:5px 12px;border-radius:7px;flex-shrink:0">선택</div>
         </div>
@@ -853,7 +853,7 @@
         <input class="form-input" id="setup-name" type="text" placeholder="예) 홍길동"
           style="font-size:18px;padding:16px"
           oninput="checkSetupReady()"/>
-        <div style="margin-top:6px;font-size:13px;color:#aaa">실명으로 입력해 주세요 (관리자만 확인 가능)</div>
+        <div style="margin-top:6px;font-size:13px;color:var(--text-hint)">실명으로 입력해 주세요 (관리자만 확인 가능)</div>
       </div>
 
       <!-- 별명 (자동 생성, 입력란 숨김. 가입 후 설정에서 변경 가능) -->
@@ -868,7 +868,7 @@
           placeholder="숫자만 입력하세요"
           style="font-size:20px;padding:16px;letter-spacing:1px"
           oninput="autoFormatPhone(this)" onkeydown="blockNonNumeric(event)"/>
-        <div style="margin-top:6px;font-size:13px;color:#aaa">숫자만 입력하면 자동으로 - 가 붙어요</div>
+        <div style="margin-top:6px;font-size:13px;color:var(--text-hint)">숫자만 입력하면 자동으로 - 가 붙어요</div>
       </div>
 
       <!-- 생년월일 -->
@@ -971,11 +971,11 @@
     <div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;border-radius:10px;padding:7px 12px">
       <span style="font-size:13px">🔍</span>
       <input type="text" id="home-search-input" aria-label="공고 및 지역 검색" placeholder="공고/지역 검색..." style="flex:1;border:none;background:transparent;font-size:13px;outline:none;min-width:0" onkeyup="searchListings()" onfocus="document.getElementById('search-suggest').style.display='flex'">
-      <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:13px;display:none">✕</button>
+      <button id="search-clear-btn" onclick="clearSearch()" style="background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:13px;display:none">✕</button>
     </div>
     <!-- 인기 검색어 칩 (네이버 스타일) -->
     <div id="search-suggest" style="display:none;flex-wrap:wrap;gap:5px;margin-top:6px">
-      <span style="font-size:10px;color:#999;align-self:center">🔥 인기:</span>
+      <span style="font-size:10px;color:var(--text-hint);align-self:center">🔥 인기:</span>
       <span onclick="quickSearch('방문요양')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">방문요양</span>
       <span onclick="quickSearch('주야간')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">주야간</span>
       <span onclick="quickSearch('요양원')" style="font-size:11px;color:#666;background:#fafafa;border:1px solid #eee;padding:3px 9px;border-radius:12px;cursor:pointer">요양원</span>
@@ -1023,7 +1023,7 @@
 
     <!-- 지도 이동 후 이 지역 검색 버튼 -->
     <div id="search-this-area-wrap" style="position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:500;display:none">
-      <button onclick="searchThisArea()" style="background:var(--primary);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(255,107,53,.35)">
+      <button onclick="searchThisArea()" style="background:var(--primary);color:#fff;border:none;border-radius:20px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(229,90,43,.35)">
         🔍 이 지역 공고 보기
       </button>
     </div>
@@ -1072,7 +1072,7 @@
   <!-- 상단 sticky 액션 바 (스크롤해도 항상 보이는 빠른 연락 버튼) -->
   <div id="detail-quick-actions" style="display:none;background:#fff;border-bottom:1px solid var(--border);padding:8px 12px;gap:8px">
     <button id="detail-quick-call" onclick="quickCallFromDetail()" style="flex:1;background:#fff;border:2px solid #4CAF50;color:#2E7D32;font-weight:800;font-size:14px;padding:10px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">📞 전화</button>
-    <button id="detail-quick-chat" onclick="quickChatFromDetail()" style="flex:1;background:var(--primary);color:#fff;border:none;font-weight:800;font-size:14px;padding:10px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(255,107,53,.3)">💬 채팅</button>
+    <button id="detail-quick-chat" onclick="quickChatFromDetail()" style="flex:1;background:var(--primary);color:#fff;border:none;font-weight:800;font-size:14px;padding:10px 8px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(229,90,43,.3)">💬 채팅</button>
   </div>
   <div class="scroll-area" id="detail-content" style="padding-bottom:120px"></div>
   <div class="contact-bar" id="contact-bar"></div>
@@ -1129,7 +1129,7 @@
       <div class="form-group">
         <label class="form-label">🔒 연락처 공개 설정</label>
         <div id="post-share-phone-wrap" style="display:flex;gap:10px;margin-top:6px">
-          <div id="share-phone-yes" onclick="confirmSharePhone()" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:#999;transition:all .2s">
+          <div id="share-phone-yes" onclick="confirmSharePhone()" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--border);background:#fff;color:var(--text-hint);transition:all .2s">
             📞 연락처 공개<br><span style="font-weight:400;font-size:12px">전화 + 채팅 가능</span>
           </div>
           <div id="share-phone-no" onclick="setSharePhone(false)" style="flex:1;text-align:center;padding:14px 8px;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid var(--primary);background:var(--primary);color:#fff;transition:all .2s">
@@ -1211,7 +1211,7 @@
           <span style="font-size:14px">🏷️</span>
           <span style="font-size:14px;color:var(--text)" id="profile-type-label">요양보호사</span>
         </div>
-        <span onclick="showProfileEditModal('type')" style="font-size:11px;color:#999;cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
+        <span onclick="showProfileEditModal('type')" style="font-size:11px;color:var(--text-hint);cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
       </div>
       <!-- 성별/생년월일 -->
       <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f5f5f5">
@@ -1219,7 +1219,7 @@
           <span style="font-size:14px">👤</span>
           <span style="font-size:14px;color:var(--text)" id="profile-gender-birth-label">성별/생년월일 미설정</span>
         </div>
-        <span onclick="showProfileEditModal('gender')" style="font-size:11px;color:#999;cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
+        <span onclick="showProfileEditModal('gender')" style="font-size:11px;color:var(--text-hint);cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
       </div>
       <!-- 지역 -->
       <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
@@ -1227,13 +1227,13 @@
           <span style="font-size:14px">📍</span>
           <span style="font-size:14px;color:var(--text)" id="profile-area-label">지역 미설정</span>
         </div>
-        <span onclick="showProfileEditModal('area')" style="font-size:11px;color:#999;cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
+        <span onclick="showProfileEditModal('area')" style="font-size:11px;color:var(--text-hint);cursor:pointer;border:1px solid #ddd;border-radius:6px;padding:2px 8px">수정</span>
       </div>
     </div>
     <div style="height:8px;background:var(--bg)"></div>
     <div style="padding:16px 20px;background:#fff;border-bottom:1px solid var(--border)">
       <div style="font-size:15px;font-weight:700;color:var(--text-sub);margin-bottom:12px">내가 올린 공고</div>
-      <div id="my-listings-area" style="font-size:15px;color:#aaa">아직 올린 공고가 없습니다.</div>
+      <div id="my-listings-area" style="font-size:15px;color:var(--text-hint)">아직 올린 공고가 없습니다.</div>
     </div>
     <div style="height:8px;background:var(--bg)"></div>
 
@@ -1247,7 +1247,7 @@
         <div style="font-size:28px;flex-shrink:0">⚠️</div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:700;color:#F57C00;margin-bottom:3px">아직 인증되지 않았어요</div>
-          <div style="font-size:12px;color:#999;line-height:1.5">국세청 사업자등록 진위확인을 받으면<br>구직자 신뢰도가 높아지고 ✓ 인증 기관 배지가 표시됩니다.</div>
+          <div style="font-size:12px;color:var(--text-hint);line-height:1.5">국세청 사업자등록 진위확인을 받으면<br>구직자 신뢰도가 높아지고 ✓ 인증 기관 배지가 표시됩니다.</div>
         </div>
         <button onclick="openBizVerifyModal()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">인증하기</button>
       </div>
@@ -1268,7 +1268,7 @@
         <div style="font-size:28px;flex-shrink:0">📷</div>
         <div>
           <div style="font-size:15px;font-weight:600;color:var(--text-sub)">사진을 등록해 주세요</div>
-          <div style="font-size:12px;color:#aaa;margin-top:2px">JPG, PNG 등 이미지 파일</div>
+          <div style="font-size:12px;color:var(--text-hint);margin-top:2px">JPG, PNG 등 이미지 파일</div>
         </div>
         <div style="margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:var(--primary);padding:6px 14px;border-radius:8px">선택</div>
       </div>
@@ -1281,7 +1281,7 @@
         </div>
       </div>
       <input type="file" id="cert-file-input" accept="image/*" style="display:none" onchange="handleCertPhoto(this)"/>
-      <div style="margin-top:10px;font-size:12px;color:#aaa;line-height:1.6;text-align:center" id="cert-hint"></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text-hint);line-height:1.6;text-align:center" id="cert-hint"></div>
     </div>
 
     <div style="height:8px;background:var(--bg)"></div>
@@ -1309,10 +1309,10 @@
     <div style="padding:24px 20px;background:#fafafa;border-top:1px solid var(--border);font-size:11px;color:#888;line-height:1.7">
       <div style="font-weight:800;color:#666;margin-bottom:6px;font-size:12px">요보망 (yobomang)</div>
       <div>상호: (사업자등록 후 기재) · 대표: 심상욱</div>
-      <div>사업자등록번호: <span style="color:#bbb">(등록 진행 중)</span></div>
-      <div>통신판매업 신고: <span style="color:#bbb">(신고 진행 중)</span></div>
-      <div>위치기반서비스사업: <span style="color:#bbb">(방통위 신고 진행 중)</span></div>
-      <div>직업소개사업: <span style="color:#bbb">(무료직업소개 신고 진행 중)</span></div>
+      <div>사업자등록번호: <span style="color:var(--text-hint)">(등록 진행 중)</span></div>
+      <div>통신판매업 신고: <span style="color:var(--text-hint)">(신고 진행 중)</span></div>
+      <div>위치기반서비스사업: <span style="color:var(--text-hint)">(방통위 신고 진행 중)</span></div>
+      <div>직업소개사업: <span style="color:var(--text-hint)">(무료직업소개 신고 진행 중)</span></div>
       <div>문의: ssw112300@gmail.com</div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
         <span onclick="navigate('terms')" style="color:var(--primary);cursor:pointer;text-decoration:underline">이용약관</span>
@@ -1320,7 +1320,7 @@
         <span onclick="navigate('youth')" style="color:var(--primary);cursor:pointer;text-decoration:underline">청소년보호정책</span>
         <span onclick="openReportToOperator()" style="color:#E53935;cursor:pointer;text-decoration:underline">불법정보 신고</span>
       </div>
-      <div style="margin-top:10px;color:#bbb;font-size:10px;line-height:1.6">
+      <div style="margin-top:10px;color:var(--text-hint);font-size:10px;line-height:1.6">
         ⚠️ 요보망은 통신판매중개자(전자상거래법 §20)이자 정보 게시 플랫폼으로, 회원 간 거래·고용계약의 당사자가 아닙니다. 회원이 직접 등록한 정보의 정확성·합법성은 등록자 본인이 책임집니다.<br>
         공고는 등록 후 14일 자동 삭제됩니다.
       </div>
@@ -1354,7 +1354,7 @@
     지금은 <b>데모 모드</b>로 동작 중입니다.
   </div>
   <div class="scroll-area" id="chat-list-area">
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:#aaa;text-align:center" id="chat-empty">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text-hint);text-align:center" id="chat-empty">
       <div style="font-size:56px;margin-bottom:16px">💬</div>
       <div style="font-size:16px;line-height:1.7">아직 채팅이 없어요.<br>공고 상세에서 <b style="color:var(--primary)">채팅하기</b>를 눌러<br>대화를 시작해 보세요!</div>
     </div>
@@ -1390,16 +1390,16 @@
   <div id="chatroom-disclaimer" style="background:#FFF8E1;border-bottom:1px solid #FFE082;padding:8px 14px;font-size:11px;color:#7C5500;line-height:1.5;display:flex;align-items:flex-start;gap:6px;flex-shrink:0">
     <span style="font-size:14px;flex-shrink:0">ℹ️</span>
     <span style="flex:1">요보망은 단순 중개 플랫폼입니다. 거래/이동/계약 시 발생한 사고·분쟁은 사용자 간 책임이며, 운영자는 개입하지 않습니다.</span>
-    <span onclick="this.parentElement.style.display='none'" style="cursor:pointer;color:#999;flex-shrink:0;padding:0 4px">✕</span>
+    <span onclick="this.parentElement.style.display='none'" style="cursor:pointer;color:var(--text-hint);flex-shrink:0;padding:0 4px">✕</span>
   </div>
   <!-- 공고 정보 배너 -->
   <div id="chatroom-listing-banner" style="background:#F8F8F8;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;cursor:pointer;flex-shrink:0" onclick="openListingFromChat()">
     <div style="width:36px;height:36px;border-radius:10px;background:#FFF0EA;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📋</div>
     <div style="flex:1;overflow:hidden;min-width:0">
       <div id="chatroom-listing-title" style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-      <div id="chatroom-listing-salary" style="font-size:12px;color:#999;margin-top:1px"></div>
+      <div id="chatroom-listing-salary" style="font-size:12px;color:var(--text-hint);margin-top:1px"></div>
     </div>
-    <span style="font-size:12px;color:#999">›</span>
+    <span style="font-size:12px;color:var(--text-hint)">›</span>
   </div>
   <!-- 면접 상태 배너 -->
   <div id="chatroom-interview-banner" class="interview-banner" style="display:none" onclick="openInterviewDetail()">
@@ -1420,7 +1420,7 @@
   </div>
   <!-- 채팅 첨부 메뉴 (+ 버튼 클릭 시) -->
   <div id="chat-attach-menu" style="display:none;background:#fff;border-top:1px solid var(--border);padding:16px 20px 8px;flex-shrink:0">
-    <div style="font-size:13px;font-weight:700;color:#aaa;margin-bottom:12px">서류 전송</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text-hint);margin-bottom:12px">서류 전송</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
       <div onclick="sendDocFromChat('cert')" style="cursor:pointer">
         <div style="width:52px;height:52px;background:#FFF0EA;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 6px">📋</div>
@@ -1491,7 +1491,7 @@
     ⚠️ 본 페이지는 <b>회원이 직접 등록한 시설 정보 게시판</b>으로, 의료법 §57의 의료광고에 해당하지 않습니다. 진료내용·치료실적 등 의료광고성 정보는 표시되지 않으며, 운영자는 등록 정보의 정확성을 보장하지 않습니다.
   </div>
   <div class="scroll-area" id="orgs-list-area" style="padding:12px 12px 80px">
-    <div style="text-align:center;padding:60px 20px;color:#aaa">
+    <div style="text-align:center;padding:60px 20px;color:var(--text-hint)">
       <div style="font-size:48px;margin-bottom:14px">⏳</div>
       <div style="font-size:14px">기관 목록을 불러오는 중입니다...</div>
     </div>
@@ -1523,7 +1523,7 @@
       <div style="font-size:11px;color:var(--text-sub);font-weight:600">🏘 커뮤니티</div>
       <div onclick="openCommunityRegionModal()" id="community-region-label" style="font-size:16px;font-weight:800;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:4px">
         📍 <span id="community-region-name">지역 불러오는 중...</span>
-        <span style="font-size:11px;color:#999;font-weight:600">▼</span>
+        <span style="font-size:11px;color:var(--text-hint);font-weight:600">▼</span>
       </div>
     </div>
     <div onclick="openCommunityRegionModal()" style="font-size:11px;color:var(--primary);font-weight:700;cursor:pointer;padding:6px 10px;background:#FFF3E0;border-radius:12px;flex-shrink:0">지역 변경</div>
@@ -1533,8 +1533,9 @@
     <div id="comm-tab-mine" onclick="setCommunityScope('mine')" style="flex:1;padding:11px 0;text-align:center;font-size:14px;font-weight:800;color:var(--primary);border-bottom:3px solid var(--primary);cursor:pointer">🏘 내 동네</div>
     <div id="comm-tab-all" onclick="setCommunityScope('all')" style="flex:1;padding:11px 0;text-align:center;font-size:14px;font-weight:700;color:#888;border-bottom:3px solid transparent;cursor:pointer">🌐 전국</div>
   </div>
-  <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px">
+  <div style="background:#fff;border-bottom:1px solid var(--border);padding:8px 12px;display:flex;flex-direction:column;gap:8px">
     <button onclick="openCommunityWriteModal()" style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),#FF8A50);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(229,90,43,.25)">✏️ 글쓰기 — 우리 동네 이웃과 이야기 나눠요</button>
+    <button onclick="openRegionChat()" style="width:100%;padding:12px;border:1.5px solid #1565C0;border-radius:12px;background:var(--info-light);color:#1565C0;font-size:14.5px;font-weight:800;cursor:pointer">💬 실시간 수다방 — 접속 중인 이웃과 바로 대화</button>
   </div>
   <div style="background:#fff;border-bottom:1px solid var(--border);padding:6px 8px;overflow-x:auto;white-space:nowrap" id="community-cat-chips">
     <span class="org-chip active" data-cat="" onclick="setCommunityCat(this,'')">전체</span>
@@ -1550,7 +1551,7 @@
     <button class="comm-sort-btn" onclick="setCommunitySort(this,'comments')">💬 댓글순</button>
   </div>
   <div class="scroll-area" id="community-list-area" style="padding:10px 12px 80px">
-    <div style="text-align:center;padding:60px 20px;color:#aaa">
+    <div style="text-align:center;padding:60px 20px;color:var(--text-hint)">
       <div style="font-size:48px;margin-bottom:12px">📍</div>
       <div style="font-size:14px">지역을 선택하면 우리 동네 게시판이 열려요</div>
     </div>
@@ -1587,7 +1588,7 @@
       <div>
         <div class="form-label" style="margin-bottom:6px">내용 <span style="color:var(--primary)">*</span></div>
         <textarea class="form-textarea" id="comm-write-body" placeholder="이웃들과 나누고 싶은 이야기를 적어주세요" maxlength="2000" style="min-height:160px"></textarea>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">욕설/비방/광고/개인정보(전화번호·계좌)는 자동 감지되어 등록이 거부됩니다.</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">욕설/비방/광고/개인정보(전화번호·계좌)는 자동 감지되어 등록이 거부됩니다.</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:6px">
         <button class="btn btn-outline" style="flex:1" onclick="closeModal('modal-community-write')">취소</button>
@@ -1602,6 +1603,26 @@
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:92vh;display:flex;flex-direction:column">
     <div class="modal-handle"></div>
     <div id="community-detail-body" style="padding:0 4px 16px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- 지역 실시간 수다방 모달 -->
+<div class="modal-overlay" id="modal-region-chat" onclick="closeRegionChat()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="height:88vh;max-height:88vh;display:flex;flex-direction:column;padding-bottom:12px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:0 4px 10px;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:17px;font-weight:800">💬 실시간 수다방</div>
+        <div id="region-chat-region-label" style="font-size:12.5px;color:var(--text-hint);margin-top:2px">📍 지역</div>
+      </div>
+      <button onclick="closeRegionChat()" aria-label="닫기" style="width:40px;height:40px;border:none;background:#f0f1f3;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    <div style="background:var(--warn-light);font-size:12px;color:var(--warn);padding:7px 12px;border-radius:8px;margin:8px 4px 0;line-height:1.5">가벼운 대화 공간이에요. 메시지는 <b>3일 후 자동 삭제</b>됩니다. 욕설·개인정보(전화번호 등)는 자동 차단돼요.</div>
+    <div id="region-chat-messages" class="scroll-area" style="flex:1;padding:10px 4px;background:transparent"></div>
+    <div style="display:flex;gap:6px;padding:8px 4px 0;border-top:1px solid var(--border)">
+      <input class="form-input" id="region-chat-input" placeholder="메시지 입력 (300자)" maxlength="300" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();sendRegionChatMsg();}"/>
+      <button onclick="sendRegionChatMsg()" aria-label="메시지 전송" style="background:var(--primary);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-size:14.5px;font-weight:800;cursor:pointer;min-width:64px">전송</button>
+    </div>
   </div>
 </div>
 
@@ -1740,7 +1761,7 @@
           <input id="capacity-input" type="number" value="20" min="1" max="200" style="width:70px;text-align:center;font-size:28px;font-weight:900;border:none;background:transparent;outline:none;color:var(--text);font-family:inherit"/>
           <button onclick="adjustCapacity(1)" style="width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:20px;font-weight:700;cursor:pointer">+</button>
         </div>
-        <div style="font-size:12px;color:#aaa;margin-top:8px">명</div>
+        <div style="font-size:12px;color:var(--text-hint);margin-top:8px">명</div>
       </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edu-capacity')">취소</button>
@@ -1763,7 +1784,7 @@
       style="font-size:20px;padding:16px;margin-bottom:16px;text-align:center"
       oninput="checkNicknameReady()"
       onkeydown="if(event.key==='Enter')confirmNicknameLogin()"/>
-    <div id="nickname-login-hint" style="font-size:13px;color:#aaa;text-align:center;margin-bottom:20px">2글자 이상 입력해 주세요</div>
+    <div id="nickname-login-hint" style="font-size:13px;color:var(--text-hint);text-align:center;margin-bottom:20px">2글자 이상 입력해 주세요</div>
     <button class="btn btn-primary" id="nickname-login-btn"
       style="font-size:18px;padding:17px;opacity:.4;pointer-events:none"
       onclick="confirmNicknameLogin()">
@@ -1779,7 +1800,7 @@
     <div style="display:flex;align-items:center;padding:0 4px 14px;gap:4px">
       <div id="edu-region-modal-back" onclick="selectEduSido(null)" style="display:none;font-size:22px;padding:4px 10px 4px 0;cursor:pointer;color:var(--text)">←</div>
       <div id="edu-region-modal-title" style="font-size:18px;font-weight:800;color:var(--text);flex:1">📍 지역을 선택해 주세요</div>
-      <div onclick="closeEduRegionModal()" style="font-size:22px;color:#aaa;cursor:pointer;padding:4px 0 4px 10px">✕</div>
+      <div onclick="closeEduRegionModal()" style="font-size:22px;color:var(--text-hint);cursor:pointer;padding:4px 0 4px 10px">✕</div>
     </div>
     <div id="edu-region-modal-list" style="overflow-y:auto;padding:0 4px 20px;flex:1"></div>
   </div>
@@ -1800,10 +1821,16 @@
         <div id="current-manager-display" style="font-size:14px;color:var(--text-sub);padding:10px 14px;background:#f5f5f5;border-radius:10px">없음</div>
       </div>
       <div>
-        <div class="form-label" style="margin-bottom:6px">새 광고주 카카오ID</div>
+        <div class="form-label" style="margin-bottom:6px">새 광고주 카카오ID (자격증교육·학원 전체)</div>
         <input class="form-input" id="manager-kakao-id-input" placeholder="예) kakao_abcde12345"/>
       </div>
-      <div style="font-size:12px;color:#aaa">비워두고 저장하면 광고주 권한이 제거됩니다</div>
+      <div style="border-top:1px dashed var(--border);padding-top:12px">
+        <div class="form-label" style="margin-bottom:6px">🔄 보수교육 담당 광고주 카카오ID <span style="font-size:12px;color:var(--text-hint);font-weight:400">(별도 학원인 경우)</span></div>
+        <div id="current-refresher-manager-display" style="font-size:14px;color:var(--text-sub);padding:10px 14px;background:#f5f5f5;border-radius:10px;margin-bottom:8px">없음</div>
+        <input class="form-input" id="refresher-manager-kakao-id-input" placeholder="보수교육만 담당하는 학원의 카카오ID"/>
+        <div style="font-size:12px;color:var(--text-hint);margin-top:4px;line-height:1.5">이 ID는 보수교육 일정·신청자 관리만 가능합니다. 위 전체 광고주와 같은 학원이면 비워두세요.</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-hint)">비워두고 저장하면 해당 권한이 제거됩니다</div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-set-manager')">취소</button>
         <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="saveManagerId()">저장</button>
@@ -1819,7 +1846,7 @@
     <div style="display:flex;align-items:center;padding:0 4px 14px;gap:4px">
       <div id="area-modal-back" onclick="areaSelectBack()" style="display:none;font-size:22px;padding:4px 10px 4px 0;cursor:pointer;color:var(--text)">←</div>
       <div id="area-modal-title" style="font-size:18px;font-weight:800;color:var(--text);flex:1">📍 지역을 선택해 주세요</div>
-      <div onclick="closeAreaSelectModal()" style="font-size:22px;color:#aaa;cursor:pointer;padding:4px 0 4px 10px">✕</div>
+      <div onclick="closeAreaSelectModal()" style="font-size:22px;color:var(--text-hint);cursor:pointer;padding:4px 0 4px 10px">✕</div>
     </div>
     <div id="area-modal-list" style="overflow-y:auto;padding:0 4px 20px;flex:1"></div>
   </div>
@@ -1850,21 +1877,21 @@
         <input class="form-input" id="biz-bno-input" type="tel" inputmode="numeric"
           placeholder="예) 123-45-67890" maxlength="12"
           oninput="autoFormatBizNo(this)"/>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">10자리 숫자, 자동으로 - 가 붙어요</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">10자리 숫자, 자동으로 - 가 붙어요</div>
       </div>
 
       <div>
         <div class="form-label" style="margin-bottom:6px">개업일자 <span style="color:var(--primary)">*</span></div>
         <input class="form-input" id="biz-startdt-input" type="tel" inputmode="numeric"
           placeholder="예) 20200315 (YYYYMMDD)" maxlength="8"/>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">사업자등록증에 기재된 개업일자 8자리</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">사업자등록증에 기재된 개업일자 8자리</div>
       </div>
 
       <div>
         <div class="form-label" style="margin-bottom:6px">대표자 성명 <span style="color:var(--primary)">*</span></div>
         <input class="form-input" id="biz-pnm-input" type="text"
           placeholder="예) 홍길동" maxlength="30"/>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">사업자등록증의 대표자명과 정확히 일치해야 합니다</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">사업자등록증의 대표자명과 정확히 일치해야 합니다</div>
       </div>
 
       <div style="height:1px;background:#eee;margin:6px 0"></div>
@@ -1874,7 +1901,7 @@
         <div class="form-label" style="margin-bottom:6px">기관명 (상호) <span style="color:var(--primary)">*</span></div>
         <input class="form-input" id="biz-name-input" type="text"
           placeholder="예) 사랑요양센터" maxlength="40"/>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">사업자등록증에 기재된 정확한 상호로 입력</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">사업자등록증에 기재된 정확한 상호로 입력</div>
       </div>
 
       <div>
@@ -1887,7 +1914,7 @@
           <option value="복지용구">복지용구</option>
           <option value="기타">기타</option>
         </select>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">제공 서비스에 가장 가까운 종류 선택</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">제공 서비스에 가장 가까운 종류 선택</div>
       </div>
 
       <div>
@@ -1895,7 +1922,7 @@
         <input class="form-input" id="biz-contact-input" type="tel" inputmode="numeric"
           placeholder="예) 02-1234-5678 또는 010-1234-5678" maxlength="20"
           oninput="autoFormatPhone(this)" onkeydown="blockNonNumeric(event)"/>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">기관 사무실 또는 대표 휴대폰</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">기관 사무실 또는 대표 휴대폰</div>
       </div>
 
       <div>
@@ -1909,7 +1936,7 @@
           placeholder="상세주소 (호실/동/층 등)" maxlength="50" style="margin-top:6px"/>
         <input type="hidden" id="biz-addr-lat"/>
         <input type="hidden" id="biz-addr-lng"/>
-        <div style="margin-top:4px;font-size:11px;color:#aaa">구직자에게 공개됩니다 — 정확한 사업장 주소</div>
+        <div style="margin-top:4px;font-size:11px;color:var(--text-hint)">구직자에게 공개됩니다 — 정확한 사업장 주소</div>
       </div>
 
       <div id="biz-verify-result" style="display:none;border-radius:12px;padding:12px;font-size:13px;line-height:1.6"></div>
@@ -1918,7 +1945,7 @@
         <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-biz-verify')">취소</button>
         <button class="btn btn-primary" style="flex:1;font-size:15px" id="btn-biz-verify-submit" onclick="submitBizVerify()">인증 요청</button>
       </div>
-      <div style="font-size:11px;color:#aaa;text-align:center;line-height:1.6">
+      <div style="font-size:11px;color:var(--text-hint);text-align:center;line-height:1.6">
         본 정보는 국세청 진위확인 API에 일회성으로 전달되며,<br>요보망 서버에는 인증 결과(성공/실패)와 사업자번호만 저장됩니다.
       </div>
     </div>
@@ -1937,7 +1964,7 @@
       <div>
         <div class="form-label" style="margin-bottom:6px">새 별명 (2~12자)</div>
         <input class="form-input" id="edit-nickname-input" placeholder="예) 따뜻한요양사" maxlength="12" oninput="checkEditNicknameReady()"/>
-        <div id="edit-nickname-status" style="margin-top:6px;font-size:12px;color:#aaa"></div>
+        <div id="edit-nickname-status" style="margin-top:6px;font-size:12px;color:var(--text-hint)"></div>
       </div>
       <div style="display:flex;gap:10px">
         <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edit-nickname')">취소</button>
@@ -1992,7 +2019,7 @@
     <div class="modal-title" id="edu-edit-modal-title">내용 수정</div>
     <div style="padding:0 4px 16px">
       <textarea id="edu-edit-textarea" class="form-textarea" style="min-height:140px;font-size:15px;line-height:1.8"></textarea>
-      <div style="font-size:13px;color:#aaa;margin-top:6px;line-height:1.6" id="edu-edit-hint"></div>
+      <div style="font-size:13px;color:var(--text-hint);margin-top:6px;line-height:1.6" id="edu-edit-hint"></div>
       <div style="display:flex;gap:10px;margin-top:16px">
         <button class="btn btn-outline" style="flex:1;font-size:15px" onclick="closeModal('modal-edu-edit')">취소</button>
         <button class="btn btn-primary" style="flex:1;font-size:15px" onclick="saveEduEdit()">저장</button>
@@ -2020,8 +2047,12 @@
         <input class="form-input" id="edit-inst-phone" type="tel" inputmode="numeric" placeholder="예) 033-743-1123" oninput="autoFormatPhone(this)"/>
       </div>
       <div>
-        <div class="form-label" style="margin-bottom:6px">주소</div>
-        <input class="form-input" id="edit-inst-address" placeholder="예) 강원특별자치도 원주시 원일로 12"/>
+        <div class="form-label" style="margin-bottom:6px">주소 <span style="font-size:12px;color:var(--text-hint);font-weight:400">— 검색으로 정확하게 입력해 주세요</span></div>
+        <div style="display:flex;gap:6px">
+          <input class="form-input" id="edit-inst-address" placeholder="주소 검색 버튼을 눌러주세요" readonly style="flex:1;cursor:pointer;background:#fafafa" onclick="openInstAddrSearch()"/>
+          <button type="button" class="btn btn-primary" style="padding:8px 14px;font-size:13px;white-space:nowrap;min-width:auto" onclick="openInstAddrSearch()">🔍 검색</button>
+        </div>
+        <input class="form-input" id="edit-inst-addrdetail" placeholder="상세주소 (예: 3층 301호)" style="margin-top:8px"/>
       </div>
       <div>
         <div class="form-label" style="margin-bottom:6px">공지사항</div>
@@ -2156,7 +2187,7 @@
     <div class="modal-box-title">매칭 완료!</div>
     <div class="modal-box-body">상대방에게 아래 주소가 전달되었습니다</div>
     <div style="background:#F5F5F5;border-radius:12px;padding:16px;text-align:center;margin-bottom:20px">
-      <div style="font-size:13px;color:#999;margin-bottom:4px">공개된 상세 주소</div>
+      <div style="font-size:13px;color:var(--text-hint);margin-bottom:4px">공개된 상세 주소</div>
       <div id="match-addr-text" style="font-size:16px;font-weight:700;color:var(--text)"></div>
     </div>
     <button class="btn btn-primary" onclick="closeModal('modal-match-addr')">확인</button>
@@ -2225,7 +2256,7 @@
   <div class="modal-content" style="width:95%;max-height:70vh">
     <div class="modal-header">🚨 신고된 공고 (관리자)</div>
     <div id="admin-reports-list" style="max-height:400px;overflow-y:auto">
-      <div style="padding:20px;text-align:center;color:#aaa">신고가 없습니다.</div>
+      <div style="padding:20px;text-align:center;color:var(--text-hint)">신고가 없습니다.</div>
     </div>
     <div style="margin-top:16px">
       <button class="btn btn-outline" style="width:100%" onclick="closeModal('modal-admin-reports')">닫기</button>
@@ -2367,7 +2398,8 @@
       <div style="background:#f9f9f9;border-radius:8px;padding:12px;margin:6px 0">
         • 회원 정보: 탈퇴 시 즉시 삭제<br>
         • 구인·구직 공고: 등록 후 14일 자동 삭제<br>
-        • 채팅 기록: 대화 종료 후 30일<br>
+        • 채팅 기록: 마지막 대화 후 90일 (주 1회 자동 삭제)<br>
+      • 실시간 수다방 메시지: 3일 후 자동 삭제<br>
         • 전자상거래 기록: 5년 (「전자상거래법」 제6조)<br>
         • 소비자 불만·분쟁 기록: 3년 (「전자상거래법」 제6조)<br>
         • 접속 로그: 3개월 (「통신비밀보호법」 제15조의2)
@@ -2463,7 +2495,7 @@
         <div style="font-size:28px">📷</div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:600;color:var(--text-sub)">사진 등록하기</div>
-          <div style="font-size:12px;color:#aaa;margin-top:2px">JPG, PNG 등 이미지 파일</div>
+          <div style="font-size:12px;color:var(--text-hint);margin-top:2px">JPG, PNG 등 이미지 파일</div>
         </div>
         <div style="font-size:13px;font-weight:700;color:#fff;background:var(--primary);padding:7px 16px;border-radius:8px">선택</div>
       </div>
@@ -2487,7 +2519,7 @@
         <div style="font-size:28px">📷</div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:600;color:var(--text-sub)">사진 등록하기</div>
-          <div style="font-size:12px;color:#aaa;margin-top:2px">JPG, PNG 등 이미지 파일</div>
+          <div style="font-size:12px;color:var(--text-hint);margin-top:2px">JPG, PNG 등 이미지 파일</div>
         </div>
         <div style="font-size:13px;font-weight:700;color:#fff;background:var(--primary);padding:7px 16px;border-radius:8px">선택</div>
       </div>
@@ -2503,7 +2535,7 @@
 
     <!-- 안내 -->
     <div style="padding:20px;background:#fff">
-      <div style="font-size:13px;color:#aaa;line-height:1.8;text-align:center">
+      <div style="font-size:13px;color:var(--text-hint);line-height:1.8;text-align:center">
         등록된 서류는 채팅에서 구인자에게 전송할 수 있습니다.<br>
         서류는 본인 기기에만 저장되며 외부로 자동 전송되지 않습니다.
       </div>
@@ -2595,7 +2627,7 @@
       </div>
     </div>
 
-    <div style="padding:20px 0;text-align:center;font-size:12px;color:#aaa">
+    <div style="padding:20px 0;text-align:center;font-size:12px;color:var(--text-hint)">
       앱 버전 v1.0
     </div>
   </div>
@@ -2616,7 +2648,7 @@
     <input type="text" id="admin-user-search" placeholder="이름 또는 카카오ID로 검색" oninput="renderAdminUsers()" style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:14px;box-sizing:border-box"/>
   </div>
   <div class="scroll-area" style="padding:12px 16px" id="admin-users-container">
-    <div style="padding:40px 0;text-align:center;color:#aaa">로딩 중...</div>
+    <div style="padding:40px 0;text-align:center;color:var(--text-hint)">로딩 중...</div>
   </div>
 </div>
 
@@ -2634,7 +2666,7 @@
   </div>
   <div class="scroll-area">
     <div style="padding:16px" id="admin-listings-container">
-      <div style="text-align:center;padding:40px;color:#aaa">공고가 없습니다.</div>
+      <div style="text-align:center;padding:40px;color:var(--text-hint)">공고가 없습니다.</div>
     </div>
   </div>
 </div>
@@ -2707,11 +2739,11 @@
       </div>
     </div>
 
-    <div style="padding:20px 0;text-align:center;font-size:12px;color:#aaa;line-height:1.8">
+    <div style="padding:20px 0;text-align:center;font-size:12px;color:var(--text-hint);line-height:1.8">
       공고는 등록 후 14일 자동 삭제됩니다<br>
       문의: 앱 내 채팅으로 문의해 주세요<br>
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#ccc;line-height:1.8">
-        <b style="color:#bbb">요보망</b><br>
+        <b style="color:var(--text-hint)">요보망</b><br>
         대표: 요보망 &nbsp;|&nbsp; 이메일: ssw112300@gmail.com<br>
         본 서비스는 요양보호사 구인구직 정보 제공 플랫폼입니다<br>
         © 2026 요보망. All rights reserved.
@@ -2769,7 +2801,8 @@
     <div style="background:#f9f9f9;border-radius:10px;padding:14px;margin:8px 0">
       • 회원 정보: <b>회원 탈퇴 시 즉시 파기</b><br>
       • 구인·구직 공고: 등록 후 14일 자동 삭제<br>
-      • 채팅 기록: 대화 종료 후 30일<br>
+      • 채팅 기록: 마지막 대화 후 90일 (주 1회 자동 삭제)<br>
+      • 실시간 수다방 메시지: 3일 후 자동 삭제<br>
       • 접속 로그: 3개월 (「통신비밀보호법」 제15조의2)
     </div><br>
 
@@ -2916,7 +2949,7 @@
 
     <button class="btn btn-primary" style="width:100%;font-size:16px;padding:16px" onclick="submitDeleteRequest()">삭제 요청 제출</button>
 
-    <div style="margin-top:16px;font-size:12px;color:#aaa;text-align:center;line-height:1.7">
+    <div style="margin-top:16px;font-size:12px;color:var(--text-hint);text-align:center;line-height:1.7">
       문의: ssw112300@gmail.com
     </div>
     <div style="height:30px"></div>
@@ -4005,8 +4038,14 @@ function toggleNearbyNotify(ev){
   if(enabled){
     // 브라우저 알림 권한 요청
     try {
-      if('Notification' in window && Notification.permission !== 'granted'){
-        Notification.requestPermission();
+      if('Notification' in window){
+        if(Notification.permission === 'denied'){
+          showToast('⚠️ 기기 알림 권한이 차단되어 있어요.\n휴대폰 설정 > 앱 > 요보망 > 알림에서 허용해 주세요.');
+        } else if(Notification.permission !== 'granted'){
+          Notification.requestPermission().then(function(p){
+            if(p !== 'granted') showToast('알림 권한을 허용해야 새 공고 알림을 받을 수 있어요');
+          }).catch(function(){});
+        }
       }
     } catch(e){}
     var dist = parseInt(localStorage.getItem('cl_nearby_dist_km')||'5');
@@ -4128,17 +4167,17 @@ function openMapDirections(lat, lng, addrText){
   var naverTo = 'https://map.naver.com/v5/directions/-/-/-/' + lng + ',' + lat + ',' + encoded + ',,PLACE_POI/-?c=14,0,0,0,dh';
   sheet.innerHTML =
     '<div style="background:#fff;width:100%;max-width:430px;border-radius:18px 18px 0 0;padding:20px 0 28px;animation:slideUpSheet .2s">'+
-      '<div style="text-align:center;font-size:13px;color:#999;padding:0 20px 14px;border-bottom:1px solid #f0f0f0">길찾기 — 이동 수단을 선택하세요</div>'+
+      '<div style="text-align:center;font-size:13px;color:var(--text-hint);padding:0 20px 14px;border-bottom:1px solid #f0f0f0">길찾기 — 이동 수단을 선택하세요</div>'+
       '<div onclick="window.open(\''+kakaoTo+'?rt=BUS_PUB\',\'_blank\')" style="padding:18px 22px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px">'+
-        '<span style="font-size:26px">🚌</span><div style="flex:1"><div>대중교통</div><div style="font-size:11px;color:#999;font-weight:400;margin-top:2px">버스 · 지하철 · 도보</div></div><span style="color:#ccc">›</span>'+
+        '<span style="font-size:26px">🚌</span><div style="flex:1"><div>대중교통</div><div style="font-size:11px;color:var(--text-hint);font-weight:400;margin-top:2px">버스 · 지하철 · 도보</div></div><span style="color:#ccc">›</span>'+
       '</div>'+
       '<div onclick="window.open(\''+kakaoTo+'?rt=CAR\',\'_blank\')" style="padding:18px 22px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;border-top:1px solid #f5f5f5">'+
-        '<span style="font-size:26px">🚗</span><div style="flex:1"><div>자동차</div><div style="font-size:11px;color:#999;font-weight:400;margin-top:2px">실시간 교통 + 추천 경로</div></div><span style="color:#ccc">›</span>'+
+        '<span style="font-size:26px">🚗</span><div style="flex:1"><div>자동차</div><div style="font-size:11px;color:var(--text-hint);font-weight:400;margin-top:2px">실시간 교통 + 추천 경로</div></div><span style="color:#ccc">›</span>'+
       '</div>'+
       '<div onclick="window.open(\''+kakaoTo+'?rt=FOOT\',\'_blank\')" style="padding:18px 22px;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;border-top:1px solid #f5f5f5">'+
-        '<span style="font-size:26px">🚶</span><div style="flex:1"><div>도보</div><div style="font-size:11px;color:#999;font-weight:400;margin-top:2px">가까운 거리</div></div><span style="color:#ccc">›</span>'+
+        '<span style="font-size:26px">🚶</span><div style="flex:1"><div>도보</div><div style="font-size:11px;color:var(--text-hint);font-weight:400;margin-top:2px">가까운 거리</div></div><span style="color:#ccc">›</span>'+
       '</div>'+
-      '<div style="padding:14px 22px 0;font-size:11px;color:#999;line-height:1.5;border-top:1px solid #f5f5f5;margin-top:8px">⚠️ 본 앱은 중개 플랫폼이며, 이동 중 발생한 사고에 책임지지 않습니다. 안전 운전/이동 부탁드립니다.</div>'+
+      '<div style="padding:14px 22px 0;font-size:11px;color:var(--text-hint);line-height:1.5;border-top:1px solid #f5f5f5;margin-top:8px">⚠️ 본 앱은 중개 플랫폼이며, 이동 중 발생한 사고에 책임지지 않습니다. 안전 운전/이동 부탁드립니다.</div>'+
       '<div onclick="document.getElementById(\'map-directions-sheet\').remove()" style="padding:14px 22px 0;font-size:14px;color:#666;cursor:pointer;text-align:center">닫기</div>'+
     '</div>';
   document.body.appendChild(sheet);
@@ -4516,7 +4555,7 @@ function switchTab(tab){
     } else {
       // 가입 지역도 없으면 안내 + 자동으로 지역 선택 모달
       var area = document.getElementById('community-list-area');
-      if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px">지역을 선택해 주세요</div></div>';
+      if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px">지역을 선택해 주세요</div></div>';
       setTimeout(openCommunityRegionModal, 300);
     }
   }
@@ -4971,10 +5010,10 @@ function selectRole(role){
   if(section) section.style.display='block';
   if(role==='caregiver'){
     if(title) title.textContent='📋 요양보호사 자격증 사진 등록';
-    if(desc) desc.innerHTML='자격증 사진을 등록하면 구인자에게 신뢰를 드릴 수 있어요.<br><span style="color:#aaa">(지금 안 하셔도 나중에 내 정보에서 등록 가능합니다)</span>';
+    if(desc) desc.innerHTML='자격증 사진을 등록하면 구인자에게 신뢰를 드릴 수 있어요.<br><span style="color:var(--text-hint)">(지금 안 하셔도 나중에 내 정보에서 등록 가능합니다)</span>';
   } else {
     if(title) title.textContent='🏢 사업자등록증 사진 등록';
-    if(desc) desc.innerHTML='사업자등록증 사진을 등록하면 구직자들의 신뢰를 얻을 수 있어요.<br><span style="color:#aaa">(지금 안 하셔도 나중에 내 정보에서 등록 가능합니다)</span>';
+    if(desc) desc.innerHTML='사업자등록증 사진을 등록하면 구직자들의 신뢰를 얻을 수 있어요.<br><span style="color:var(--text-hint)">(지금 안 하셔도 나중에 내 정보에서 등록 가능합니다)</span>';
   }
   // 기존에 올린 사진 초기화 (역할 전환 시)
   removeRolePhoto();
@@ -5705,8 +5744,8 @@ function openDetail(id){
       </div>
       <div style="font-size:21px;font-weight:800;color:var(--text);line-height:1.4;margin-bottom:12px">${escapeHtml(item.title)}</div>
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:14px;color:#aaa">📍${escapeHtml(item.area)} · ${escapeHtml(item.time)}</div>
-        <div style="font-size:14px;color:#aaa">${escapeHtml(item.name)}</div>
+        <div style="font-size:14px;color:var(--text-hint)">📍${escapeHtml(item.area)} · ${escapeHtml(item.time)}</div>
+        <div style="font-size:14px;color:var(--text-hint)">${escapeHtml(item.name)}</div>
       </div>
     </div>
     <div class="detail-section">
@@ -5714,13 +5753,13 @@ function openDetail(id){
       <div class="detail-info-row"><span class="detail-info-icon">💼</span><span class="detail-info-label">근무 유형</span><span class="detail-info-value">${escapeHtml(getWorkTypeLabel(item.workType))}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📅</span><span class="detail-info-label">${item.type==='caregiver'?'희망 시간':'근무 요일'}</span><span class="detail-info-value">${escapeHtml(String(item.days||''))}</span></div>
       <div class="detail-info-row"><span class="detail-info-icon">💰</span><span class="detail-info-label">급여</span><span class="detail-info-value" style="color:var(--primary);font-size:17px">${escapeHtml(item.salary)}</span></div>
-      <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${item.bname ? (escapeHtml(item.area)+' '+escapeHtml(item.bname)) : escapeHtml(item.area||landmark)} <span style="font-size:12px;color:#aaa">(동 단위까지만 공개)</span></span></div>
+      <div class="detail-info-row"><span class="detail-info-icon">📍</span><span class="detail-info-label">위치</span><span class="detail-info-value">${item.bname ? (escapeHtml(item.area)+' '+escapeHtml(item.bname)) : escapeHtml(item.area||landmark)} <span style="font-size:12px;color:var(--text-hint)">(동 단위까지만 공개)</span></span></div>
       <div class="detail-info-row"><span class="detail-info-icon">📞</span><span class="detail-info-label">연락처</span><span class="detail-info-value">${
         item.sharePhone===false
           ? '<span style="color:#1565C0;font-weight:700">💬 채팅만 가능</span>'
           : isMatched
             ? escapeHtml(item.contact)
-            : '<span style="color:#2E7D32;font-weight:700">🔒 안심번호 연결</span> <span style="font-size:12px;color:#aaa">(매칭 후 실번호 공개)</span>'
+            : '<span style="color:#2E7D32;font-weight:700">🔒 안심번호 연결</span> <span style="font-size:12px;color:var(--text-hint)">(매칭 후 실번호 공개)</span>'
       }</span></div>
       ${item.type==='caregiver' && item.canDrive!==null && item.canDrive!==undefined
         ? `<div class="detail-info-row"><span class="detail-info-icon">🚗</span><span class="detail-info-label">운전 가능</span><span class="detail-info-value" style="color:${item.canDrive?'#2E7D32':'#E53935'};font-weight:700">${item.canDrive?'🚗 가능':'🚫 불가능'}</span></div>`
@@ -5896,7 +5935,7 @@ function openContactModal(){
 
       <!-- 안심번호 표시 -->
       <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:13px;color:#aaa;margin-bottom:6px">${escapeHtml(item.name)} 님의 안심번호</div>
+        <div style="font-size:13px;color:var(--text-hint);margin-bottom:6px">${escapeHtml(item.name)} 님의 안심번호</div>
         <div style="font-size:26px;font-weight:900;color:var(--text);letter-spacing:2px;background:#f5f5f5;border-radius:12px;padding:14px">${safeNum}</div>
         ${isMatched?'<div style="font-size:12px;color:#2E7D32;margin-top:8px">✅ 매칭완료 — 실제번호: '+escapeHtml(phoneNum)+'</div>':''}
       </div>
@@ -5977,7 +6016,7 @@ const EMPLOYER_FIELDS = `
         <label class="shift-opt" id="shift-label-day"><input type="radio" name="shift-pattern" value="주간근무" style="display:none" onchange="onShiftPatternChange()"/>주간근무</label>
         <label class="shift-opt" id="shift-label-night"><input type="radio" name="shift-pattern" value="야간근무" style="display:none" onchange="onShiftPatternChange()"/>야간근무</label>
       </div>
-      <div style="font-size:12px;color:#aaa;margin-top:6px">선택하면 근무시간 입력 없이 등록됩니다 · 다시 클릭하면 해제</div>
+      <div style="font-size:12px;color:var(--text-hint);margin-top:6px">선택하면 근무시간 입력 없이 등록됩니다 · 다시 클릭하면 해제</div>
     </div>
     <div id="post-time-inputs" style="margin-top:4px">
       <div style="display:flex;align-items:center;gap:4px">
@@ -5992,7 +6031,7 @@ const EMPLOYER_FIELDS = `
         <select class="form-select" id="post-start-min" style="width:58px;padding:8px 4px;font-size:13px">
           <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
         </select>
-        <span style="font-size:13px;color:#aaa;margin:0 2px">~</span>
+        <span style="font-size:13px;color:var(--text-hint);margin:0 2px">~</span>
         <select class="form-select" id="post-end-hour" style="width:62px;padding:8px 4px;font-size:13px">
           <option value="">시</option>
           <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
@@ -6027,10 +6066,10 @@ const CAREGIVER_FIELDS = `
       <div class="cg-dist-btn" onclick="selectCgDist(10)" id="cg-dist-10" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">10km</div>
       <div class="cg-dist-btn" onclick="selectCgDist(0)" id="cg-dist-0" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;border:2px solid var(--border);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s">무관</div>
     </div>
-    <div style="margin-top:4px;font-size:12px;color:#aaa">실거주지 기준 희망 근무 거리</div>
+    <div style="margin-top:4px;font-size:12px;color:var(--text-hint)">실거주지 기준 희망 근무 거리</div>
   </div>
   <div class="form-group">
-    <label class="form-label">🕐 가능한 근무 유형 <span style="font-size:12px;color:#aaa">복수 선택 가능</span></label>
+    <label class="form-label">🕐 가능한 근무 유형 <span style="font-size:12px;color:var(--text-hint)">복수 선택 가능</span></label>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
       <label style="display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:15px" id="wt-label-visit">
         <input type="checkbox" id="wt-visit" value="visit" style="width:20px;height:20px;accent-color:var(--primary)" onchange="highlightWorkType('visit',this.checked)"/> 방문요양
@@ -6109,7 +6148,7 @@ const CAREGIVER_FIELDS = `
       <select class="form-select" id="cg-start-min" style="width:58px;padding:8px 4px;font-size:13px">
         <option value="00">00</option><option>10</option><option>20</option><option>30</option><option>40</option><option>50</option>
       </select>
-      <span style="font-size:13px;color:#aaa;margin:0 2px">~</span>
+      <span style="font-size:13px;color:var(--text-hint);margin:0 2px">~</span>
       <select class="form-select" id="cg-end-hour" style="width:62px;padding:8px 4px;font-size:13px">
         <option value="">시</option>
         <option>06</option><option>07</option><option>08</option><option>09</option><option>10</option>
@@ -6362,10 +6401,10 @@ function confirmSharePhone(){
         '연락처 노출로 인한 분쟁·금전적 손실·정신적 피해·범죄 피해 등 모든 결과는 본인의 책임이며, 의심스러운 연락이 오면 즉시 차단/신고해 주세요.'+
       '</div>'+
       '<div style="display:flex;flex-direction:column;gap:8px">'+
-        '<button onclick="document.getElementById(\'share-phone-confirm-sheet\').remove();_applySharePhone(true)" style="width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(255,107,53,.28)">위 사항을 충분히 인지하고 공개합니다</button>'+
+        '<button onclick="document.getElementById(\'share-phone-confirm-sheet\').remove();_applySharePhone(true)" style="width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(229,90,43,.28)">위 사항을 충분히 인지하고 공개합니다</button>'+
         '<button onclick="document.getElementById(\'share-phone-confirm-sheet\').remove();_applySharePhone(false)" style="width:100%;padding:14px;background:#fff;color:var(--primary);border:2px solid var(--primary);border-radius:12px;font-size:15px;font-weight:800;cursor:pointer">💬 채팅으로만 안전하게 받겠습니다</button>'+
       '</div>'+
-      '<div style="text-align:center;margin-top:10px"><span onclick="document.getElementById(\'share-phone-confirm-sheet\').remove()" style="font-size:13px;color:#999;cursor:pointer;padding:4px 8px">취소</span></div>'+
+      '<div style="text-align:center;margin-top:10px"><span onclick="document.getElementById(\'share-phone-confirm-sheet\').remove()" style="font-size:13px;color:var(--text-hint);cursor:pointer;padding:4px 8px">취소</span></div>'+
     '</div>';
   document.body.appendChild(sheet);
 }
@@ -6632,6 +6671,74 @@ function openAddrSearch(){
     console.error('[CareLink] Daum Postcode 오류:', e);
     showToast('⚠️ 주소 검색에 실패했습니다. 다시 시도해주세요.');
   }
+}
+
+// ── 범용 다음 주소검색 (학원 정보 수정 등에서 재사용) ──
+function openDaumPostcodeGeneric(onComplete){
+  if(typeof daum === 'undefined' || !daum.Postcode){
+    showToast('⏳ 주소 검색 기능을 불러오는 중...');
+    var script = document.createElement('script');
+    script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.onload = function(){
+      setTimeout(function(){
+        if(typeof daum !== 'undefined' && daum.Postcode) openDaumPostcodeGeneric(onComplete);
+        else showToast('⚠️ 주소 검색을 불러올 수 없습니다');
+      }, 300);
+    };
+    script.onerror = function(){ showToast('⚠️ 주소 검색 서비스를 불러올 수 없습니다. 네트워크를 확인해주세요.'); };
+    document.head.appendChild(script);
+    return;
+  }
+  try {
+    var closeEmbed = function(){
+      var w = document.getElementById('daum-addr-embed-wrap');
+      if(w) w.style.display = 'none';
+      var layer = document.getElementById('postcode-layer');
+      if(layer && layer.parentNode) layer.parentNode.removeChild(layer);
+    };
+    var pc = new daum.Postcode({
+      oncomplete: function(data){
+        closeEmbed();
+        if(typeof onComplete === 'function') onComplete(data);
+      },
+      width: '100%', height: '100%'
+    });
+    if(window.__NATIVE_APP__){
+      var container = document.createElement('div');
+      container.id = 'postcode-layer';
+      container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:5% 4%;box-sizing:border-box;';
+      var inner = document.createElement('div');
+      inner.style.cssText = 'width:100%;max-width:520px;height:90%;background:#fff;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 8px 30px rgba(0,0,0,0.3);';
+      container.appendChild(inner);
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕ 닫기';
+      closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;z-index:10001;padding:8px 16px;font-size:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;';
+      closeBtn.onclick = function(){ document.body.removeChild(container); };
+      inner.appendChild(closeBtn);
+      container.addEventListener('click', function(e){ if(e.target === container){ document.body.removeChild(container); } });
+      document.body.appendChild(container);
+      pc.embed(inner);
+    } else {
+      pc.embed(document.getElementById('daum-addr-embed-container'));
+      var embedWrap = document.getElementById('daum-addr-embed-wrap');
+      if(embedWrap) embedWrap.style.display = 'flex';
+    }
+  } catch(e){
+    console.error('[요보망] 범용 주소검색 오류:', e);
+    showToast('⚠️ 주소 검색에 실패했습니다. 다시 시도해주세요.');
+  }
+}
+
+// 학원 정보 수정 — 주소 검색
+function openInstAddrSearch(){
+  openDaumPostcodeGeneric(function(data){
+    var addr = data.roadAddress || data.jibunAddress || '';
+    var el = document.getElementById('edit-inst-address');
+    if(el) el.value = addr;
+    var detail = document.getElementById('edit-inst-addrdetail');
+    if(detail) detail.focus();
+    showToast('📍 주소가 입력되었습니다. 상세주소를 입력해 주세요.');
+  });
 }
 
 var _geocodingDone = true; // 지오코딩 완료 플래그
@@ -7032,7 +7139,7 @@ function updateMyListings(item){
   if(el.textContent.includes('없습니다')) el.innerHTML='';
   el.innerHTML=`<div style="background:#f9f9f9;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border)" onclick="openDetail(${item.id})">
     <div style="font-size:15px;font-weight:700">${escapeHtml(item.title)}</div>
-    <div style="font-size:13px;color:#aaa;margin-top:4px">📍${escapeHtml(item.area)} · ${escapeHtml(item.time)} · <span style="color:var(--primary)">14일 후 만료</span></div>
+    <div style="font-size:13px;color:var(--text-hint);margin-top:4px">📍${escapeHtml(item.area)} · ${escapeHtml(item.time)} · <span style="color:var(--primary)">14일 후 만료</span></div>
   </div>`+el.innerHTML;
 }
 
@@ -7338,7 +7445,7 @@ function showBookmarks(){
     ? state.listings.filter(l=>state.bookmarks.has(l.id))
     : [];
   if(!items.length){
-    list.innerHTML=`<div style="text-align:center;padding:40px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">🤍</div><div style="font-size:15px">찜한 공고가 없습니다<br>마음에 드는 공고에 ❤️를 눌러보세요</div></div>`;
+    list.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--text-hint)"><div style="font-size:48px;margin-bottom:12px">🤍</div><div style="font-size:15px">찜한 공고가 없습니다<br>마음에 드는 공고에 ❤️를 눌러보세요</div></div>`;
   } else {
     list.innerHTML=items.map(item=>`
       <div style="background:#fff;border-bottom:1px solid var(--border);padding:16px;cursor:pointer" onclick="closeModal('modal-bookmarks');openDetail(${item.id})">
@@ -7349,7 +7456,7 @@ function showBookmarks(){
           ${item.status==='matched'?'<span class="badge-matched">🤝 매칭완료</span>':''}
         </div>
         <div style="font-size:16px;font-weight:700;margin-bottom:4px">${escapeHtml(item.title)}</div>
-        <div style="font-size:13px;color:#aaa">📍${escapeHtml(item.area)} · ${escapeHtml(item.salary)}</div>
+        <div style="font-size:13px;color:var(--text-hint)">📍${escapeHtml(item.area)} · ${escapeHtml(item.salary)}</div>
       </div>`).join('');
   }
   modal.classList.add('open');
@@ -8532,7 +8639,7 @@ function showChatNotifToast(senderName, msgPreview){
   toast.style.cssText = 'position:fixed;top:12px;left:12px;right:12px;z-index:99999;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 4px 24px rgba(0,0,0,0.18);cursor:pointer;display:flex;align-items:center;gap:12px;animation:slideDown 0.3s ease;font-family:inherit';
   toast.innerHTML = '<div style="width:42px;height:42px;border-radius:14px;background:#FEE500;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>'
     + '<div style="flex:1;overflow:hidden;min-width:0">'
-    + '<div style="display:flex;align-items:center;gap:6px"><div style="font-size:14px;font-weight:700;color:#111">' + escapeHtml(senderName) + '</div><div style="font-size:11px;color:#bbb">지금</div></div>'
+    + '<div style="display:flex;align-items:center;gap:6px"><div style="font-size:14px;font-weight:700;color:#111">' + escapeHtml(senderName) + '</div><div style="font-size:11px;color:var(--text-hint)">지금</div></div>'
     + '<div style="font-size:13px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(msgPreview) + '</div>'
     + '</div>';
   toast.onclick = function(){ switchTab('chat'); toast.remove(); };
@@ -8827,7 +8934,7 @@ function showChatLeaveSheet(chatId){
   sheet.onclick = function(ev){ if(ev.target === sheet) sheet.remove(); };
   sheet.innerHTML =
     '<div style="background:#fff;width:100%;max-width:430px;border-radius:18px 18px 0 0;padding:16px 0 24px;animation:slideUpSheet .18s ease-out">'+
-      '<div style="text-align:center;font-size:13px;color:#999;padding:0 20px 12px;border-bottom:1px solid #f0f0f0">'+
+      '<div style="text-align:center;font-size:13px;color:var(--text-hint);padding:0 20px 12px;border-bottom:1px solid #f0f0f0">'+
         escapeHtml(chat.otherName||'채팅방')+
       '</div>'+
       '<div onclick="confirmLeaveChatRoom(\''+chatId+'\')" style="padding:18px 22px;font-size:16px;font-weight:700;color:#E53935;cursor:pointer;display:flex;align-items:center;gap:14px">'+
@@ -9197,7 +9304,7 @@ function renderEduRegionList(){
   if(titleEl) titleEl.textContent='🏫 교육기관';
 
   if(!regions.length){
-    container.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#aaa">
+    container.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--text-hint)">
       <div style="font-size:48px;margin-bottom:16px">🏫</div>
       <div style="font-size:16px;font-weight:700;margin-bottom:8px">등록된 교육기관이 없습니다</div>
       <div style="font-size:14px">관리자가 지역을 추가하면 여기에 표시됩니다</div>
@@ -9218,7 +9325,7 @@ function renderEduRegionList(){
             <div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:3px">${r}</div>
             <div style="font-size:17px;font-weight:900;color:var(--text);margin-bottom:2px">${escapeHtml(d.instName)}</div>
             <div style="font-size:13px;color:var(--text-sub)">${escapeHtml(d.branch)}${d.phone?` · ${escapeHtml(d.phone)}`:''}</div>
-            ${d.address?`<div style="font-size:12px;color:#aaa;margin-top:3px">📍 ${escapeHtml(d.address)}</div>`:''}
+            ${d.address?`<div style="font-size:12px;color:var(--text-hint);margin-top:3px">📍 ${escapeHtml(d.address)}</div>`:''}
           </div>
           <div style="font-size:20px;color:#ccc">›</div>
         </div>`;
@@ -9332,7 +9439,7 @@ function renderEduRegionModalList(){
     if(backEl)  backEl.style.display = 'none';
 
     listEl.innerHTML = `
-      <div style="font-size:13px;color:#aaa;text-align:center;margin-bottom:14px">시 · 도를 먼저 선택하세요</div>
+      <div style="font-size:13px;color:var(--text-hint);text-align:center;margin-bottom:14px">시 · 도를 먼저 선택하세요</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         ${Object.keys(KOREA_ALL_REGIONS).map(sido => {
           const cnt = (registered[sido] || []).length;
@@ -9379,7 +9486,7 @@ function renderEduRegionModalList(){
         <div style="width:42px;height:42px;background:#e0e0e0;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📍</div>
         <div style="flex:1">
           <div style="font-size:16px;font-weight:700;color:#888">${sigungu}</div>
-          <div style="font-size:12px;color:#bbb;margin-top:1px">${isAdmin?'탭해서 학원 추가':'등록된 교육기관 없음'}</div>
+          <div style="font-size:12px;color:var(--text-hint);margin-top:1px">${isAdmin?'탭해서 학원 추가':'등록된 교육기관 없음'}</div>
         </div>
         ${isAdmin?`<div onclick="openAddForRegion('${eduModalSido} ${sigungu}')" style="background:var(--primary);color:#fff;font-size:13px;font-weight:700;padding:7px 12px;border-radius:10px;cursor:pointer;flex-shrink:0">+ 추가</div>`:''}
       </div>`;
@@ -9446,21 +9553,25 @@ function renderEduRegionContent(){
   const container = document.getElementById('edu-region-content');
   if(!container) return;
   const d = regionEduData[selectedEduRegion];
-  if(!d){ container.innerHTML=`<div style="text-align:center;padding:40px;color:#aaa">등록된 교육기관이 없습니다</div>`; return; }
+  if(!d){ container.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text-hint)">등록된 교육기관이 없습니다</div>`; return; }
   const isAdmin   = state.user && state.user.kakaoId === ADMIN_KAKAO_ID;
   const isManager = state.user && d.managerId && state.user.kakaoId === d.managerId;
+  // ★ 보수교육 담당 학원(광고주)이 별도인 경우 — 보수교육 영역만 편집 가능
+  const isRefMgr  = state.user && d.refresherManagerId && state.user.kakaoId === d.refresherManagerId;
   const canEdit   = isAdmin || isManager;
-  const editBtn   = (key,label) => canEdit
-    ? `<button class="edit-notice-btn" onclick="openEditModal('${key}')">${label}</button>`
-    : '';
+  const canEditRefresher = canEdit || isRefMgr;
+  const editBtn   = (key,label) => {
+    const allowed = (key === 'refresher') ? canEditRefresher : canEdit;
+    return allowed ? `<button class="edit-notice-btn" onclick="openEditModal('${key}')">${label}</button>` : '';
+  };
 
   var isRefresherOnly = (state._eduMode === 'refresher');
   var isCertOnly = (state._eduMode === 'cert');
   container.innerHTML = `
     <!-- 광고주 관리 모드 배너 -->
-    ${isManager && !isAdmin ? `
+    ${(isManager || isRefMgr) && !isAdmin ? `
     <div style="background:#FFF8E1;border-bottom:2px solid #FFE082;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#F57F17">
-      ✏️ 내 학원 관리 모드 — 수정 버튼을 눌러 내용을 바꿔보세요
+      ✏️ 내 학원 관리 모드${isRefMgr && !isManager ? ' (보수교육 담당)' : ''} — 수정 버튼을 눌러 내용을 바꿔보세요
     </div>` : ''}
 
     <!-- 기관 헤더 (컴팩트: 기관명 + 전화번호 한 줄) -->
@@ -9472,10 +9583,10 @@ function renderEduRegionContent(){
           <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.22);border-radius:9px;padding:6px 12px;font-size:13px;font-weight:700">📞 ${escapeHtml(d.phone)}</div>
         </a>`:''}
       </div>
-      ${d.address?`<div style="font-size:12px;opacity:.85">📍 ${escapeHtml(d.address)}</div>`:''}
-      ${(canEdit || isAdmin || isRefresherOnly || isCertOnly) ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      ${d.address?`<div style="font-size:12px;opacity:.85">📍 ${escapeHtml(d.address)}${d.addressDetail?' '+escapeHtml(d.addressDetail):''}</div>`:''}
+      ${(canEditRefresher || isAdmin || isRefresherOnly || isCertOnly) ? `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         ${(isRefresherOnly || isCertOnly)?`<div onclick="state._eduMode=null;renderEduRegionContent()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.18);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">📋 전체 일정</div>`:''}
-        ${canEdit?`<div onclick="openInstInfoForm()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.2);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">✏️ 학원정보 수정</div>`:''}
+        ${canEditRefresher?`<div onclick="openInstInfoForm()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.2);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">✏️ 학원정보 수정</div>`:''}
         ${isAdmin?`<div onclick="openSetManagerModal()" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.15);border-radius:9px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">👤 광고주 설정</div>`:''}
       </div>`:''}
     </div>
@@ -9496,7 +9607,7 @@ function renderEduRegionContent(){
         const fbKey = btoa(unescape(encodeURIComponent(region+'_cert_'+i))).replace(/[^a-zA-Z0-9]/g,'_');
         const seatsLeft = (typeof s.capacity === 'number' && typeof s.seats === 'number') ? Math.max(0, s.capacity - s.seats) : null;
         return `
-        <div class="edu-schedule-card" style="padding:14px;border:2px solid ${s.status==='모집중'?'#FFCC80':'#eee'};${s.status==='모집중'?'box-shadow:0 2px 8px rgba(255,107,53,.12)':''}">
+        <div class="edu-schedule-card" style="padding:14px;border:2px solid ${s.status==='모집중'?'#FFCC80':'#eee'};${s.status==='모집중'?'box-shadow:0 2px 8px rgba(229,90,43,.12)':''}">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
             <div style="flex:1;min-width:0">
               <div style="font-size:11px;font-weight:700;color:${s.status==='모집중'?'#2E7D32':'#999'};margin-bottom:3px">${s.status}</div>
@@ -9504,7 +9615,7 @@ function renderEduRegionContent(){
               ${seatsLeft !== null ? `<div style="margin-top:4px;font-size:13px;font-weight:700;color:${seatsLeft<=3?'#E53935':'#1976D2'}">남은 좌석 <span style="font-size:18px">${seatsLeft}</span> / ${s.capacity}석</div>` : `<div style="margin-top:4px;font-size:13px;color:var(--text-sub)">${renderSeatInfo(s, i, 'cert', canEdit)}</div>`}
             </div>
           </div>
-          ${s.status==='모집중'?`<button onclick="openCertApplyForm(${i})" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,53,.25)">📝 이 일정으로 신청하기</button>`:`<div style="text-align:center;padding:10px;color:#aaa;font-size:13px;background:#fafafa;border-radius:8px">${s.status}</div>`}
+          ${s.status==='모집중'?`<button onclick="openCertApplyForm(${i})" style="width:100%;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(229,90,43,.25)">📝 이 일정으로 신청하기</button>`:`<div style="text-align:center;padding:10px;color:var(--text-hint);font-size:13px;background:#fafafa;border-radius:8px">${s.status}</div>`}
           ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('cert',${i})">📋 신청자 보기</button>
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('cert',${i})">📥 엑셀</button>
@@ -9528,17 +9639,17 @@ function renderEduRegionContent(){
             <div style="flex:1;min-width:0">
               <div style="font-size:11px;font-weight:700;color:${s.status==='모집중'?'#1565C0':'#999'};margin-bottom:3px">${s.status}</div>
               <div style="font-size:17px;font-weight:900;color:var(--text);line-height:1.3">📅 ${s.date}</div>
-              ${seatsLeft !== null ? `<div style="margin-top:4px;font-size:13px;font-weight:700;color:${seatsLeft<=3?'#E53935':'#1565C0'}">남은 좌석 <span style="font-size:18px">${seatsLeft}</span> / ${s.capacity}석</div>` : `<div style="margin-top:4px;font-size:13px;color:var(--text-sub)">${renderSeatInfo(s, i, 'refresher', canEdit)}</div>`}
+              ${seatsLeft !== null ? `<div style="margin-top:4px;font-size:13px;font-weight:700;color:${seatsLeft<=3?'#E53935':'#1565C0'}">남은 좌석 <span style="font-size:18px">${seatsLeft}</span> / ${s.capacity}석</div>` : `<div style="margin-top:4px;font-size:13px;color:var(--text-sub)">${renderSeatInfo(s, i, 'refresher', canEditRefresher)}</div>`}
             </div>
           </div>
-          ${s.status==='모집중'?`<button onclick="openRefresherApplyForm(${i})" style="width:100%;padding:14px;border:none;border-radius:12px;background:#1565C0;color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(21,101,192,.25)">📝 이 일정으로 신청하기</button>`:`<div style="text-align:center;padding:10px;color:#aaa;font-size:13px;background:#fafafa;border-radius:8px">${s.status}</div>`}
-          ${canEdit?`<div style="display:flex;gap:6px;margin-top:8px">
+          ${s.status==='모집중'?`<button onclick="openRefresherApplyForm(${i})" style="width:100%;padding:14px;border:none;border-radius:12px;background:#1565C0;color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(21,101,192,.25)">📝 이 일정으로 신청하기</button>`:`<div style="text-align:center;padding:10px;color:var(--text-hint);font-size:13px;background:#fafafa;border-radius:8px">${s.status}</div>`}
+          ${canEditRefresher?`<div style="display:flex;gap:6px;margin-top:8px">
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();openApplicantsModal('refresher',${i})">📋 신청자 보기</button>
             <button class="edu-apply-btn outline" style="flex:1;font-size:12px;padding:8px" onclick="event.stopPropagation();downloadApplicantsForSchedule('refresher',${i})">📥 엑셀</button>
           </div>`:''}
         </div>`;
       }).join('')}
-      ${canEdit?`<div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)">
+      ${canEditRefresher?`<div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)">
         <div style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:8px">📊 신청자 관리 (학원·관리자 전용)</div>
         <button onclick="exportAllRefresherApplicants(selectedEduRegion)" style="width:100%;padding:13px;border:none;border-radius:12px;background:#2E7D32;color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px">📥 이 학원 보수교육 신청자 — 날짜별 통합 엑셀</button>
         ${isAdmin()?`<button onclick="exportAllRefresherApplicants()" style="width:100%;padding:12px;border:1.5px solid #2E7D32;border-radius:12px;background:#fff;color:#2E7D32;font-size:14px;font-weight:800;cursor:pointer">📥 전국 모든 학원 통합 엑셀 (학원별 시트)</button>`:''}
@@ -9554,7 +9665,7 @@ function renderEduRegionContent(){
         <div style="font-size:13px;color:#795548;line-height:1.8">
           수강료 입금(결제) 확인 후 수강이 확정됩니다.<br>
           <b>카드결제</b>를 선택하신 경우, <b style="color:#E65100">교육 전 학원에 방문하여 사전 결제</b>를 완료해 주셔야 합니다.<br>
-          <span style="font-size:12px;color:#999">※ 4시간: 18,000원 / 8시간: 36,000원</span>
+          <span style="font-size:12px;color:var(--text-hint)">※ 4시간: 18,000원 / 8시간: 36,000원</span>
         </div>
       </div>
 
@@ -9621,16 +9732,26 @@ function openSetManagerModal(){
   const input   = document.getElementById('manager-kakao-id-input');
   if(display) display.textContent = d.managerId || '없음 (미설정)';
   if(input)   input.value = d.managerId || '';
+  const refDisplay = document.getElementById('current-refresher-manager-display');
+  const refInput   = document.getElementById('refresher-manager-kakao-id-input');
+  if(refDisplay) refDisplay.textContent = d.refresherManagerId || '없음 (전체 광고주와 동일)';
+  if(refInput)   refInput.value = d.refresherManagerId || '';
   document.getElementById('modal-set-manager').classList.add('open');
 }
 function saveManagerId(){
+  // ★ 보안: 광고주 설정은 운영자 전용
+  if(!isAdmin()){ showToast('⚠️ 관리자만 설정할 수 있습니다.'); return; }
   const d = regionEduData[selectedEduRegion];
   if(!d) return;
   const input = document.getElementById('manager-kakao-id-input');
   d.managerId = (input?.value||'').trim();
+  const refInput = document.getElementById('refresher-manager-kakao-id-input');
+  d.refresherManagerId = (refInput?.value||'').trim();
+  // ★ Firebase 저장 (기존엔 메모리에만 반영되어 새로고침 시 소실되던 버그 수정)
+  saveEduRegionToFirebase(selectedEduRegion);
   closeModal('modal-set-manager');
   renderEduRegionContent();
-  showToast(d.managerId ? `✅ 광고주 ID가 설정되었습니다` : '광고주 권한이 제거되었습니다');
+  showToast((d.managerId || d.refresherManagerId) ? `✅ 광고주 ID가 설정되었습니다` : '광고주 권한이 제거되었습니다');
 }
 
 // ---- 새 지역 추가 ----
@@ -9733,6 +9854,8 @@ function openInstInfoForm(){
   document.getElementById('edit-inst-branch').value      = d.branch      || '';
   document.getElementById('edit-inst-phone').value       = d.phone       || '';
   document.getElementById('edit-inst-address').value     = d.address     || '';
+  var _detEl = document.getElementById('edit-inst-addrdetail');
+  if(_detEl) _detEl.value = d.addressDetail || '';
   document.getElementById('edit-inst-notice').value      = d.notice      || '';
   document.getElementById('edit-inst-certinfo').value    = d.certInfo    || '';
   document.getElementById('edit-inst-refresherinfo').value = d.refresherInfo || '';
@@ -9741,9 +9864,9 @@ function openInstInfoForm(){
   document.getElementById('modal-edu-instinfo').classList.add('open');
 }
 function saveInstInfo(){
-  // ★ 보안: 관리자 또는 해당 학원 매니저만 수정 가능
+  // ★ 보안: 관리자 또는 해당 학원 매니저(자격증/보수교육 담당 모두)만 수정 가능
   var _md = regionEduData[selectedEduRegion];
-  var _isMgr = state.user && _md && _md.managerId && state.user.kakaoId === _md.managerId;
+  var _isMgr = state.user && _md && ((_md.managerId && state.user.kakaoId === _md.managerId) || (_md.refresherManagerId && state.user.kakaoId === _md.refresherManagerId));
   if(!isAdmin() && !_isMgr){ showToast('⚠️ 수정 권한이 없습니다.'); return; }
   const d = regionEduData[selectedEduRegion];
   if(!d) return;
@@ -9753,6 +9876,8 @@ function saveInstInfo(){
   d.branch        = document.getElementById('edit-inst-branch').value.trim();
   d.phone         = document.getElementById('edit-inst-phone').value.trim();
   d.address       = document.getElementById('edit-inst-address').value.trim();
+  var _detEl2 = document.getElementById('edit-inst-addrdetail');
+  if(_detEl2) d.addressDetail = sanitizeInput(_detEl2.value.trim()).slice(0, 60);
   d.notice        = document.getElementById('edit-inst-notice').value.trim()       || d.notice;
   d.certInfo      = document.getElementById('edit-inst-certinfo').value.trim()     || d.certInfo;
   d.refresherInfo = document.getElementById('edit-inst-refresherinfo').value.trim()|| d.refresherInfo;
@@ -9770,9 +9895,12 @@ function saveInstInfo(){
 
 function saveEduEdit(){
   // ★ 보안: 관리자 또는 해당 학원 매니저만 수정 가능
+  // 보수교육 담당 매니저(refresherManagerId)는 보수교육 일정만 수정 가능
   var _md2 = regionEduData[selectedEduRegion];
   var _isMgr2 = state.user && _md2 && _md2.managerId && state.user.kakaoId === _md2.managerId;
-  if(!isAdmin() && !_isMgr2){ showToast('⚠️ 수정 권한이 없습니다.'); return; }
+  var _isRefMgr2 = state.user && _md2 && _md2.refresherManagerId && state.user.kakaoId === _md2.refresherManagerId;
+  var _allowed = isAdmin() || _isMgr2 || (_isRefMgr2 && currentEditKey === 'refresher');
+  if(!_allowed){ showToast('⚠️ 수정 권한이 없습니다.' + (_isRefMgr2 ? ' (보수교육 담당은 보수교육 일정만 수정 가능)' : '')); return; }
   const textarea = document.getElementById('edu-edit-textarea');
   if(!textarea) return;
   const val = textarea.value.trim();
@@ -10313,10 +10441,12 @@ function adjustCapacity(delta){
 }
 
 function saveCapacity(){
-  // ★ 보안: 관리자 또는 해당 학원 매니저만 수정 가능
+  // ★ 보안: 관리자 또는 해당 학원 매니저만 수정 가능 (보수교육 담당은 보수교육 정원만)
   var _md3 = regionEduData[selectedEduRegion];
   var _isMgr3 = state.user && _md3 && _md3.managerId && state.user.kakaoId === _md3.managerId;
-  if(!isAdmin() && !_isMgr3){ showToast('⚠️ 수정 권한이 없습니다.'); return; }
+  var _isRefMgr3 = state.user && _md3 && _md3.refresherManagerId && state.user.kakaoId === _md3.refresherManagerId;
+  var _capAllowed = isAdmin() || _isMgr3 || (_isRefMgr3 && capacityEditType === 'refresher');
+  if(!_capAllowed){ showToast('⚠️ 수정 권한이 없습니다.'); return; }
   const input = document.getElementById('capacity-input');
   const val = parseInt(input?.value)||20;
   const d = regionEduData[selectedEduRegion];
@@ -10358,7 +10488,7 @@ function openApplicantsModal(type, idx){
 
     const listEl = document.getElementById('applicants-list');
     if(!list.length){
-      listEl.innerHTML = `<div style="text-align:center;padding:30px;color:#aaa;font-size:14px">아직 신청자가 없습니다</div>`;
+      listEl.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-hint);font-size:14px">아직 신청자가 없습니다</div>`;
     } else {
       const payLabels = {'0':'현금','1':'카드','2':'계좌이체'};
       listEl.innerHTML = list.map((a,i)=>`
@@ -10368,7 +10498,7 @@ function openApplicantsModal(type, idx){
             <div style="font-weight:700;color:var(--text)">${escapeHtml(a.name)}</div>
             <div style="font-size:12px;color:var(--text-sub)">${escapeHtml(a.phone)}${a.certNo?' · 자격: '+escapeHtml(a.certNo):''}${a.discount?' · 감면대상':''}${a.org?' · '+escapeHtml(a.org):''}${a.hours?(' · '+a.hours+'시간'):''}${a.payment!==undefined?(' · '+(payLabels[a.payment]||'')):''}</div>
           </div>
-          <div style="font-size:11px;color:#aaa;flex-shrink:0">${a.appliedDate||''}</div>
+          <div style="font-size:11px;color:var(--text-hint);flex-shrink:0">${a.appliedDate||''}</div>
         </div>
       `).join('');
     }
@@ -10654,6 +10784,66 @@ function updateAdminUI(){
   const adminMenu = document.getElementById('admin-dashboard-menu');
   if(adminBadge) adminBadge.style.display = isAdminUser ? '' : 'none';
   if(adminMenu) adminMenu.style.display = isAdminUser ? '' : 'none';
+  // ★ 관리자 로그인 시 신고 실시간 감시 시작
+  if(isAdminUser) initAdminReportNotify();
+}
+
+// ============================================================
+//  신고 접수 → 운영자 실시간 인앱 알림 (배지 + 토스트 + 기기알림)
+// ============================================================
+function _adminReportBadgeUpdate(){
+  var cnt = window._adminNewReportCount || 0;
+  var menu = document.getElementById('admin-dashboard-menu');
+  if(!menu) return;
+  var dot = document.getElementById('admin-report-dot');
+  if(cnt > 0){
+    if(!dot){
+      dot = document.createElement('span');
+      dot.id = 'admin-report-dot';
+      dot.style.cssText = 'background:#E53935;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;margin-left:8px';
+      var arrow = menu.querySelector('.menu-arrow');
+      menu.insertBefore(dot, arrow || null);
+    }
+    dot.textContent = '🚨 신고 ' + cnt;
+  } else if(dot){
+    dot.remove();
+  }
+}
+
+function initAdminReportNotify(){
+  if(!fbDB || window._adminReportNotifyOn) return;
+  window._adminReportNotifyOn = true;
+  window._adminNewReportCount = 0;
+  var lastSeen = parseInt(localStorage.getItem('cl_admin_report_seen') || '0');
+  var notify = function(kind, at){
+    if(!at || at <= lastSeen) return; // 이미 확인한 신고
+    window._adminNewReportCount = (window._adminNewReportCount || 0) + 1;
+    _adminReportBadgeUpdate();
+    showToast('🚨 새 ' + kind + ' 신고가 접수되었습니다 — 관리자 대시보드에서 확인하세요');
+    try {
+      if('Notification' in window && Notification.permission === 'granted'){
+        new Notification('요보망 — 새 신고 접수', { body: kind + ' 신고가 접수되었습니다. 확인해 주세요.' });
+      }
+    } catch(e){}
+    if(typeof hapticError === 'function') hapticError();
+  };
+  try {
+    fbDB.ref('reports').limitToLast(20).on('child_added', function(snap){
+      var r = snap.val() || {};
+      notify('공고', r.time || r.at || 0);
+    });
+    fbDB.ref('operator_reports').limitToLast(20).on('child_added', function(snap){
+      var r = snap.val() || {};
+      notify('불법정보', r.at || r.time || 0);
+    });
+  } catch(e){ console.warn('[요보망] 신고 알림 리스너 오류:', e); }
+}
+
+// 신고함 확인 시 "확인했음" 처리 (배지 제거)
+function markAdminReportsSeen(){
+  localStorage.setItem('cl_admin_report_seen', String(Date.now()));
+  window._adminNewReportCount = 0;
+  _adminReportBadgeUpdate();
 }
 
 // 통계 업데이트 함수 (Firebase 실제 데이터)
@@ -10848,6 +11038,7 @@ function submitReport(){
 // 관리자 신고 목록 모달 열기
 function openAdminReportsModal(){
   if(!isAdmin()) return;
+  markAdminReportsSeen(); // 신고함 열람 = 새 신고 배지 초기화
   const modal = document.getElementById('modal-admin-reports');
   const list = document.getElementById('admin-reports-list');
   const countEl = document.getElementById('admin-reports-count');
@@ -10857,7 +11048,7 @@ function openAdminReportsModal(){
 
   if(!list) return;
   if(state.reports.length === 0){
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:#aaa">신고가 없습니다.</div>';
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-hint)">신고가 없습니다.</div>';
   } else {
     list.innerHTML = state.reports.map(report => {
       const listing = state.listings.find(l => l.id === report.listingId);
@@ -10878,7 +11069,7 @@ function openAdminReportsModal(){
           <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${escapeHtml(title)}</div>
           <div style="font-size:12px;color:var(--text-sub);margin-bottom:8px">
             <div>🚨 ${safeReason}</div>
-            <div style="margin-top:2px;color:#aaa">${escapeHtml(String(report.timeStr || new Date(report.time).toLocaleString()))}</div>
+            <div style="margin-top:2px;color:var(--text-hint)">${escapeHtml(String(report.timeStr || new Date(report.time).toLocaleString()))}</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-outline" style="flex:1;padding:8px;font-size:12px" onclick="adminDeleteListing('${safeListingId}')">공고 삭제</button>
@@ -10951,7 +11142,7 @@ function renderAdminListings(){
   }
 
   if(filtered.length === 0){
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa">공고가 없습니다.</div>';
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-hint)">공고가 없습니다.</div>';
     return;
   }
 
@@ -10985,7 +11176,7 @@ function renderMyListings(){
   const myListings = state.listings.filter(l => l.postedByKakaoId === state.user.kakaoId || l.postedBy === state.user.name || l.postedBy === state.user.nickname);
   if(myListings.length === 0){
     area.innerHTML = `
-      <div style="text-align:center;padding:20px;color:#aaa;line-height:1.6">
+      <div style="text-align:center;padding:20px;color:var(--text-hint);line-height:1.6">
         아직 올린 공고가 없어요.<br>
         글쓰기로 공고를 올려보세요!
       </div>
@@ -11261,11 +11452,11 @@ function submitBizVerify(){
       }, 1500);
     } else {
       // 진위확인 실패 (정보 불일치)
-      var rawMsg = data.raw?.data?.[0]?.valid_msg || '국세청 등록 정보와 일치하지 않습니다';
+      var rawMsg = data.valid_msg || data.raw?.data?.[0]?.valid_msg || '국세청 등록 정보와 일치하지 않습니다';
       if(resultBox){
         resultBox.style.background = '#FFEBEE';
         resultBox.style.color = '#C62828';
-        resultBox.innerHTML = '❌ 인증 실패<br><span style="font-size:12px">' + escapeHtml(String(rawMsg)) + '</span><br><span style="font-size:11px;color:#999">사업자등록증 원본을 다시 확인해 주세요.</span>';
+        resultBox.innerHTML = '❌ 인증 실패<br><span style="font-size:12px">' + escapeHtml(String(rawMsg)) + '</span><br><span style="font-size:11px;color:var(--text-hint)">사업자등록증 원본을 다시 확인해 주세요.</span>';
       }
     }
   })
@@ -11395,14 +11586,14 @@ function loadCommunityPosts(){
   var nameEl = document.getElementById('community-region-name');
   if(nameEl) nameEl.textContent = getCommunityRegionLabel();
   if(!region){
-    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px;line-height:1.6">지역을 선택해 주세요<br><span style="font-size:12px;color:#bbb">상단의 지역명을 누르면 다른 지역도 볼 수 있어요</span></div><button onclick="openCommunityRegionModal()" style="margin-top:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">지역 선택하기</button></div>';
+    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)"><div style="font-size:48px;margin-bottom:12px">📍</div><div style="font-size:14px;line-height:1.6">지역을 선택해 주세요<br><span style="font-size:12px;color:var(--text-hint)">상단의 지역명을 누르면 다른 지역도 볼 수 있어요</span></div><button onclick="openCommunityRegionModal()" style="margin-top:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">지역 선택하기</button></div>';
     return;
   }
   if(!fbDB){
-    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa">서버 연결이 필요합니다</div>';
+    if(area) area.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)">서버 연결이 필요합니다</div>';
     return;
   }
-  if(area) area.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa"><div style="font-size:32px;margin-bottom:8px">⏳</div>불러오는 중...</div>';
+  if(area) area.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-hint)"><div style="font-size:32px;margin-bottom:8px">⏳</div>불러오는 중...</div>';
   // 기존 리스너 해제
   if(state._communityListener){ try { state._communityListener.off(); } catch(e){} state._communityListener = null; }
   var key = communityRegionKey(region);
@@ -11506,6 +11697,126 @@ function setCommunitySort(el, sort){
   document.querySelectorAll('#community-sort-bar .comm-sort-btn').forEach(function(b){ b.classList.remove('active'); });
   if(el) el.classList.add('active');
   renderCommunityPosts();
+}
+
+// ============================================================
+//  지역 실시간 수다방 (region-chat)
+//  - 최근 50개만 실시간 표시, 서버는 3일 보존(Cloud Function 정리)
+//  - 데이터 누적 방지: 클라이언트도 전송 시 확률적으로 3일 경과분 정리
+// ============================================================
+var _regionChatRef = null;
+var _regionChatHandler = null;
+var REGION_CHAT_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3일
+
+function _regionChatKey(){
+  var region = state.communityScope === 'all' ? COMMUNITY_NATIONAL_KEY : (state.communityRegion || (state.user && state.user.area) || '');
+  return region ? communityRegionKey(region) : '';
+}
+
+function openRegionChat(){
+  if(!state.user || !state.user.kakaoId){ showToast('로그인이 필요합니다'); return; }
+  if(!fbDB){ showToast('서버 연결이 필요합니다'); return; }
+  var key = _regionChatKey();
+  if(!key){
+    showToast('먼저 동네를 선택해 주세요');
+    if(typeof openAreaSelectModal === 'function'){
+      openAreaSelectModal(function(area){ state.communityRegion = area; loadCommunityPosts(); setTimeout(openRegionChat, 250); });
+    }
+    return;
+  }
+  var label = document.getElementById('region-chat-region-label');
+  if(label) label.textContent = '📍 ' + (state.communityScope === 'all' ? '전국 수다방' : (state.communityRegion || (state.user && state.user.area) || ''));
+  var box = document.getElementById('region-chat-messages');
+  if(box) box.innerHTML = '<div style="text-align:center;color:var(--text-hint);font-size:13px;padding:20px">불러오는 중...</div>';
+  // 기존 리스너 정리 후 재등록
+  if(_regionChatRef && _regionChatHandler){ try { _regionChatRef.off('value', _regionChatHandler); } catch(e){} }
+  _regionChatRef = fbDB.ref('region-chat/' + key + '/messages').orderByChild('at').limitToLast(50);
+  _regionChatHandler = _regionChatRef.on('value', function(snap){
+    var msgs = [];
+    snap.forEach(function(c){ var v = c.val() || {}; v._id = c.key; msgs.push(v); });
+    msgs.sort(function(a,b){ return (a.at||0) - (b.at||0); });
+    _renderRegionChat(msgs);
+  }, function(err){
+    console.error('[요보망] 수다방 로드 실패:', err);
+    if(box) box.innerHTML = '<div class="empty-state"><div class="es-icon">📡</div><div class="es-msg">대화를 불러오지 못했어요.<br>인터넷 연결을 확인해 주세요.</div><button class="es-btn" onclick="openRegionChat()">다시 시도</button></div>';
+  });
+  openModalSafe('modal-region-chat','show');
+  if(typeof logConsent === 'function'){
+    logConsent('region_chat_enter', true, { legalBasis: '약관·게시판 운영정책', retention: '메시지 3일 보존 후 자동 삭제' });
+  }
+}
+
+function closeRegionChat(){
+  if(_regionChatRef && _regionChatHandler){ try { _regionChatRef.off('value', _regionChatHandler); } catch(e){} }
+  _regionChatRef = null; _regionChatHandler = null;
+  closeModal('modal-region-chat');
+}
+
+function _renderRegionChat(msgs){
+  var box = document.getElementById('region-chat-messages');
+  if(!box) return;
+  var myId = state.user && state.user.kakaoId;
+  var nearBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 120;
+  if(!msgs.length){
+    box.innerHTML = '<div style="text-align:center;color:var(--text-hint);font-size:13.5px;padding:30px 16px;line-height:1.7">아직 대화가 없어요.<br>첫 인사를 남겨보세요! 👋</div>';
+    return;
+  }
+  var html = '';
+  var now = Date.now();
+  msgs.forEach(function(m){
+    if(m.at && (now - m.at) > REGION_CHAT_TTL_MS) return; // 만료분 표시 제외
+    var mine = myId && m.uid === myId;
+    var when = m.at ? getRelativeTime(m.at) : '';
+    html += '<div style="display:flex;flex-direction:column;align-items:' + (mine ? 'flex-end' : 'flex-start') + ';margin-bottom:8px">'
+      + (mine ? '' : '<div style="font-size:11.5px;color:var(--text-hint);margin:0 4px 3px">' + escapeHtml(m.name || '이웃') + '</div>')
+      + '<div style="display:flex;align-items:flex-end;gap:5px;flex-direction:' + (mine ? 'row-reverse' : 'row') + ';max-width:88%">'
+        + '<div style="background:' + (mine ? 'var(--primary)' : '#fff') + ';color:' + (mine ? '#fff' : 'var(--text)') + ';padding:9px 13px;border-radius:14px;border-top-' + (mine ? 'right' : 'left') + '-radius:3px;font-size:14.5px;line-height:1.5;word-break:break-word;box-shadow:var(--shadow-sm)">' + escapeHtml(m.text || '') + '</div>'
+        + '<span style="font-size:10.5px;color:var(--text-hint);white-space:nowrap;flex-shrink:0">' + escapeHtml(when) + '</span>'
+      + '</div>'
+    + '</div>';
+  });
+  box.innerHTML = html;
+  if(nearBottom || true){ box.scrollTop = box.scrollHeight; }
+}
+
+var _lastRegionChatSend = 0;
+function sendRegionChatMsg(){
+  if(!state.user || !state.user.kakaoId){ showToast('로그인이 필요합니다'); return; }
+  if(!fbDB){ showToast('서버 연결이 필요합니다'); return; }
+  var input = document.getElementById('region-chat-input');
+  var text = String((input || {value:''}).value || '').trim();
+  if(!text) return;
+  // 도배 방지: 2초에 1개
+  var now = Date.now();
+  if(now - _lastRegionChatSend < 2000){ showToast('잠시 후 다시 보내주세요'); return; }
+  // 콘텐츠 필터 (욕설/광고/전화번호/계좌/링크)
+  var ck = checkCommunityContent(text);
+  if(!ck.ok){ showToast('⚠️ ' + ck.reason); return; }
+  var key = _regionChatKey();
+  if(!key){ showToast('지역 정보가 없습니다'); return; }
+  _lastRegionChatSend = now;
+  fbDB.ref('region-chat/' + key + '/messages').push({
+    uid: String(state.user.kakaoId),  // 규칙의 auth.uid(문자열)와 타입 일치
+    name: getMyDisplayName(),
+    text: sanitizeInput(text).slice(0, 300),
+    at: now
+  }).then(function(){
+    if(input) input.value = '';
+    if(typeof hapticTap === 'function') hapticTap();
+    // ★ 데이터 누적 방지: 15% 확률로 3일 경과 메시지 정리 (서버 정리 함수의 보조)
+    if(Math.random() < 0.15){
+      try {
+        fbDB.ref('region-chat/' + key + '/messages').orderByChild('at').endAt(now - REGION_CHAT_TTL_MS).limitToFirst(80).once('value', function(snap){
+          var updates = {};
+          snap.forEach(function(c){ updates[c.key] = null; });
+          if(Object.keys(updates).length){ fbDB.ref('region-chat/' + key + '/messages').update(updates); }
+        });
+      } catch(e){}
+    }
+  }).catch(function(e){
+    console.error('[요보망] 수다방 전송 실패:', e);
+    showToast('⚠️ 전송 실패. 잠시 후 다시 시도해 주세요.');
+  });
 }
 
 function openCommunityWriteModal(){
@@ -11624,11 +11935,11 @@ function renderCommunityDetail(){
   var html = ''
     + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:0 4px">'
       + '<span style="font-size:12px;font-weight:700;color:var(--primary)">'+catEmoji+' '+escapeHtml(p.category||'자유')+'</span>'
-      + '<span style="font-size:12px;color:#aaa">·</span>'
+      + '<span style="font-size:12px;color:var(--text-hint)">·</span>'
       + '<span style="font-size:12px;color:#666">'+escapeHtml(p.authorName||'이웃')+'</span>'
-      + '<span style="font-size:12px;color:#aaa">·</span>'
-      + '<span style="font-size:12px;color:#aaa">'+escapeHtml(when)+'</span>'
-      + (canDelete ? '<span onclick="deleteCommunityPost()" style="margin-left:auto;color:#E53935;font-size:12px;cursor:pointer">삭제</span>' : (myId && myId !== p.authorId ? '<span onclick="reportCommunityPost()" style="margin-left:auto;color:#999;font-size:12px;cursor:pointer">🚩 신고</span>' : ''))
+      + '<span style="font-size:12px;color:var(--text-hint)">·</span>'
+      + '<span style="font-size:12px;color:var(--text-hint)">'+escapeHtml(when)+'</span>'
+      + (canDelete ? '<span onclick="deleteCommunityPost()" style="margin-left:auto;color:#E53935;font-size:12px;cursor:pointer">삭제</span>' : (myId && myId !== p.authorId ? '<span onclick="reportCommunityPost()" style="margin-left:auto;color:var(--text-hint);font-size:12px;cursor:pointer">🚩 신고</span>' : ''))
     + '</div>'
     + (p.reportedAt ? '<div style="background:#FFF8E1;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:12px;color:#F57C00">⚠️ 이 글은 신고가 접수되어 검토 중입니다 (24시간 임시조치)</div>' : '')
     + '<div style="font-size:18px;font-weight:800;color:var(--text);padding:0 4px;margin-bottom:8px">'+escapeHtml(p.title||'')+'</div>'
@@ -11639,21 +11950,21 @@ function renderCommunityDetail(){
     + '</div>'
     + '<div style="border-top:1px solid #eee;padding-top:12px;padding:12px 4px 0">'
       + '<div style="font-size:13px;font-weight:700;color:var(--text-sub);margin-bottom:8px">댓글 '+comments.length+'</div>'
-      + (comments.length === 0 ? '<div style="text-align:center;color:#bbb;font-size:13px;padding:14px">첫 댓글을 남겨보세요</div>' : '')
+      + (comments.length === 0 ? '<div style="text-align:center;color:var(--text-hint);font-size:13px;padding:14px">첫 댓글을 남겨보세요</div>' : '')
       + comments.map(function(c){
         // 정보통신망법 §44-2 — 신고된 댓글도 24시간 블라인드 (게시물과 동일 기준)
         var _isAdmin = typeof ADMIN_KAKAO_ID !== 'undefined' && myId === ADMIN_KAKAO_ID;
         if(c.reportedAt && (Date.now() - c.reportedAt) < 24*60*60*1000 && c.authorId !== myId && !_isAdmin){
-          return '<div style="background:#f8f8f8;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:12.5px;color:#999">🚩 신고 접수로 임시 블라인드된 댓글입니다 (24시간)</div>';
+          return '<div style="background:#f8f8f8;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:12.5px;color:var(--text-hint)">🚩 신고 접수로 임시 블라인드된 댓글입니다 (24시간)</div>';
         }
         var cWhen = c.createdAt ? getRelativeTime(c.createdAt) : '';
         var cCanDel = myId && (c.authorId === myId || (typeof ADMIN_KAKAO_ID !== 'undefined' && myId === ADMIN_KAKAO_ID));
         return '<div style="background:#f8f8f8;border-radius:10px;padding:10px 12px;margin-bottom:6px">'
           + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
             + '<span style="font-size:12px;font-weight:700;color:#666">'+escapeHtml(c.authorName||'이웃')+'</span>'
-            + '<span style="font-size:11px;color:#aaa">·</span>'
-            + '<span style="font-size:11px;color:#aaa">'+escapeHtml(cWhen)+'</span>'
-            + (cCanDel ? '<span onclick="deleteCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#E53935;cursor:pointer">삭제</span>' : (myId && myId !== c.authorId ? '<span onclick="reportCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#999;cursor:pointer">🚩 신고</span>' : ''))
+            + '<span style="font-size:11px;color:var(--text-hint)">·</span>'
+            + '<span style="font-size:11px;color:var(--text-hint)">'+escapeHtml(cWhen)+'</span>'
+            + (cCanDel ? '<span onclick="deleteCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:#E53935;cursor:pointer">삭제</span>' : (myId && myId !== c.authorId ? '<span onclick="reportCommunityComment(\''+escapeHtmlAttr(c._id)+'\')" style="margin-left:auto;font-size:11px;color:var(--text-hint);cursor:pointer">🚩 신고</span>' : ''))
           + '</div>'
           + '<div style="font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap">'+escapeHtml(c.body||'')+'</div>'
         + '</div>';
@@ -11895,10 +12206,10 @@ state.orgFilter = '';     // 현재 필터 종류
 function loadVerifiedOrgs(){
   var listArea = document.getElementById('orgs-list-area');
   if(!fbDB){
-    if(listArea) listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:14px">📡</div><div>Firebase 연결이 필요합니다</div></div>';
+    if(listArea) listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)"><div style="font-size:48px;margin-bottom:14px">📡</div><div>Firebase 연결이 필요합니다</div></div>';
     return;
   }
-  if(listArea) listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:40px;margin-bottom:12px">⏳</div><div style="font-size:14px">기관 목록을 불러오는 중입니다...</div></div>';
+  if(listArea) listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)"><div style="font-size:40px;margin-bottom:12px">⏳</div><div style="font-size:14px">기관 목록을 불러오는 중입니다...</div></div>';
   fbDB.ref('users').orderByChild('bizVerified').equalTo(true).once('value', function(snap){
     var orgs = [];
     snap.forEach(function(child){
@@ -11926,7 +12237,7 @@ function loadVerifiedOrgs(){
     if(state._orgsView === 'map') renderOrgsMapMarkers();
   }, function(err){
     console.error('기관 목록 로드 실패:', err);
-    if(listArea) listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div>목록을 불러오지 못했습니다.</div></div>';
+    if(listArea) listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div>목록을 불러오지 못했습니다.</div></div>';
   });
 }
 
@@ -11964,7 +12275,7 @@ function renderOrgs(){
     return true;
   });
   if(filtered.length === 0){
-    listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:14px">🔎</div><div style="font-size:14px;line-height:1.6">조건에 맞는 기관이 없습니다.<br><span style="font-size:12px;color:#bbb">사업자 인증을 받은 기관만 표시됩니다.</span></div></div>';
+    listArea.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-hint)"><div style="font-size:48px;margin-bottom:14px">🔎</div><div style="font-size:14px;line-height:1.6">조건에 맞는 기관이 없습니다.<br><span style="font-size:12px;color:var(--text-hint)">사업자 인증을 받은 기관만 표시됩니다.</span></div></div>';
     return;
   }
   // index 기반 캐시 (id가 attribute에 안 들어가도록)
@@ -11981,7 +12292,7 @@ function renderOrgs(){
             '<span style="background:#FFF3E0;color:#E65100;font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;border:1px solid #FFCC80">' + escapeHtml(o.type) + '</span>' +
           '</div>' +
         '</div>' +
-        '<div style="font-size:18px;color:#bbb;flex-shrink:0">›</div>' +
+        '<div style="font-size:18px;color:var(--text-hint);flex-shrink:0">›</div>' +
       '</div>' +
       (fullAddr ? '<div class="org-card-row">📍 ' + escapeHtml(fullAddr) + '</div>' : (o.area ? '<div class="org-card-row">📍 ' + escapeHtml(o.area) + '</div>' : '')) +
       (o.contact ? '<div class="org-card-row">📞 ' + escapeHtml(o.contact) + '</div>' : '') +
@@ -12019,7 +12330,7 @@ function openOrgActionModal(idx){
         '</div>' +
       '</div>' : '') +
       '<button onclick="closeModal(\'modal-org-action\');openOrgListings(state._currentOrg.id,state._currentOrg.name)" style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">📋 이 기관 공고 보기</button>' +
-      '<button onclick="closeModal(\'modal-org-action\')" style="padding:10px;border:none;background:transparent;color:#999;font-size:13px;cursor:pointer">닫기</button>' +
+      '<button onclick="closeModal(\'modal-org-action\')" style="padding:10px;border:none;background:transparent;color:var(--text-hint);font-size:13px;cursor:pointer">닫기</button>' +
     '</div>';
   var body = document.getElementById('modal-org-action-body');
   if(body) body.innerHTML = html;
@@ -12742,7 +13053,7 @@ function renderAdminUsers(){
       });
     }
     if(bkeys.length === 0){
-      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">차단된 회원이 없습니다</div>';
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text-hint)">차단된 회원이 없습니다</div>';
       return;
     }
     container.innerHTML = bkeys.map(function(kakaoId){
@@ -12751,20 +13062,20 @@ function renderAdminUsers(){
       return '<div style="background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-bottom:10px">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
         + '<div style="font-size:15px;font-weight:700;color:#E53935">🚫 ' + escapeHtml(b.name||kakaoId) + '</div>'
-        + '<div style="font-size:11px;color:#aaa">' + dt + '</div>'
+        + '<div style="font-size:11px;color:var(--text-hint)">' + dt + '</div>'
         + '</div>'
         + '<div style="font-size:12px;color:#888;margin-bottom:8px">사유: ' + escapeHtml(b.reason||'') + '</div>'
-        + '<div style="font-size:11px;color:#bbb;margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
+        + '<div style="font-size:11px;color:var(--text-hint);margin-bottom:8px">ID: ' + escapeHtml(kakaoId) + '</div>'
         + '<button class="btn btn-outline" style="width:100%;padding:8px;font-size:13px" onclick="adminUnbanUser(\'' + escapeHtml(kakaoId) + '\')">차단 해제</button>'
         + '</div>';
     }).join('');
   } else {
     // 전체 회원 — Firebase users에서 로드
     if(!fbDB){
-      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">Firebase 미연결</div>';
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text-hint)">Firebase 미연결</div>';
       return;
     }
-    container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa"><div class="shimmer-line" style="width:60%;margin:0 auto 12px"></div><div class="shimmer-line" style="width:40%;margin:0 auto"></div><div style="margin-top:12px;font-size:13px">회원 정보 불러오는 중...</div></div>';
+    container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text-hint)"><div class="shimmer-line" style="width:60%;margin:0 auto 12px"></div><div class="shimmer-line" style="width:40%;margin:0 auto"></div><div style="margin-top:12px;font-size:13px">회원 정보 불러오는 중...</div></div>';
     var _adminLoadTimer = setTimeout(function(){
       if(container.innerHTML.indexOf('불러오는 중') !== -1){
         container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">로딩 시간이 초과되었습니다<br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
@@ -12781,7 +13092,7 @@ function renderAdminUsers(){
         });
       }
       if(keys.length === 0){
-        container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#aaa">회원이 없습니다</div>';
+        container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text-hint)">회원이 없습니다</div>';
         return;
       }
       // 각 유저의 공고 수 계산
@@ -12842,7 +13153,7 @@ function renderAdminUsers(){
       }).join('');
     }).catch(function(err){
       console.error('[요보망] 회원 목록 로드 실패:', err);
-      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">회원 목록을 불러올 수 없습니다<br><span style="font-size:12px;color:#aaa">Firebase 권한을 확인하세요</span><br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
+      container.innerHTML = '<div style="padding:40px 0;text-align:center;color:#E53935">회원 목록을 불러올 수 없습니다<br><span style="font-size:12px;color:var(--text-hint)">Firebase 권한을 확인하세요</span><br><button class="btn btn-outline" style="margin-top:12px;padding:8px 16px;font-size:13px" onclick="renderAdminUsers()">다시 시도</button></div>';
     });
   }
 }
